@@ -1,0 +1,151 @@
+[
+    {
+      "id": "xy7-54",
+      "name": "Pikachu",
+      "supertype": "Pokémon",
+      "subtypes": ["Basic"],
+      "hp": "60",
+      "types": ["Lightning"],
+      "attacks": [
+        {
+          "name": "Thunder Shock",
+          "cost": ["Lightning"],
+          "damage": "20",
+          "text": "Flip a coin. If heads, the opponent's Active Pokémon is now Paralyzed."
+        }
+      ],
+      "weaknesses": [
+        { "type": "Fighting", "value": "×2" }
+      ],
+      "retreatCost": ["Colorless"],
+      "set": {
+        "name": "Ancient Origins",
+        "series": "XY",
+        "total": 98,
+        "releaseDate": "2015/08/12"
+      },
+      "rarity": "Common",
+      "artist": "Mitsuhiro Arita",
+      "images": {
+        "small": "https://...",
+        "large": "https://..."
+      },
+      "price": 5.99,
+      "reviews": {
+        "rating": 4.5,
+        "totalReviews": 120
+      }
+    },
+    {
+      "id": "sm2-20",
+      "name": "Charizard",
+      "supertype": "Pokémon",
+      "subtypes": ["Stage 2"],
+      "hp": "150",
+      "types": ["Fire"],
+      "attacks": [
+        {
+          "name": "Flamethrower",
+          "cost": ["Fire", "Fire", "Colorless"],
+          "damage": "90",
+          "text": "Discard an Energy from this Pokémon."
+        }
+      ],
+      "weaknesses": [
+        { "type": "Water", "value": "×2" }
+      ],
+      "retreatCost": ["Colorless", "Colorless", "Colorless"],
+      "set": {
+        "name": "Burning Shadows",
+        "series": "Sun & Moon",
+        "total": 147,
+        "releaseDate": "2017/08/04"
+      },
+      "rarity": "Rare",
+      "artist": "Ken Sugimori",
+      "images": {
+        "small": "https://...",
+        "large": "https://..."
+      },
+      "price": 25.99,
+      "reviews": {
+        "rating": 4.8,
+        "totalReviews": 250
+      }
+    },
+    {
+      "id": "swsh3-19",
+      "name": "Bulbasaur",
+      "supertype": "Pokémon",
+      "subtypes": ["Basic"],
+      "hp": "50",
+      "types": ["Grass"],
+      "attacks": [
+        {
+          "name": "Vine Whip",
+          "cost": ["Grass"],
+          "damage": "30",
+          "text": "Simple attack with vines."
+        }
+      ],
+      "weaknesses": [
+        { "type": "Fire", "value": "×2" }
+      ],
+      "retreatCost": ["Colorless"],
+      "set": {
+        "name": "Darkness Ablaze",
+        "series": "Sword & Shield",
+        "total": 189,
+        "releaseDate": "2020/08/14"
+      },
+      "rarity": "Common",
+      "artist": "Yuka Morii",
+      "images": {
+        "small": "https://...",
+        "large": "https://..."
+      },
+      "price": 3.49,
+      "reviews": {
+        "rating": 4.2,
+        "totalReviews": 95
+      }
+    },
+    {
+      "id": "bw8-40",
+      "name": "Squirtle",
+      "supertype": "Pokémon",
+      "subtypes": ["Basic"],
+      "hp": "50",
+      "types": ["Water"],
+      "attacks": [
+        {
+          "name": "Water Gun",
+          "cost": ["Water", "Colorless"],
+          "damage": "30",
+          "text": "Shoot water at the opponent."
+        }
+      ],
+      "weaknesses": [
+        { "type": "Electric", "value": "×2" }
+      ],
+      "retreatCost": ["Colorless"],
+      "set": {
+        "name": "Plasma Storm",
+        "series": "Black & White",
+        "total": 135,
+        "releaseDate": "2013/02/06"
+      },
+      "rarity": "Common",
+      "artist": "Kouki Saitou",
+      "images": {
+        "small": "https://...",
+        "large": "https://..."
+      },
+      "price": 4.99,
+      "reviews": {
+        "rating": 4.3,
+        "totalReviews": 110
+      }
+    }
+  ]
+  
