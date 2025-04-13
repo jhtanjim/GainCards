@@ -1,11 +1,13 @@
 import React from 'react'
 import Pokaemon from '../../Shared/Pokaemon/Pokaemon'
 import Banner from '../Banner/Banner'
+import About from '../About/About'
 
 const Home = () => {
   return (
     <div className=''>
       <Banner/>
+      <About/>
       <Pokaemon/>
     </div>
   )
