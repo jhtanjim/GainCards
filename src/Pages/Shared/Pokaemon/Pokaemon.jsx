@@ -48,7 +48,7 @@ const Pokaemon = () => {
     dark: "bg-gray-300",
     steel: "bg-slate-200",
     fairy: "bg-pink-50",
-    lightning: "bg-yellow-100", // Added for compatibility with your JSON
+    lightning: "bg-yellow-100/70", 
   }
 
   // Updated cards with real image URLs
@@ -213,7 +213,7 @@ const Pokaemon = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#fbfcf8]  py-8 px-4">
+    <div className="min-h-screen   py-8 px-4">
       <div className="max-w-7xl mx-auto">
         {/* <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-blue-600 mb-2">Pokémon Card Shop</h1>

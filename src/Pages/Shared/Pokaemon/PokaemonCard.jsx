@@ -82,7 +82,7 @@ const PokaemonCard = ({ pokaemonData, typeIcons, typeColors }) => {
         </div>
 
         {/* Content */}
-        <div className="bg-white p-4 rounded-t-2xl relative -mt-4">
+        <div className="bg-white/50 p-4 rounded-t-2xl relative -mt-4">
           <div className="flex justify-between items-center mb-2">
             <h2 className="text-xl font-bold text-gray-800 capitalize">{pokaemonData.name}</h2>
             <button onClick={handleToggleFavorite} className="focus:outline-none" aria-label="Add to favorites">

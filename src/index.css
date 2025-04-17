@@ -5,6 +5,22 @@
 
 @import url('https://fonts.googleapis.com/css?family=Berkshire+Swash&family=Roboto:wght@100;300;400;500;700;900&display=swap');
 @import url('//db.onlinewebfonts.com/c/89d11a443c316da80dcb8f5e1f63c86e?family=Bauhaus+93');
+
+@font-face {
+  font-family: 'PokemonHollow';
+  src: url('./assets/font/Pokemon Hollow.ttf');
+}
+
+@font-face {
+  font-family: 'PokemonSolid';
+  src: url('./assets/font/Pokemon Solid.ttf');
+}
+
+
+h1{
+  font-family:"PokemonHollow";
+  letter-spacing: 0.3rem;
+}
 /* :root {
   --primary: #0d171f;
   --second: #0998a8;

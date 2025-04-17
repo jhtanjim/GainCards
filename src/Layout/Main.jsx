@@ -5,11 +5,11 @@ import Header from "../Compnent/Header/Header";
 
 const Main = () => {
   return (
-    <div className="flex h-screen w-full ">
+    <div className="flex h-screen w-full bg-black">
       <Sidebar className="w-4" />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-y-auto p-2">
+        <main className="flex-1 overflow-y-auto ">
           <Outlet />
         </main>
       </div>
