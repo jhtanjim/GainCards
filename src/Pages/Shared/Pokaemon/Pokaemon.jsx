@@ -1,11 +1,14 @@
+
 "use client"
 import { useState } from "react"
 import { Search, Loader, Home, RefreshCw } from "lucide-react"
-import PokaemonCard from "./PokaemonCard.jsx"
-const Pokaemon = () => {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [search, setSearch] = useState("")
+import PokaemonCard from "./PokaemonCard"
+// Main Pokémon display componente
+ const Pokaemon = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [search, setSearch] = useState("");
+  const [favorites, setFavorites] = useState([]);
 
   const typeIcons = {
     normal: "⚪",
@@ -26,8 +29,8 @@ const Pokaemon = () => {
     dark: "🌑",
     steel: "⚙️",
     fairy: "✨",
-    lightning: "⚡", // Added for compatibility with your JSON
-  }
+    lightning: "⚡",
+  };
 
   const typeColors = {
     normal: "bg-gray-200",
@@ -48,143 +51,202 @@ const Pokaemon = () => {
     dark: "bg-gray-300",
     steel: "bg-slate-200",
     fairy: "bg-pink-50",
-    lightning: "bg-yellow-100/70", 
-  }
+    lightning: "bg-yellow-100/70",
+  };
 
-  // Updated cards with real image URLs
+  // Card data from the provided JSON
   const cards = [
     {
-      id: "xy7-54",
-      name: "Pikachu",
-      hp: "60",
-      types: ["Lightning"],
-      attacks: [
-        {
-          name: "Thunder Shock",
-          cost: ["Lightning"],
-          damage: "20",
-          text: "Flip a coin. If heads, the opponent's Active Pokémon is now Paralyzed.",
-        },
-      ],
-      price: 5.99,
-      reviews: {
-        rating: 4.5,
-        totalReviews: 120,
-      },
-      image: "https://www.pojo.com/wp-content/uploads/2021/01/Pikachu-V-vv043.jpg",
+      "certificationNumber": "104928040",
+      "labelType": "with fugitive ink technology",
+      "reverseCertBarcode": true,
+      "year": 2022,
+      "brand": "POKEMON GO JAPANESE",
+      "sport": "TGC Cards",
+      "cardNumber": "xy7-54",
+      "player": "PIKACHU",
+      "varietyPedigree": "",
+      "grade": "MINT 9",
+      "population": 210,
+      "psaAuctionPricesRealized": null,
+      "currentPsaRegistrySets": [],
+      "imageFrontUrl": "https://www.pojo.com/wp-content/uploads/2021/01/Pikachu-V-vv043.jpg",
+      "imageBackUrl": "your-image-url-back",
+      "reviews": {
+        "rating": 4.5,
+        "totalReviews": 120
+      }
     },
     {
-      id: "xy7-55",
-      name: "Charizard",
-      hp: "150",
-      types: ["Fire"],
-      attacks: [
-        {
-          name: "Fire Spin",
-          cost: ["Fire", "Fire"],
-          damage: "130",
-          text: "Discard 2 Energy attached to this Pokémon.",
-        },
-      ],
-      price: 89.99,
-      reviews: {
-        rating: 4.9,
-        totalReviews: 320,
-      },
-      image: "https://images.pokemontcg.io/smp/SM212.png",
+      "certificationNumber": "104928041",
+      "labelType": "with fugitive ink technology",
+      "reverseCertBarcode": true,
+      "year": 2022,
+      "brand": "POKEMON GO JAPANESE",
+      "sport": "TGC Cards",
+      "cardNumber": "xy7-55",
+      "player": "CHARIZARD",
+      "varietyPedigree": "",
+      "grade": "MINT 9",
+      "population": 136,
+      "psaAuctionPricesRealized": null,
+      "currentPsaRegistrySets": [],
+      "imageFrontUrl": "https://images.pokemontcg.io/smp/SM212.png",
+      "imageBackUrl": "your-image-url-back",
+      "reviews": {
+        "rating": 4.9,
+        "totalReviews": 320
+      }
     },
     {
-      id: "xy7-56",
-      name: "Gengar",
-      hp: "130",
-      types: ["Psychic"],
-      attacks: [
-        {
-          name: "Shadow Ball",
-          cost: ["Psychic", "Colorless"],
-          damage: "70",
-          text: "Discard an Energy attached to this Pokémon.",
-        },
-      ],
-      price: 35.99,
-      reviews: {
-        rating: 4.7,
-        totalReviews: 210,
-      },
-      image: "https://images.pokemontcg.io/sm9/53.png",
+      "certificationNumber": "104928042",
+      "labelType": "with fugitive ink technology",
+      "reverseCertBarcode": true,
+      "year": 2022,
+      "brand": "POKEMON GO JAPANESE",
+      "sport": "TGC Cards",
+      "cardNumber": "xy7-56",
+      "player": "GENGAR",
+      "varietyPedigree": "",
+      "grade": "MINT 9",
+      "population": 178,
+      "psaAuctionPricesRealized": null,
+      "currentPsaRegistrySets": [],
+      "imageFrontUrl": "https://images.pokemontcg.io/sm9/53.png",
+      "imageBackUrl": "your-image-url-back",
+      "reviews": {
+        "rating": 4.7,
+        "totalReviews": 210
+      }
     },
     {
-      id: "swsh3-19",
-      name: "Bulbasaur",
-      hp: "50",
-      types: ["Grass"],
-      attacks: [
-        {
-          name: "Vine Whip",
-          cost: ["Grass"],
-          damage: "30",
-          text: "Simple attack with vines.",
-        },
-      ],
-      price: 3.49,
-      reviews: {
-        rating: 4.2,
-        totalReviews: 95,
-      },
-      image: "https://images.pokemontcg.io/swsh1/1.png",
-    },
-  ]
+      "certificationNumber": "104928043",
+      "labelType": "with fugitive ink technology",
+      "reverseCertBarcode": true,
+      "year": 2022,
+      "brand": "POKEMON GO JAPANESE",
+      "sport": "TGC Cards",
+      "cardNumber": "swsh3-19",
+      "player": "BULBASAUR",
+      "varietyPedigree": "",
+      "grade": "MINT 9",
+      "population": 154,
+      "psaAuctionPricesRealized": null,
+      "currentPsaRegistrySets": [],
+      "imageFrontUrl": "https://images.pokemontcg.io/swsh1/1.png",
+      "imageBackUrl": "your-image-url-back",
+      "reviews": {
+        "rating": 4.2,
+        "totalReviews": 95
+      }
+    }
+  ];
 
-  // Format card data to match the expected structure in PokaemonCard
-  const formattedCards = cards.map((card) => ({
-    id: card.id,
-    name: card.name,
-    height: 7, // Default values since these weren't in the original data
-    weight: 60,
-    types: card.types.map((type) => ({ type: { name: type.toLowerCase() } })),
-    stats: [
-      { stat: { name: "hp" }, base_stat: Number.parseInt(card.hp) },
-      { stat: { name: "attack" }, base_stat: Number.parseInt(card.attacks[0].damage) || 50 },
-      { stat: { name: "defense" }, base_stat: 40 }, // Default value
-      { stat: { name: "speed" }, base_stat: 45 }, // Default value
-    ],
-    sprites: {
-      front_default: "/placeholder.svg?height=120&width=120",
-      other: {
-        "official-artwork": {
-          front_default: "/placeholder.svg?height=240&width=240",
-        },
+  // Mapping pokemon types based on their names
+  const getPokemonTypes = (pokemonName) => {
+    const typeMap = {
+      "PIKACHU": ["electric"],
+      "CHARIZARD": ["fire", "flying"],
+      "GENGAR": ["ghost", "poison"],
+      "BULBASAUR": ["grass", "poison"]
+    };
+    return typeMap[pokemonName] || ["normal"];
+  };
+
+  // Generate random stats for each Pokémon
+  const generateStats = (pokemonName) => {
+    const baseStats = {
+      "PIKACHU": { hp: 35, attack: 55, defense: 40, speed: 90 },
+      "CHARIZARD": { hp: 78, attack: 84, defense: 78, speed: 100 },
+      "GENGAR": { hp: 60, attack: 65, defense: 60, speed: 110 },
+      "BULBASAUR": { hp: 45, attack: 49, defense: 49, speed: 45 }
+    };
+    
+    const stats = baseStats[pokemonName] || { hp: 50, attack: 50, defense: 50, speed: 50 };
+    
+    return [
+      { stat: { name: "hp" }, base_stat: stats.hp },
+      { stat: { name: "attack" }, base_stat: stats.attack },
+      { stat: { name: "defense" }, base_stat: stats.defense },
+      { stat: { name: "speed" }, base_stat: stats.speed }
+    ];
+  };
+
+  // Generate price based on rarity/population
+  const generatePrice = (population) => {
+    const basePrice = 10;
+    const rarityFactor = Math.max(1, 300 / population);
+    return Math.round(basePrice * rarityFactor * 100) / 100;
+  };
+
+  // Format card data to match the expected structure in PokemonCard
+  const formattedCards = cards.map((card, index) => {
+    const types = getPokemonTypes(card.player);
+    return {
+      id: index + 1,
+      name: card.player.toLowerCase(),
+      height: 7,
+      weight: 60,
+      types: types.map(type => ({ type: { name: type } })),
+      stats: generateStats(card.player),
+      sprites: {
+        front_default: card.imageFrontUrl,
+        other: {
+          "official-artwork": {
+            front_default: card.imageFrontUrl
+          }
+        }
       },
-    },
-    price: card.price,
-    reviews: card.reviews,
-    image: card.image, // Add the image property
-  }))
+      price: generatePrice(card.population),
+      reviews: card.reviews,
+      image: card.imageFrontUrl,
+      // Additional fields from the JSON
+      certificationNumber: card.certificationNumber,
+      grade: card.grade,
+      year: card.year,
+      cardNumber: card.cardNumber,
+      population: card.population
+    };
+  });
+
+  // Mock shop functionality
+  const addToCart = (pokemon) => {
+    alert(`Added ${pokemon.name} to cart!`);
+  };
+
+  const toggleFavorite = (pokemon) => {
+    setFavorites(prevFavorites => {
+      if (prevFavorites.some(fav => fav.id === pokemon.id)) {
+        return prevFavorites.filter(fav => fav.id !== pokemon.id);
+      } else {
+        return [...prevFavorites, pokemon];
+      }
+    });
+  };
 
   // Filter cards based on search term
   const handleSearchData = formattedCards.filter((card) => {
-    const searchLower = search.toLowerCase()
-    if (!searchLower) return true
+    const searchLower = search.toLowerCase();
+    if (!searchLower) return true;
 
-    if (card.name.toLowerCase().includes(searchLower)) return true
+    if (card.name.toLowerCase().includes(searchLower)) return true;
 
     // Check if any type matches the search
-    return card.types.some((typeInfo) => typeInfo.type.name.toLowerCase() === searchLower)
-  })
+    return card.types.some((typeInfo) => typeInfo.type.name.toLowerCase() === searchLower);
+  });
 
   const handleRefresh = () => {
-    setLoading(true)
+    setLoading(true);
     // Simulate loading
     setTimeout(() => {
-      setLoading(false)
-      setError(null)
-    }, 1000)
-  }
+      setLoading(false);
+      setError(null);
+    }, 1000);
+  };
 
   const handleLoadMore = () => {
-    // This would normally fetch more data
-    alert("This would load more Pokémon cards!")
-  }
+    alert("This would load more Pokémon cards!");
+  };
 
   if (loading) {
     return (
@@ -192,12 +254,12 @@ const Pokaemon = () => {
         <Loader className="w-12 h-12 text-blue-500 animate-spin" />
         <h1 className="mt-4 text-xl font-semibold text-gray-700">Loading Pokémon...</h1>
       </div>
-    )
+    );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center  min-h-screen bg-slate-100">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-100">
         <div className="p-6 bg-white rounded-lg shadow-lg text-center">
           <h1 className="text-xl font-bold text-red-500 mb-2">Error</h1>
           <p className="text-gray-700">{error.message}</p>
@@ -209,19 +271,18 @@ const Pokaemon = () => {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="min-h-screen   py-8 px-4">
+    <div className="min-h-screen py-8 px-4">
       <div className="max-w-7xl mx-auto">
-        {/* <div className="text-center mb-8">
+        <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-blue-600 mb-2">Pokémon Card Shop</h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Discover and collect your favorite Pokémon cards with detailed information about their types, abilities, and
-            stats.
+            Discover and collect your favorite Pokémon cards with detailed information about their types, abilities, and stats.
           </p>
-        </div> */}
+        </div>
 
         <div className="bg-white rounded-lg shadow-md p-4 mb-8">
           <div className="relative">
@@ -262,8 +323,16 @@ const Pokaemon = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-              {handleSearchData.map((pokaemon) => (
-                <PokaemonCard key={pokaemon.id} pokaemonData={pokaemon} typeIcons={typeIcons} typeColors={typeColors} />
+              {handleSearchData.map((pokemon) => (
+                <PokaemonCard
+                  key={pokemon.id} 
+                  pokaemonData={pokemon} 
+                  typeIcons={typeIcons} 
+                  typeColors={typeColors}
+                  addToCart={addToCart}
+                  toggleFavorite={toggleFavorite}
+                  favorites={favorites}
+                />
               ))}
             </div>
 
@@ -279,8 +348,6 @@ const Pokaemon = () => {
         )}
       </div>
     </div>
-  )
-}
-
-export default Pokaemon
-
+  );
+};
+export default Pokaemon;

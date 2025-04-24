@@ -2,7 +2,7 @@
 "use client"
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { register } from '../Provider/auth'
+import { register } from '../api/auth'
 
 const SignUp = () => {
   const [countries,setCountries]=useState([])

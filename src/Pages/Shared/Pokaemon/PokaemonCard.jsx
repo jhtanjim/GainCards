@@ -1,77 +1,60 @@
 "use client"
 import { Heart, Activity, Shield, Zap, ShoppingCart } from "lucide-react"
-import { useShop } from "../../../Compnent/ShopContext"
+import { useShop } from "../../../Context/ShopContext"
 import { Link } from "react-router-dom"
 // import Image from "next/image"
-
-const PokaemonCard = ({ pokaemonData, typeIcons, typeColors }) => {
-  const { addToCart, toggleFavorite, favorites } = useShop()
-
+const PokaemonCard = ({ pokaemonData, typeIcons, typeColors, addToCart, toggleFavorite, favorites }) => {
   // Check if this pokemon is in favorites
-  const isFavorite = favorites.some((fav) => fav.id === pokaemonData.id)
+  const isFavorite = favorites.some((fav) => fav.id === pokaemonData.id);
 
   // Get primary type for background color
-  const primaryType = pokaemonData.types[0]?.type.name || "normal"
-  const backgroundClass = typeColors[primaryType] || "bg-gray-100"
+  const primaryType = pokaemonData.types[0]?.type.name || "normal";
+  const backgroundClass = typeColors[primaryType] || "bg-gray-100";
 
   // Format stats for display
   const getStatValue = (statName) => {
-    const stat = pokaemonData.stats.find((s) => s.stat.name === statName)
-    return stat ? stat.base_stat : 0
-  }
+    const stat = pokaemonData.stats.find((s) => s.stat.name === statName);
+    return stat ? stat.base_stat : 0;
+  };
 
   // Calculate total stats
-  const totalStats = pokaemonData.stats.reduce((sum, stat) => sum + stat.base_stat, 0)
+  const totalStats = pokaemonData.stats.reduce((sum, stat) => sum + stat.base_stat, 0);
 
   // Format Pokémon ID with leading zeros
-  const formattedId = `#${String(pokaemonData.id).padStart(3, "0")}`
+  const formattedId = `#${String(pokaemonData.id).padStart(3, "0")}`;
 
   const handleAddToCart = (e) => {
-    e.preventDefault() // Prevent navigation when clicking the button
+    e.preventDefault(); // Prevent navigation when clicking the button
     addToCart({
       id: pokaemonData.id,
       name: pokaemonData.name,
       price: pokaemonData.price,
-      image:
-        pokaemonData.image ||
-        pokaemonData.sprites.other["official-artwork"].front_default ||
-        pokaemonData.sprites.front_default,
-    })
-  }
+      image: pokaemonData.image || pokaemonData.sprites.front_default,
+    });
+  };
 
   const handleToggleFavorite = (e) => {
-    e.preventDefault() // Prevent navigation when clicking the button
+    e.preventDefault(); // Prevent navigation when clicking the button
     toggleFavorite({
       id: pokaemonData.id,
       name: pokaemonData.name,
-      image:
-        pokaemonData.image ||
-        pokaemonData.sprites.other["official-artwork"].front_default ||
-        pokaemonData.sprites.front_default,
-    })
-  }
+      image: pokaemonData.image || pokaemonData.sprites.front_default,
+    });
+  };
 
   return (
-    <Link to={`/pokemon/${pokaemonData.id}`} className="block">
+    <div className="block">
       <div
         className={`rounded-xl shadow-md overflow-hidden transition-transform duration-300 hover:shadow-lg hover:-translate-y-1 ${backgroundClass}`}
       >
         {/* Header with image */}
         <div className="relative p-4 flex justify-center">
           <span className="absolute top-2 right-2 text-sm font-mono text-gray-500 font-semibold">{formattedId}</span>
-          <div className="relative h-60 w-36">
+          <div className="relative h-60 w-60">
             <img
-              src={
-                pokaemonData.image ||
-                pokaemonData.sprites.other["official-artwork"].front_default ||
-                pokaemonData.sprites.front_default ||
-                "/placeholder.svg?height=144&width=144"
-              }
+              src={pokaemonData.image || "/api/placeholder/240/240"}
               alt={pokaemonData.name}
-              className="object-contain z-10"
-              fill
-              sizes="144px"
-              priority
+              className="object-contain h-full w-full"
             />
           </div>
           <div className="absolute opacity-10 right-0 bottom-0">
@@ -81,13 +64,38 @@ const PokaemonCard = ({ pokaemonData, typeIcons, typeColors }) => {
           </div>
         </div>
 
-        {/* Content */}
+        {/* Card Info */}
         <div className="bg-white/50 p-4 rounded-t-2xl relative -mt-4">
           <div className="flex justify-between items-center mb-2">
             <h2 className="text-xl font-bold text-gray-800 capitalize">{pokaemonData.name}</h2>
-            <button onClick={handleToggleFavorite} className="focus:outline-none" aria-label="Add to favorites">
-              <Heart className={`w-6 h-6 ${isFavorite ? "text-red-500 fill-red-500" : "text-gray-400"}`} />
-            </button>
+            <div className="flex items-center">
+              <span className="text-sm font-semibold bg-blue-100 text-blue-800 py-1 px-2 rounded-md mr-2">
+                {pokaemonData.grade}
+              </span>
+              <button onClick={handleToggleFavorite} className="focus:outline-none" aria-label="Add to favorites">
+                <Heart className={`w-6 h-6 ${isFavorite ? "text-red-500 fill-red-500" : "text-gray-400"}`} />
+              </button>
+            </div>
+          </div>
+
+          {/* Card details specific to your JSON */}
+          <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
+            <div>
+              <span className="text-gray-600">Card #:</span> 
+              <span className="font-medium ml-1">{pokaemonData.cardNumber}</span>
+            </div>
+            <div>
+              <span className="text-gray-600">Year:</span> 
+              <span className="font-medium ml-1">{pokaemonData.year}</span>
+            </div>
+            <div>
+              <span className="text-gray-600">Population:</span> 
+              <span className="font-medium ml-1">{pokaemonData.population}</span>
+            </div>
+            <div>
+              <span className="text-gray-600">Cert#:</span> 
+              <span className="font-medium ml-1">{pokaemonData.certificationNumber}</span>
+            </div>
           </div>
 
           {/* Types */}
@@ -104,7 +112,7 @@ const PokaemonCard = ({ pokaemonData, typeIcons, typeColors }) => {
           </div>
 
           {/* Stats */}
-          <div className="grid lg:grid-cols-2 gap-3 mb-3">
+          <div className="grid grid-cols-2 gap-3 mb-3">
             <div className="flex items-center">
               <Heart className="w-4 h-4 text-red-500 mr-1" />
               <span className="text-sm font-medium">HP: {getStatValue("hp")}</span>
@@ -164,9 +172,7 @@ const PokaemonCard = ({ pokaemonData, typeIcons, typeColors }) => {
           </button>
         </div>
       </div>
-    </Link>
-  )
-}
-
+    </div>
+  );
+};
 export default PokaemonCard
-

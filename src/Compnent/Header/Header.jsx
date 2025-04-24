@@ -1,13 +1,21 @@
 "use client"
 
 import { Settings, Heart, ShoppingBag, Search, X, LogIn } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
-import { useShop } from "../ShopContext"
+import { useShop } from "../../Context/ShopContext"
+import { useAuth } from "../../Context/AuthContext"
+import { myProfile } from "../../api/profile"
+
 
 export default function Header() {
+const {user}=useAuth()
+console.log(user)
+
   const [searchOpen, setSearchOpen] = useState(false)
   const { cartCount, favoritesCount } = useShop()
+
+
 
   const handleToggleSidebar = () => {
     if (window.toggleSidebar) {

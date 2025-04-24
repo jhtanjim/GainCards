@@ -1,7 +1,7 @@
 "use client"
 import { ShoppingBag, Trash2, Plus, Minus } from "lucide-react"
 import { Link } from "react-router-dom"
-import { useShop } from "../../../Compnent/ShopContext"
+import { useShop } from "../../../Context/ShopContext"
 
 const MyBag = () => {
   const { cartItems, addToCart, removeFromCart } = useShop()

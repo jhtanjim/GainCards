@@ -2,7 +2,7 @@
 "use client"
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { login } from '../Provider/auth'
+import { login } from '../api/auth'
 
 const SignIn = () => {
   // Step 1: Set up state for form data and UI states

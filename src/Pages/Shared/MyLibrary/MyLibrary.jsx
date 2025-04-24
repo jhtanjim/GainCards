@@ -2,7 +2,7 @@
 import { Heart, ExternalLink, Search, X } from "lucide-react"
 import { Link } from "react-router-dom"
 import { useState } from "react"
-import { useShop } from "../../../Compnent/ShopContext"
+import { useShop } from "../../../Context/ShopContext"
 
 const MyLibrary = () => {
   const { favorites, toggleFavorite } = useShop()

@@ -1,6 +1,8 @@
 "use client"
 import { createContext, useContext, useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+// import { useNavigate } from "react-router-dom" // Changed from useRouter
+import { login, logout, register, refresh } from "../api/auth.js" // Import your API functions
+import { myProfile } from "../api/profile" 
 
 const AuthContext = createContext()
 
@@ -9,66 +11,39 @@ export const useAuth = () => useContext(AuthContext)
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
-  const router = useRouter()
+  // const navigate = useNavigate() // React Router's hook for navigation
 
-  useEffect(() => {
-    // Check if user is already logged in
-    const token = localStorage.getItem("userToken")
-    
-    if (token) {
-      // Verify token with your API
-      fetchUserData(token)
-    } else {
-      setLoading(false)
-    }
-  }, [])
-
-  const fetchUserData = async (token) => {
+ 
+  const fetchUserData = async () => {
+    setLoading(true)
     try {
-      // Replace with your actual API endpoint
-      const response = await fetch('/api/auth/user', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-      
-      if (response.ok) {
-        const userData = await response.json()
-        setUser(userData)
-      } else {
-        // If token is invalid, clear it
-        localStorage.removeItem("userToken")
-      }
+      const userData = await myProfile()
+      setUser(userData)
+      console.log(userData)
+      return userData
     } catch (error) {
       console.error("Error fetching user data:", error)
-      localStorage.removeItem("userToken")
+      setUser(null)
     } finally {
       setLoading(false)
     }
   }
+  useEffect(() => {
+    // Check auth status when component mounts
+    fetchUserData()
+  }, [])
 
   const signIn = async (email, password) => {
     setLoading(true)
     try {
-      const response = await fetch('/api/auth/signin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to sign in')
-      }
-
-      localStorage.setItem('userToken', data.token)
+      const data = await login({ email, password })
       setUser(data.user)
-      return { success: true }
+      return { success: true, user: data.user }
     } catch (error) {
-      return { success: false, error: error.message }
+      return { 
+        success: false, 
+        error: error.response?.data?.message || error.message || 'Failed to sign in' 
+      }
     } finally {
       setLoading(false)
     }
@@ -77,34 +52,39 @@ export const AuthProvider = ({ children }) => {
   const signUp = async (userData) => {
     setLoading(true)
     try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to create account')
-      }
-
-      localStorage.setItem('userToken', data.token)
+      const data = await register(userData)
       setUser(data.user)
-      return { success: true }
+      return { success: true, user: data.user }
     } catch (error) {
-      return { success: false, error: error.message }
+      return { 
+        success: false, 
+        error: error.response?.data?.message || error.message || 'Failed to create account' 
+      }
     } finally {
       setLoading(false)
     }
   }
 
-  const signOut = () => {
-    localStorage.removeItem("userToken")
-    setUser(null)
-    router.push('/signin')
+  const signOut = async () => {
+    try {
+      await logout()
+      setUser(null)
+      // navigate('/signin')
+      return { success: true }
+    } catch (error) {
+      console.error("Error during logout:", error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  const refreshToken = async () => {
+    try {
+      await refresh()
+      return true
+    } catch (error) {
+      console.error("Error refreshing token:", error)
+      return false
+    }
   }
 
   const value = {
@@ -113,7 +93,9 @@ export const AuthProvider = ({ children }) => {
     signIn,
     signUp,
     signOut,
+    refreshToken,
     isAuthenticated: !!user,
+    fetchUserData
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
