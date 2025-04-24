@@ -9,6 +9,7 @@ import UnderConstruction from "../Compnent/UnderConstruction";
 import SignIn from "../auth/SignIn";
 import Signup from "../auth/Signup";
 import ProductUpload from "../Pages/Shared/ProductUpload/ProductUpload";
+import MyProfile from "../Pages/Shared/MyProfile/MyProfile";
 
 export const router = createBrowserRouter([
   {
@@ -46,6 +47,10 @@ export const router = createBrowserRouter([
       {
         path: "/productUpload",
         element: <ProductUpload />,
+      },
+      {
+        path: "/myProfile",
+        element: <MyProfile />,
       },
       { path: "*", element: <UnderConstruction /> },
 

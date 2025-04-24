@@ -11,7 +11,6 @@ export default function Header() {
   const { user, signOut } = useAuth()
   const [searchOpen, setSearchOpen] = useState(false)
   const { cartCount, favoritesCount } = useShop()
-
   const handleToggleSidebar = () => {
     if (window.toggleSidebar) {
       window.toggleSidebar()
@@ -132,7 +131,8 @@ export default function Header() {
                 />
                 <div className="text-xs hidden md:block">
                   <p className="font-semibold text-white">{user?.username}</p>
-                  <p className="text-purple-300">View Profile</p>
+                  <Link to={"/myProfile"}>  <p className="text-purple-300">View Profile</p></Link>
+                
                 </div>
               </div>
             </div>
