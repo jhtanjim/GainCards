@@ -3,10 +3,14 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { login } from '../api/auth'
+import { useAuth } from '../Context/AuthContext'
 
 const SignIn = () => {
+const {  signIn}=useAuth()
+
   // Step 1: Set up state for form data and UI states
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState(
+    {
     email: '', // For email or username
     password: ''
   })
@@ -31,17 +35,9 @@ const SignIn = () => {
 
     // Step 4: Make API call with error handling
     try {
-      const data = await login({
-        // The API expects email/username as "email"
-        email: formData.email,
-        password: formData.password
-      })
+      const data = await signIn(formData)
 
-      // Step 5: Store authentication data (e.g., token) if needed
-      if (data.token) {
-        localStorage.setItem('userToken', data.token)
-      }
-      
+     
       // Step 6: Redirect to home page or dashboard
       navigate('/')
     } catch (err) {

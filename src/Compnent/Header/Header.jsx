@@ -2,24 +2,26 @@
 
 import { Settings, Heart, ShoppingBag, Search, X, LogIn } from "lucide-react"
 import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useShop } from "../../Context/ShopContext"
 import { useAuth } from "../../Context/AuthContext"
-import { myProfile } from "../../api/profile"
-
 
 export default function Header() {
-const {user}=useAuth()
-console.log(user)
-
+  const navigate = useNavigate()
+  const { user, signOut } = useAuth()
   const [searchOpen, setSearchOpen] = useState(false)
   const { cartCount, favoritesCount } = useShop()
-
-
 
   const handleToggleSidebar = () => {
     if (window.toggleSidebar) {
       window.toggleSidebar()
+    }
+  }
+
+  const handleLogout = async () => {
+    const result = await signOut()
+    if (result.success) {
+      navigate("/signIn")
     }
   }
 
@@ -82,7 +84,7 @@ console.log(user)
             <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-purple-400" />
           </div>
 
-          {/* Notification button */}
+          {/* Favorites */}
           <div className="relative">
             <Link to="/mylibrary">
               <button className="p-2 rounded-lg hover:bg-purple-800/30 transition-colors">
@@ -96,7 +98,7 @@ console.log(user)
             </Link>
           </div>
 
-          {/* Cart button */}
+          {/* Cart */}
           <div className="relative">
             <Link to="/mybag">
               <button className="p-2 rounded-lg hover:bg-purple-800/30 transition-colors">
@@ -109,33 +111,40 @@ console.log(user)
               )}
             </Link>
           </div>
-          {/* Cart button */}
-          <div className="relative">
+
+          {/* Auth Section */}
+          {user ? (
+            <div className="flex items-center gap-4">
+              {/* Logout */}
+              <button
+                onClick={()=>handleLogout()}
+                className="p-2 text-sm rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors"
+              >
+                Logout
+              </button>
+
+              {/* Profile */}
+              <div className="flex items-center gap-2">
+                <img
+                  src={user?.profilePicture || "/default-profile.png"}
+                  alt={user?.username || "User"}
+                  className="h-8 w-8 rounded-full border-2 border-purple-500 object-cover"
+                />
+                <div className="text-xs hidden md:block">
+                  <p className="font-semibold text-white">{user?.username}</p>
+                  <p className="text-purple-300">View Profile</p>
+                </div>
+              </div>
+            </div>
+          ) : (
             <Link to="/signIn">
               <button className="p-2 rounded-lg hover:bg-purple-800/30 transition-colors">
                 <LogIn size={20} className="text-purple-300" />
               </button>
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  {cartCount}
-                </span>
-              )}
             </Link>
-          </div>
-
-          {/* User profile */}
-          <div className="flex items-center gap-2">
-            <div className="bg-gradient-to-r from-purple-600 to-pink-500 rounded-full h-8 w-8 flex items-center justify-center">
-              <span className="text-xs font-bold">UN</span>
-            </div>
-            <div className="text-xs hidden md:block">
-              <p className="font-semibold text-white">User Name</p>
-              <p className="text-purple-300">View Profile</p>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </header>
   )
 }
-

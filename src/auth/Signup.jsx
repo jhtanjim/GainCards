@@ -2,9 +2,11 @@
 "use client"
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { register } from '../api/auth'
+// import { register } from '../api/auth'
+import { useAuth } from '../Context/AuthContext'
 
 const SignUp = () => {
+  const {signUp}=useAuth()
   const [countries,setCountries]=useState([])
   useEffect(() => {
     const fetchCountries = async () => {
@@ -80,10 +82,10 @@ const SignUp = () => {
 console.log(submitData)
     // Step 8: Make API call with error handling
     try {
-      const response= await register(submitData)
+      const response= await signUp(submitData)
       console.log(response)
       // Step 9: Navigate to sign in page after successful registration
-      navigate('/signin')
+      navigate('/')
     } catch (err) {
       // Step 10: Handle errors
       console.error('Registration error:', err)

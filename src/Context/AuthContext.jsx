@@ -33,12 +33,12 @@ export const AuthProvider = ({ children }) => {
     fetchUserData()
   }, [])
 
-  const signIn = async (email, password) => {
+  const signIn = async (FormData) => {
     setLoading(true)
     try {
-      const data = await login({ email, password })
-      setUser(data.user)
-      return { success: true, user: data.user }
+      const data = await login( FormData )
+      await fetchUserData()  // 👈 fetch user from profile endpoint
+      return { success: true }
     } catch (error) {
       return { 
         success: false, 
@@ -53,8 +53,8 @@ export const AuthProvider = ({ children }) => {
     setLoading(true)
     try {
       const data = await register(userData)
-      setUser(data.user)
-      return { success: true, user: data.user }
+      await fetchUserData()  // 👈 fetch user from profile endpoint
+      return { success: true }
     } catch (error) {
       return { 
         success: false, 
@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await logout()
       setUser(null)
-      // navigate('/signin')
+      // Navigate('/signin')
       return { success: true }
     } catch (error) {
       console.error("Error during logout:", error)
