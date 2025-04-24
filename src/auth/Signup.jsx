@@ -1,19 +1,38 @@
+// src/components/SignUp.jsx
 "use client"
-import { useState } from 'react'
-import { Link, useRouteError,  } from 'react-router-dom'
-
+import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { register } from '../Provider/auth'
 
 const SignUp = () => {
+  const [countries,setCountries]=useState([])
+  useEffect(() => {
+    const fetchCountries = async () => {
+      const res = await fetch("https://restcountries.com/v3.1/all");
+      const data = await res.json();
+      const sortedCountries = data
+        .map(country => country.name.common)
+        .sort((a, b) => a.localeCompare(b));
+      setCountries(sortedCountries);
+    };
+  
+    fetchCountries();
+  }, []);
+  
+  // Step 1: Set up state for form data and UI states
   const [formData, setFormData] = useState({
-    name: '',
+    username: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    country: 'Pallet Town'
   })
+  const [profilePicture, setProfilePicture] = useState(null)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const router = useRouteError()
+  const navigate = useNavigate()
 
+  // Step 2: Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({
@@ -22,11 +41,19 @@ const SignUp = () => {
     }))
   }
 
+  // Step 3: Handle file input changes
+  const handleFileChange = (e) => {
+    if (e.target.files[0]) {
+      setProfilePicture(e.target.files[0])
+    }
+  }
+
+  // Step 4: Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     
-    // Basic validation
+    // Step 5: Basic validation
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match')
       return
@@ -37,40 +64,40 @@ const SignUp = () => {
       return
     }
 
+    // Step 6: Set loading state
     setIsLoading(true)
 
+    // Step 7: Create FormData object for API request
+    const submitData = new FormData()
+    submitData.append('email', formData.email)
+    submitData.append('username', formData.username)
+    submitData.append('password', formData.password)
+    submitData.append('country', formData.country)
+    
+    if (profilePicture) {
+      submitData.append('profilePicture', profilePicture)
+    }
+console.log(submitData)
+    // Step 8: Make API call with error handling
     try {
-      // Replace with your actual authentication logic
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to create account')
-      }
-
-      // Optional: automatically sign in the user after successful registration
-      localStorage.setItem('userToken', data.token)
-      
-      // Redirect to home page or dashboard
-      router.push('/')
+      const response= await register(submitData)
+      console.log(response)
+      // Step 9: Navigate to sign in page after successful registration
+      navigate('/signin')
     } catch (err) {
-      setError(err.message || 'An error occurred during registration')
+      // Step 10: Handle errors
+      console.error('Registration error:', err)
+      setError(
+        err.response?.data?.message || 
+        'An error occurred during registration. Please try again.'
+      )
     } finally {
+      // Step 11: Reset loading state
       setIsLoading(false)
     }
   }
 
+  // Step 12: Render the form
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
@@ -87,16 +114,16 @@ const SignUp = () => {
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-              Full Name
+            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+              Username
             </label>
             <input
-              id="name"
-              name="name"
+              id="username"
+              name="username"
               type="text"
               required
               className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-              value={formData.name}
+              value={formData.username}
               onChange={handleChange}
             />
           </div>
@@ -145,8 +172,43 @@ const SignUp = () => {
               onChange={handleChange}
             />
           </div>
+          <div>
+  <label htmlFor="country" className="block text-sm font-medium text-gray-700">
+    Country
+  </label>
+  <select
+    id="country"
+    name="country"
+    required
+    className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+    value={formData.country}
+    onChange={handleChange}
+  >
+    <option value="">Select a country</option>
+    {countries.map((country) => (
+      <option key={country} value={country}>
+        {country}
+      </option>
+    ))}
+  </select>
+</div>
 
-          <div className="flex items-center">
+
+          <div>
+            <label htmlFor="profilePicture" className="block text-sm font-medium text-gray-700">
+              Profile Picture (Optional)
+            </label>
+            <input
+              id="profilePicture"
+              name="profilePicture"
+              type="file"
+              accept="image/*"
+              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+              onChange={handleFileChange}
+            />
+          </div>
+
+          {/* <div className="flex items-center">
             <input
               id="terms"
               name="terms"
@@ -160,7 +222,7 @@ const SignUp = () => {
                 Terms and Conditions
               </a>
             </label>
-          </div>
+          </div> */}
 
           <div>
             <button
@@ -176,7 +238,7 @@ const SignUp = () => {
         <div className="text-center mt-4">
           <p className="text-sm text-gray-600">
             Already have an account?{' '}
-            <Link to="/signIn" className="font-medium text-yellow-600 hover:text-yellow-500">
+            <Link to="/signin" className="font-medium text-yellow-600 hover:text-yellow-500">
               Sign in
             </Link>
           </p>

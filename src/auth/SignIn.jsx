@@ -1,47 +1,63 @@
+// src/components/SignIn.jsx
 "use client"
 import { useState } from 'react'
-import { Link, useRouteError } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { login } from '../Provider/auth'
 
 const SignIn = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  // Step 1: Set up state for form data and UI states
+  const [formData, setFormData] = useState({
+    email: '', // For email or username
+    password: ''
+  })
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const router = useRouteError()
+  const navigate = useNavigate()
 
+  // Step 2: Handle input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  // Step 3: Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setIsLoading(true)
 
+    // Step 4: Make API call with error handling
     try {
-      // Replace with your actual authentication logic
-      const response = await fetch('/api/auth/signin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+      const data = await login({
+        // The API expects email/username as "email"
+        email: formData.email,
+        password: formData.password
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to sign in')
+      // Step 5: Store authentication data (e.g., token) if needed
+      if (data.token) {
+        localStorage.setItem('userToken', data.token)
       }
-
-      // Store user token in localStorage (or use a more secure method)
-      localStorage.setItem('userToken', data.token)
       
-      // Redirect to home page or dashboard
-      router.push('/')
+      // Step 6: Redirect to home page or dashboard
+      navigate('/')
     } catch (err) {
-      setError(err.message || 'An error occurred during sign in')
+      // Step 7: Handle errors
+      console.error('Login error:', err)
+      setError(
+        err.response?.data?.message || 
+        'Invalid email/username or password'
+      )
     } finally {
+      // Step 8: Reset loading state
       setIsLoading(false)
     }
   }
 
+  // Step 9: Render the form
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
@@ -59,16 +75,16 @@ const SignIn = () => {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
+              Email or Username
             </label>
             <input
               id="email"
               name="email"
-              type="email"
+              type="text"
               required
               className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={formData.email}
+              onChange={handleChange}
             />
           </div>
 
@@ -82,8 +98,8 @@ const SignIn = () => {
               type="password"
               required
               className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={formData.password}
+              onChange={handleChange}
             />
           </div>
 

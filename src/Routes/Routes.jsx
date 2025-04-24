@@ -8,6 +8,7 @@ import PokaemonCardDetails from "../Pages/Shared/Pokaemon/PokaemonCardDetails";
 import UnderConstruction from "../Compnent/UnderConstruction";
 import SignIn from "../auth/SignIn";
 import Signup from "../auth/Signup";
+import ProductUpload from "../Pages/Shared/ProductUpload/ProductUpload";
 
 export const router = createBrowserRouter([
   {
@@ -41,6 +42,10 @@ export const router = createBrowserRouter([
       {
         path: "/pokemon/:id",
         element: <PokaemonCardDetails />,
+      },
+      {
+        path: "/productUpload",
+        element: <ProductUpload />,
       },
       { path: "*", element: <UnderConstruction /> },
 
