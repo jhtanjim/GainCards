@@ -10,6 +10,7 @@ import SignIn from "../auth/SignIn";
 import Signup from "../auth/Signup";
 import ProductUpload from "../Pages/Shared/ProductUpload/ProductUpload";
 import MyProfile from "../Pages/Shared/MyProfile/MyProfile";
+import VendorSignup from "../auth/VendorSignup";
 
 export const router = createBrowserRouter([
   {
@@ -51,6 +52,10 @@ export const router = createBrowserRouter([
       {
         path: "/myProfile",
         element: <MyProfile />,
+      },
+      {
+        path: "/vendorSignup",
+        element: <VendorSignup />,
       },
       { path: "*", element: <UnderConstruction /> },
 

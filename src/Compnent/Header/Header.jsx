@@ -64,6 +64,8 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-4">
+        <Link to={"/vendorSignup"}><h2 className="text-white hover:underline transition">Become a Vendor</h2></Link>
+
           {/* Search button */}
           <button
             className="p-2 rounded-lg hover:bg-purple-800/30 transition-colors lg:hidden"
