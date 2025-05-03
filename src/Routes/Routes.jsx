@@ -14,6 +14,7 @@ import Pokaemon from "../Pages/Shared/Pokaemon/Pokaemon";
 import PokemonCardUpload from "../Pages/Shared/PokemonCardCrud/PokemonCardUpload";
 import PokaemonCardUpdate from "../Pages/Shared/PokemonCardCrud/PokaemonCardUpdate";
 import Checkout from "../Pages/Shared/Checkout/Checkout";
+import Payment from "../Pages/Shared/Payment/Payment";
 
 export const router = createBrowserRouter([
   {
@@ -72,6 +73,10 @@ export const router = createBrowserRouter([
       {
         path: "/checkout",
         element: <Checkout />,
+      },
+      {
+        path: "/payment",
+        element: <Payment />,
       },
       { path: "*", element: <UnderConstruction /> },
 

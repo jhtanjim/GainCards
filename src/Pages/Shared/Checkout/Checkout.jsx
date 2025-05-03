@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../Context/AuthContext';
+import { ChevronRight } from 'lucide-react';
+import { addPayment } from '../../../api/payment';
+
 
 const Checkout = ({ cartItems, subtotal, shipping, total, setShowCheckout }) => {
   const { user } = useAuth();
@@ -17,9 +20,10 @@ const Checkout = ({ cartItems, subtotal, shipping, total, setShowCheckout }) => 
     phone: "",
   });
   
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
   const [formErrors, setFormErrors] = useState({});
+  const [orderDetails, setOrderDetails] = useState(null);
 
   // Pre-populate form with user data when component mounts
   useEffect(() => {
@@ -67,44 +71,46 @@ const Checkout = ({ cartItems, subtotal, shipping, total, setShowCheckout }) => 
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+  const handlePayment = async (e) => {
     e.preventDefault();
     
     if (!validateForm()) {
       return;
     }
     
-    setIsSubmitting(true);
+    setIsLoading(true);
     
     // Create order payload
     const orderPayload = {
-      productIds: cartItems.map(item => item.id),
-      shippingAddress: { ...formData }
+      userId: user?.id,
+      items: cartItems.map(item => ({
+        productId: item.id,
+        quantity: item.quantity || 1,
+        price: item.price
+      })),
+      shippingAddress: { ...formData },
+      totalAmount: total,
+      shippingCost: shipping
     };
     
     try {
-      // Log the order payload (in production this would be an API call)
+      // Log the order payload
       console.log("Order payload:", orderPayload);
       
-      // Simulate API call with more realistic timing
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Call the payment API
+      const response = await addPayment(orderPayload);
+      console.log("Payment response:", response);
       
-      // In a real app, you would send this to your API
-      // const response = await fetch('/api/orders', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(orderPayload)
-      // });
-      // 
-      // if (!response.ok) throw new Error('Failed to place order');
-      
+      // Store order details for confirmation page
+      setOrderDetails(response);
       setOrderComplete(true);
+      
       // Here you would typically clear the cart in your global state
     } catch (error) {
-      console.error("Error placing order:", error);
-      alert("There was a problem placing your order. Please try again.");
+      console.error("Error processing payment:", error);
+      alert("There was a problem processing your payment. Please try again.");
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
@@ -127,8 +133,20 @@ const Checkout = ({ cartItems, subtotal, shipping, total, setShowCheckout }) => 
             </svg>
           </div>
           <h2 className="text-2xl font-semibold mb-2">Order Complete!</h2>
-          <p className="text-gray-500 mb-6">Thank you for your purchase, {formData.name}! We've sent a confirmation email to {formData.email}.</p>
-          <p className="text-gray-500 mb-6">Your order will be shipped to {formData.line1}, {formData.city}, {formData.state}, {formData.postalCode}, {formData.country}.</p>
+          <p className="text-gray-500 mb-4">Thank you for your purchase, {formData.name}!</p>
+          {orderDetails?.orderNumber && (
+            <p className="text-gray-700 font-medium mb-4">Order Number: #{orderDetails.orderNumber}</p>
+          )}
+          <p className="text-gray-500 mb-2">We've sent a confirmation email to {formData.email}.</p>
+          <p className="text-gray-500 mb-6">Your order will be shipped to:</p>
+          <div className="bg-gray-50 p-4 rounded-md mb-6 text-left inline-block mx-auto">
+            <p className="text-gray-700">{formData.name}</p>
+            <p className="text-gray-700">{formData.line1}</p>
+            {formData.line2 && <p className="text-gray-700">{formData.line2}</p>}
+            <p className="text-gray-700">{formData.city}, {formData.state} {formData.postalCode}</p>
+            <p className="text-gray-700">{formData.country}</p>
+            <p className="text-gray-700">{formData.phone}</p>
+          </div>
           <button 
             onClick={() => {
               setShowCheckout(false);
@@ -148,7 +166,7 @@ const Checkout = ({ cartItems, subtotal, shipping, total, setShowCheckout }) => 
                 <h2 className="text-xl font-semibold">Shipping Information</h2>
               </div>
               
-              <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              <form onSubmit={handlePayment} className="p-6 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
@@ -293,12 +311,12 @@ const Checkout = ({ cartItems, subtotal, shipping, total, setShowCheckout }) => 
                   </div>
                 </div>
                 
-                <button
+                <button 
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isLoading}
                   className="w-full bg-indigo-600 text-white py-3 rounded-md font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center disabled:bg-indigo-400"
                 >
-                  {isSubmitting ? (
+                  {isLoading ? (
                     <span className="flex items-center">
                       <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -307,7 +325,9 @@ const Checkout = ({ cartItems, subtotal, shipping, total, setShowCheckout }) => 
                       Processing...
                     </span>
                   ) : (
-                    <span>Complete Order</span>
+                    <span className="flex items-center">
+                      Proceed to Payment <ChevronRight size={16} className="ml-1" />
+                    </span>
                   )}
                 </button>
               </form>
