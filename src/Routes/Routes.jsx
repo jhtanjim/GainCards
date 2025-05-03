@@ -13,6 +13,7 @@ import VendorSignup from "../auth/VendorSignup";
 import Pokaemon from "../Pages/Shared/Pokaemon/Pokaemon";
 import PokemonCardUpload from "../Pages/Shared/PokemonCardCrud/PokemonCardUpload";
 import PokaemonCardUpdate from "../Pages/Shared/PokemonCardCrud/PokaemonCardUpdate";
+import Checkout from "../Pages/Shared/Checkout/Checkout";
 
 export const router = createBrowserRouter([
   {
@@ -67,6 +68,10 @@ export const router = createBrowserRouter([
       {
         path: "/vendorSignup",
         element: <VendorSignup />,
+      },
+      {
+        path: "/checkout",
+        element: <Checkout />,
       },
       { path: "*", element: <UnderConstruction /> },
 

@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Heart, Edit, Trash2, Plus, Minus } from 'lucide-react';
 import { Link } from "react-router-dom";
+import { addFavoritePokemon, removeFavoritePokemon } from '../../../api/pokemondata';
 
-const PokemonCard = ({ pokemon, handleDelete }) => {
+const PokemonCard = ({ pokemon, handleDelete, onFavoriteUpdate, initialFavorite = false }) => {
   // State for card interactions
   const [quantity, setQuantity] = useState(1);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
-  
+  const [isFavorite, setIsFavorite] = useState(initialFavorite); // Initialize with prop value
+  const [isUpdatingFavorite, setIsUpdatingFavorite] = useState(false);
+
   // Destructure all pokemon card properties
   const {
     id, title, description, price, frontImageUrl, backImageUrl,
@@ -15,6 +17,11 @@ const PokemonCard = ({ pokemon, handleDelete }) => {
     sport, cardNumber, player, varietyPedigree, grade, population,
     vendorId, createdAt, updatedAt
   } = pokemon;
+  
+  // Update isFavorite when initialFavorite prop changes
+  useEffect(() => {
+    setIsFavorite(initialFavorite);
+  }, [initialFavorite]);
   
   // Format vendor ID for display
   const formattedId = vendorId || "N/A";
@@ -34,7 +41,33 @@ const PokemonCard = ({ pokemon, handleDelete }) => {
   const backgroundClass = getBackgroundClass();
   
   // Event handlers
-  const handleToggleFavorite = () => setIsFavorite(!isFavorite);
+  const handleToggleFavorite = async () => {
+    if (isUpdatingFavorite) return; // Prevent multiple clicks
+    
+    setIsUpdatingFavorite(true);
+    try {
+      if (isFavorite) {
+        await removeFavoritePokemon(id);
+      } else {
+        await addFavoritePokemon(id);
+      }
+      
+      const newFavoriteStatus = !isFavorite;
+      setIsFavorite(newFavoriteStatus);
+      
+      // If parent component provided a callback, call it
+      if (onFavoriteUpdate) {
+        onFavoriteUpdate(id, newFavoriteStatus);
+      }
+    } catch (error) {
+      console.error("Error updating favorite:", error);
+      // Show user-friendly error message
+      alert("Could not update favorites. Please try again later.");
+    } finally {
+      setIsUpdatingFavorite(false);
+    }
+  };
+  
   const handleAddToCart = () => console.log('Added to cart:', { ...pokemon, quantity });
   const increaseQuantity = () => setQuantity(prev => prev + 1);
   const decreaseQuantity = () => setQuantity(prev => prev > 1 ? prev - 1 : 1);
@@ -53,7 +86,7 @@ const PokemonCard = ({ pokemon, handleDelete }) => {
   const formattedDate = updatedAt ? new Date(updatedAt).toLocaleDateString() : 'N/A';
 
   // Is the card currently being deleted?
-  const isDeleting = handleDelete.isLoading && handleDelete.variables === id;
+  const isDeleting = handleDelete?.isLoading && handleDelete?.variables === id;
 
   return (
     <div className="block">
@@ -114,14 +147,16 @@ const PokemonCard = ({ pokemon, handleDelete }) => {
               </button>
             </Link>
 
-            <button 
-              onClick={confirmAndDelete} 
-              disabled={isDeleting}
-              className={`bg-white p-2 rounded-full shadow-md ${isDeleting ? 'bg-gray-200' : 'hover:bg-red-50'} transition-colors`}
-              aria-label="Delete card"
-            >
-              <Trash2 className={`w-4 h-4 ${isDeleting ? 'text-gray-400' : 'text-red-600'}`} />
-            </button>
+            {handleDelete && (
+              <button 
+                onClick={confirmAndDelete} 
+                disabled={isDeleting}
+                className={`bg-white p-2 rounded-full shadow-md ${isDeleting ? 'bg-gray-200' : 'hover:bg-red-50'} transition-colors`}
+                aria-label="Delete card"
+              >
+                <Trash2 className={`w-4 h-4 ${isDeleting ? 'text-gray-400' : 'text-red-600'}`} />
+              </button>
+            )}
           </div>
           
           {/* Flip indicator text */}
@@ -140,8 +175,9 @@ const PokemonCard = ({ pokemon, handleDelete }) => {
               </span>
               <button 
                 onClick={handleToggleFavorite} 
-                className="focus:outline-none" 
-                aria-label="Add to favorites"
+                disabled={isUpdatingFavorite}
+                className={`focus:outline-none ${isUpdatingFavorite ? 'opacity-50' : ''}`} 
+                aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
               >
                 <Heart className={`w-6 h-6 ${isFavorite ? "text-red-500 fill-red-500" : "text-gray-400"}`} />
               </button>
