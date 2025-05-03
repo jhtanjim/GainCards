@@ -3,14 +3,12 @@
 import { Settings, Heart, ShoppingBag, Search, X, LogIn } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { useShop } from "../../Context/ShopContext"
 import { useAuth } from "../../Context/AuthContext"
 
 export default function Header() {
   const navigate = useNavigate()
   const { user, signOut } = useAuth()
   const [searchOpen, setSearchOpen] = useState(false)
-  const { cartCount, favoritesCount } = useShop()
   const handleToggleSidebar = () => {
     if (window.toggleSidebar) {
       window.toggleSidebar()
@@ -91,11 +89,11 @@ export default function Header() {
               <button className="p-2 rounded-lg hover:bg-purple-800/30 transition-colors">
                 <Heart size={20} className="text-purple-300" />
               </button>
-              {favoritesCount > 0 && (
+            
                 <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  {favoritesCount}
+                  
                 </span>
-              )}
+          
             </Link>
           </div>
 
@@ -105,11 +103,11 @@ export default function Header() {
               <button className="p-2 rounded-lg hover:bg-purple-800/30 transition-colors">
                 <ShoppingBag size={20} className="text-purple-300" />
               </button>
-              {cartCount > 0 && (
+             
                 <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  {cartCount}
+               
                 </span>
-              )}
+           
             </Link>
           </div>
 

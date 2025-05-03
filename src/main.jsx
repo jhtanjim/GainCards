@@ -3,16 +3,18 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./Routes/Routes.jsx";
-import { ShopProvider } from "./Context/ShopContext.jsx";
 import { AuthProvider } from "./Context/AuthContext.jsx";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+// Create a queryClient instance
+export const queryClient = new QueryClient();
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-  <AuthProvider>
-    <ShopProvider>
-      <RouterProvider router={router} />
-    </ShopProvider>
-  </AuthProvider>
-</StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </QueryClientProvider>
+  </StrictMode>
 
 );

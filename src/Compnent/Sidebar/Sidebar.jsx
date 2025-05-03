@@ -93,6 +93,17 @@ const Sidebar = () => {
           </li>
           <li>
             <Link
+              to="/pokemon"
+              className={`flex items-center ${
+                expanded && !isMobile ? "justify-start gap-3 px-4" : "justify-center"
+              } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
+            >
+              <ShoppingBag size={20} />
+              {expanded && !isMobile && <span>Pokemon Cards</span>}
+            </Link>
+          </li>
+          <li>
+            <Link
               to="/myLibrary"
               className={`flex items-center ${
                 expanded && !isMobile ? "justify-start gap-3 px-4" : "justify-center"
@@ -115,7 +126,7 @@ const Sidebar = () => {
           </li>
           <li>
             <Link
-              to="/productUpload"
+              to="/pokemonCardUpload"
               className={`flex items-center ${
                 expanded && !isMobile ? "justify-start gap-3 px-4" : "justify-center"
               } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
@@ -124,6 +135,7 @@ const Sidebar = () => {
               {expanded && !isMobile && <span>Product upload</span>}
             </Link>
           </li>
+         
         </ul>
       </nav>
 

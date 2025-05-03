@@ -8,9 +8,11 @@ import PokaemonCardDetails from "../Pages/Shared/Pokaemon/PokaemonCardDetails";
 import UnderConstruction from "../Compnent/UnderConstruction";
 import SignIn from "../auth/SignIn";
 import Signup from "../auth/Signup";
-import ProductUpload from "../Pages/Shared/ProductUpload/ProductUpload";
 import MyProfile from "../Pages/Shared/MyProfile/MyProfile";
 import VendorSignup from "../auth/VendorSignup";
+import Pokaemon from "../Pages/Shared/Pokaemon/Pokaemon";
+import PokemonCardUpload from "../Pages/Shared/PokemonCardCrud/PokemonCardUpload";
+import PokaemonCardUpdate from "../Pages/Shared/PokemonCardCrud/PokaemonCardUpdate";
 
 export const router = createBrowserRouter([
   {
@@ -42,12 +44,21 @@ export const router = createBrowserRouter([
         element: <MyLibrary />,
       },
       {
-        path: "/pokemon/:id",
-        element: <PokaemonCardDetails />,
+        path: "/pokemon",
+        element: <Pokaemon />,
       },
       {
-        path: "/productUpload",
-        element: <ProductUpload />,
+        path: "/pokemon/:id",
+        element: <PokaemonCardDetails />,
+      },   
+    
+      {
+        path: "/pokemonCardUpload",
+        element: <PokemonCardUpload />,
+      },
+      {
+        path: "/pokemonCardUpdate/:id",
+        element: <PokaemonCardUpdate/>,
       },
       {
         path: "/myProfile",
