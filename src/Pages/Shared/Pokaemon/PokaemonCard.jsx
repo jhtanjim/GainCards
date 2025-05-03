@@ -2,14 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Heart, Edit, Trash2, Plus, Minus } from 'lucide-react';
 import { Link } from "react-router-dom";
 import { addFavoritePokemon, removeFavoritePokemon } from '../../../api/pokemondata';
+import { useShop } from '../../../Context/ShopContext';
 
 const PokemonCard = ({ pokemon, handleDelete, onFavoriteUpdate, initialFavorite = false }) => {
-  // State for card interactions
+
   const [quantity, setQuantity] = useState(1);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isFavorite, setIsFavorite] = useState(initialFavorite); // Initialize with prop value
   const [isUpdatingFavorite, setIsUpdatingFavorite] = useState(false);
-
+const {cartItems,setCartItems}=useShop()
   // Destructure all pokemon card properties
   const {
     id, title, description, price, frontImageUrl, backImageUrl,
@@ -18,10 +19,17 @@ const PokemonCard = ({ pokemon, handleDelete, onFavoriteUpdate, initialFavorite 
     vendorId, createdAt, updatedAt
   } = pokemon;
   
-  // Update isFavorite when initialFavorite prop changes
+  // Initialize isFavorite from props and update when it changes
   useEffect(() => {
     setIsFavorite(initialFavorite);
   }, [initialFavorite]);
+  
+  // Also check the API when component mounts to ensure state consistency
+  useEffect(() => {
+    // This could be replaced with a real API call to check favorite status if needed
+    // For now we rely on the initialFavorite prop from parent component
+    console.log(`Pokemon ${id} initial favorite status: ${initialFavorite}`);
+  }, [id]);
   
   // Format vendor ID for display
   const formattedId = vendorId || "N/A";
@@ -68,7 +76,11 @@ const PokemonCard = ({ pokemon, handleDelete, onFavoriteUpdate, initialFavorite 
     }
   };
   
-  const handleAddToCart = () => console.log('Added to cart:', { ...pokemon, quantity });
+  const handleAddToCart = () =>{
+    setCartItems([...cartItems,pokemon])
+
+
+  };
   const increaseQuantity = () => setQuantity(prev => prev + 1);
   const decreaseQuantity = () => setQuantity(prev => prev > 1 ? prev - 1 : 1);
   

@@ -1,288 +1,367 @@
-import React, { useState } from 'react';
-import { CreditCard, Truck, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../../Context/AuthContext';
 
-const Checkout = () => {
+const Checkout = ({ cartItems, subtotal, shipping, total, setShowCheckout }) => {
+  const { user } = useAuth();
+  
+  // Initialize form with user data if available
   const [formData, setFormData] = useState({
-    name: '',
-    line1: '',
-    line2: '',
-    city: '',
-    state: '',
-    postalCode: '',
-    country: '',
-    phone: ''
+    name: "",
+    email: user?.email || "",
+    line1: "",
+    line2: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: user?.country || "",
+    phone: "",
   });
-
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [orderComplete, setOrderComplete] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
-  // Mock cart data (in a real app, this would come from context/state)
-  const cartItems = [
-    {
-      id: "b52ba7d0-07ec-4600-b10f-0b1daa9da95e",
-      name: "Premium T-Shirt",
-      price: 29.99,
-      quantity: 1,
-      image: "/api/placeholder/100/100"
+  // Pre-populate form with user data when component mounts
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.username || "",
+        email: user.email || "",
+        country: user.country || ""
+      }));
     }
-  ];
+  }, [user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear error for this field when user types
+    if (formErrors[name]) {
+      setFormErrors(prev => ({ ...prev, [name]: null }));
+    }
   };
 
-  const handleSubmit = (e) => {
+  const validateForm = () => {
+    const errors = {};
+    const requiredFields = ['name', 'email', 'line1', 'city', 'state', 'postalCode', 'country', 'phone'];
+    
+    requiredFields.forEach(field => {
+      if (!formData[field]) {
+        errors[field] = 'This field is required';
+      }
+    });
+    
+    // Email validation
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = 'Please enter a valid email address';
+    }
+    
+    // Phone validation
+    if (formData.phone && !/^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,4}[-\s.]?[0-9]{1,9}$/.test(formData.phone)) {
+      errors.phone = 'Please enter a valid phone number';
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsSubmitting(true);
     
-    // Simulate API request
-    setTimeout(() => {
-      const orderData = {
-        productIds: cartItems.map(item => item.id),
-        shippingAddress: formData
-      };
+    // Create order payload
+    const orderPayload = {
+      productIds: cartItems.map(item => item.id),
+      shippingAddress: { ...formData }
+    };
+    
+    try {
+      // Log the order payload (in production this would be an API call)
+      console.log("Order payload:", orderPayload);
       
-      console.log("Order submitted:", orderData);
+      // Simulate API call with more realistic timing
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // In a real app, you would send this to your API
+      // const response = await fetch('/api/orders', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(orderPayload)
+      // });
+      // 
+      // if (!response.ok) throw new Error('Failed to place order');
+      
+      setOrderComplete(true);
+      // Here you would typically clear the cart in your global state
+    } catch (error) {
+      console.error("Error placing order:", error);
+      alert("There was a problem placing your order. Please try again.");
+    } finally {
       setIsSubmitting(false);
-      setIsSubmitted(true);
-    }, 1000);
+    }
   };
-
-  const calculateSubtotal = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-  };
-
-  const subtotal = calculateSubtotal();
-  const shipping = 5.99;
-  const tax = subtotal * 0.07;
-  const total = subtotal + shipping + tax;
-
-  // If order is submitted, show confirmation
-  if (isSubmitted) {
-    return (
-      <div className="max-w-4xl mx-auto p-6 bg-white">
-        <div className="text-center py-12">
-          <div className="bg-green-100 p-4 rounded-full inline-flex items-center justify-center mb-6">
-            <Check size={32} className="text-green-600" />
-          </div>
-          <h1 className="text-3xl font-bold mb-4">Thank You For Your Order!</h1>
-          <p className="text-xl mb-8">Your order has been placed successfully.</p>
-          <div className="border p-4 rounded max-w-md mx-auto mb-6">
-            <h2 className="font-semibold mb-2">Shipping to:</h2>
-            <p>{formData.name}</p>
-            <p>{formData.line1}</p>
-            {formData.line2 && <p>{formData.line2}</p>}
-            <p>{formData.city}, {formData.state} {formData.postalCode}</p>
-            <p>{formData.country}</p>
-            <p>{formData.phone}</p>
-          </div>
-          <button 
-            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
-            onClick={() => window.location.href = '/'}
-          >
-            Return to Shopping
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white">
+    <div>
+      <button 
+        onClick={() => setShowCheckout(false)}
+        className="text-indigo-600 hover:text-indigo-800 font-medium mb-6 flex items-center"
+      >
+        &larr; Back to Cart
+      </button>
+      
       <h1 className="text-3xl font-bold mb-8">Checkout</h1>
       
-      <div className="grid md:grid-cols-3 gap-8">
-        {/* Shipping Form */}
-        <div className="md:col-span-2">
-          <div className="border rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4 flex items-center">
-              <Truck className="mr-2" />
-              Shipping Information
-            </h2>
-            
-            <form onSubmit={handleSubmit}>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium mb-1">Full Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="w-full p-2 border rounded focus:ring focus:ring-blue-200 focus:border-blue-400"
-                    placeholder="John Doe"
-                    required
-                  />
-                </div>
-                
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium mb-1">Address Line 1</label>
-                  <input
-                    type="text"
-                    name="line1"
-                    value={formData.line1}
-                    onChange={handleChange}
-                    className="w-full p-2 border rounded focus:ring focus:ring-blue-200 focus:border-blue-400"
-                    placeholder="123 Main Street"
-                    required
-                  />
-                </div>
-                
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium mb-1">Address Line 2 (Optional)</label>
-                  <input
-                    type="text"
-                    name="line2"
-                    value={formData.line2}
-                    onChange={handleChange}
-                    className="w-full p-2 border rounded focus:ring focus:ring-blue-200 focus:border-blue-400"
-                    placeholder="Apartment 4B"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-1">City</label>
-                  <input
-                    type="text"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleChange}
-                    className="w-full p-2 border rounded focus:ring focus:ring-blue-200 focus:border-blue-400"
-                    placeholder="New York"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-1">State/Province</label>
-                  <input
-                    type="text"
-                    name="state"
-                    value={formData.state}
-                    onChange={handleChange}
-                    className="w-full p-2 border rounded focus:ring focus:ring-blue-200 focus:border-blue-400"
-                    placeholder="NY"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-1">Postal Code</label>
-                  <input
-                    type="text"
-                    name="postalCode"
-                    value={formData.postalCode}
-                    onChange={handleChange}
-                    className="w-full p-2 border rounded focus:ring focus:ring-blue-200 focus:border-blue-400"
-                    placeholder="10001"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-1">Country</label>
-                  <input
-                    type="text"
-                    name="country"
-                    value={formData.country}
-                    onChange={handleChange}
-                    className="w-full p-2 border rounded focus:ring focus:ring-blue-200 focus:border-blue-400"
-                    placeholder="USA"
-                    required
-                  />
-                </div>
-                
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium mb-1">Phone Number</label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    className="w-full p-2 border rounded focus:ring focus:ring-blue-200 focus:border-blue-400"
-                    placeholder="+11234567890"
-                    required
-                  />
-                </div>
+      {orderComplete ? (
+        <div className="bg-white rounded-lg shadow-md p-8 text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+          </div>
+          <h2 className="text-2xl font-semibold mb-2">Order Complete!</h2>
+          <p className="text-gray-500 mb-6">Thank you for your purchase, {formData.name}! We've sent a confirmation email to {formData.email}.</p>
+          <p className="text-gray-500 mb-6">Your order will be shipped to {formData.line1}, {formData.city}, {formData.state}, {formData.postalCode}, {formData.country}.</p>
+          <button 
+            onClick={() => {
+              setShowCheckout(false);
+              // This would clear the cart in a real app
+              // clearCart();
+            }}
+            className="bg-indigo-600 text-white px-6 py-3 rounded-md font-medium hover:bg-indigo-700 transition-colors"
+          >
+            Continue Shopping
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col lg:flex-row gap-8">
+          <div className="lg:w-2/3">
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-xl font-semibold">Shipping Information</h2>
               </div>
               
-              <div className="mt-8">
-                <h2 className="text-xl font-semibold mb-4 flex items-center">
-                  <CreditCard className="mr-2" />
-                  Payment Information
-                </h2>
-                
-                <div className="bg-gray-50 p-4 rounded border border-dashed">
-                  <p className="text-center text-gray-600">
-                    Payment processing is simulated for this demo.
-                  </p>
+              <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      className={`w-full border ${formErrors.name ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    />
+                    {formErrors.name && <p className="text-red-500 text-xs mt-1">{formErrors.name}</p>}
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      className={`w-full border ${formErrors.email ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    />
+                    {formErrors.email && <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>}
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      required
+                      className={`w-full border ${formErrors.phone ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    />
+                    {formErrors.phone && <p className="text-red-500 text-xs mt-1">{formErrors.phone}</p>}
+                  </div>
+                  
+                  <div className="md:col-span-2">
+                    <label htmlFor="line1" className="block text-sm font-medium text-gray-700 mb-1">
+                      Address Line 1
+                    </label>
+                    <input
+                      type="text"
+                      id="line1"
+                      name="line1"
+                      value={formData.line1}
+                      onChange={handleChange}
+                      required
+                      className={`w-full border ${formErrors.line1 ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    />
+                    {formErrors.line1 && <p className="text-red-500 text-xs mt-1">{formErrors.line1}</p>}
+                  </div>
+                  
+                  <div className="md:col-span-2">
+                    <label htmlFor="line2" className="block text-sm font-medium text-gray-700 mb-1">
+                      Address Line 2 (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      id="line2"
+                      name="line2"
+                      value={formData.line2}
+                      onChange={handleChange}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
+                      City
+                    </label>
+                    <input
+                      type="text"
+                      id="city"
+                      name="city"
+                      value={formData.city}
+                      onChange={handleChange}
+                      required
+                      className={`w-full border ${formErrors.city ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    />
+                    {formErrors.city && <p className="text-red-500 text-xs mt-1">{formErrors.city}</p>}
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
+                      State / Province
+                    </label>
+                    <input
+                      type="text"
+                      id="state"
+                      name="state"
+                      value={formData.state}
+                      onChange={handleChange}
+                      required
+                      className={`w-full border ${formErrors.state ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    />
+                    {formErrors.state && <p className="text-red-500 text-xs mt-1">{formErrors.state}</p>}
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 mb-1">
+                      Postal Code
+                    </label>
+                    <input
+                      type="text"
+                      id="postalCode"
+                      name="postalCode"
+                      value={formData.postalCode}
+                      onChange={handleChange}
+                      required
+                      className={`w-full border ${formErrors.postalCode ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    />
+                    {formErrors.postalCode && <p className="text-red-500 text-xs mt-1">{formErrors.postalCode}</p>}
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">
+                      Country
+                    </label>
+                    <input
+                      type="text"
+                      id="country"
+                      name="country"
+                      value={formData.country}
+                      onChange={handleChange}
+                      required
+                      className={`w-full border ${formErrors.country ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    />
+                    {formErrors.country && <p className="text-red-500 text-xs mt-1">{formErrors.country}</p>}
+                  </div>
                 </div>
-              </div>
-              
-              <div className="mt-8">
+                
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`w-full py-3 rounded font-medium text-white ${
-                    isSubmitting ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'
-                  }`}
+                  className="w-full bg-indigo-600 text-white py-3 rounded-md font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center disabled:bg-indigo-400"
                 >
-                  {isSubmitting ? 'Processing...' : 'Place Order'}
+                  {isSubmitting ? (
+                    <span className="flex items-center">
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Processing...
+                    </span>
+                  ) : (
+                    <span>Complete Order</span>
+                  )}
                 </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
-        </div>
-        
-        {/* Order Summary */}
-        <div>
-          <div className="border rounded-lg p-6 sticky top-6">
-            <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-            
-            <div className="max-h-64 overflow-y-auto mb-4">
-              {cartItems.map((item, index) => (
-                <div key={index} className="flex items-center py-2 border-b">
-                  <img 
-                    src={item.image} 
-                    alt={item.name} 
-                    className="w-12 h-12 object-cover rounded"
-                  />
-                  <div className="ml-3 flex-1">
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
-                  </div>
-                  <div className="text-right">
-                    ${(item.price * item.quantity).toFixed(2)}
-                  </div>
+          
+          <div className="lg:w-1/3">
+            <div className="bg-white rounded-lg shadow-md p-6 sticky top-8">
+              <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
+              
+              <div className="mb-4">
+                <div className="text-sm text-gray-500 mb-2">{cartItems.length} items in cart</div>
+                <div className="max-h-60 overflow-y-auto">
+                  {cartItems.map((item) => (
+                    <div key={item.id} className="flex py-2 border-b border-gray-200 last:border-b-0">
+                      <div className="w-12 h-12 bg-gray-100 rounded-md overflow-hidden">
+                        {item.frontImageUrl && (
+                          <img 
+                            src={item.frontImageUrl} 
+                            alt={item.title} 
+                            className="w-full h-full object-contain"
+                          />
+                        )}
+                      </div>
+                      <div className="flex-1 ml-3">
+                        <div className="text-sm font-medium truncate">{item.title}</div>
+                        <div className="text-xs text-gray-500">Qty: {item.quantity || 1}</div>
+                      </div>
+                      <div className="text-sm font-medium">
+                        ${(item.price * (item.quantity || 1)).toFixed(2)}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            
-            <div className="border-t pt-4 space-y-2">
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>Shipping</span>
-                <span>${shipping.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Tax (7%)</span>
-                <span>${tax.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between font-bold pt-2 border-t">
-                <span>Total</span>
-                <span>${total.toFixed(2)}</span>
+              
+              <div className="space-y-2 pt-4 border-t border-gray-200">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Subtotal</span>
+                  <span>${subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Shipping</span>
+                  <span>${shipping.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between font-medium text-lg pt-2 border-t border-gray-200">
+                  <span>Total</span>
+                  <span>${total.toFixed(2)}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

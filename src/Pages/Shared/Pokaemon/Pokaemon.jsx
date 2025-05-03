@@ -9,7 +9,7 @@ const Pokaemon = () => {
   const [error, setError] = useState('');   
   const { user } = useAuth();   
   const queryClient = useQueryClient();    
-  
+
   // Use React Query for data fetching
   const { data: pokemons, isLoading } = useQuery({     
     queryKey: ['pokemons'],      
@@ -85,7 +85,8 @@ const Pokaemon = () => {
         <PokaemonCard           
           key={pokemon.id}           
           pokemon={pokemon}           
-          handleDelete={handleDelete}         
+          handleDelete={handleDelete}   
+    
         />       
       ))}     
     </div>   

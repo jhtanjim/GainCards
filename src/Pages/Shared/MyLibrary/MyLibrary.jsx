@@ -11,6 +11,17 @@ const MyLibrary = () => {
   // Fetch all favorite Pokémon when component mounts
   useEffect(() => {
     fetchFavorites();
+    
+    // Optional: Set up localStorage to persist favorites between page reloads
+    const savedFavorites = localStorage.getItem('pokemonFavorites');
+    if (savedFavorites) {
+      try {
+        const parsedFavorites = JSON.parse(savedFavorites);
+        // We could use this as a fallback while loading from the API
+      } catch (err) {
+        console.error('Error parsing saved favorites:', err);
+      }
+    }
   }, []);
 
   // Function to fetch favorites
@@ -19,6 +30,10 @@ const MyLibrary = () => {
     try {
       const data = await getAllFavoritePokemon();
       setFavorites(data);
+      
+      // Save favorites to localStorage for persistence
+      localStorage.setItem('pokemonFavorites', JSON.stringify(data.map(p => p.id)));
+      
       setError(null);
     } catch (err) {
       console.error('Error fetching favorites:', err);
@@ -32,9 +47,15 @@ const MyLibrary = () => {
   const handleFavoriteUpdate = (pokemonId, isFavorite) => {
     if (!isFavorite) {
       // Remove from favorites list when unfavorited
-      setFavorites(favorites.filter(pokemon => pokemon.id !== pokemonId));
+      const updatedFavorites = favorites.filter(pokemon => pokemon.id !== pokemonId);
+      setFavorites(updatedFavorites);
+      
+      // Update localStorage to persist changes
+      localStorage.setItem(
+        'pokemonFavorites', 
+        JSON.stringify(updatedFavorites.map(p => p.id))
+      );
     }
-    // No need for the else case in the MyLibrary component since we're only showing favorites
   };
 
   // Mock delete handler to satisfy PokemonCard props
@@ -103,7 +124,7 @@ const MyLibrary = () => {
               pokemon={pokemon} 
               handleDelete={handleDelete}
               onFavoriteUpdate={handleFavoriteUpdate}
-              initialFavorite={true} // Pass initialFavorite prop instead of isFavorite
+              initialFavorite={true} // Always true in the library view
             />
           ))}
         </div>
