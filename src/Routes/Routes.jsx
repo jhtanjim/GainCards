@@ -1,20 +1,20 @@
 import { createBrowserRouter } from "react-router-dom";
+import UnderConstruction from "../Compnent/UnderConstruction";
 import Main from "../Layout/Main";
-import Home from "../Pages/Home/Home/Home";
 import Categories from "../Pages/Home/Categories/Categories";
+import Home from "../Pages/Home/Home/Home";
+import Checkout from "../Pages/Shared/Checkout/Checkout";
 import MyBag from "../Pages/Shared/MyBag/MyBag";
 import MyLibrary from "../Pages/Shared/MyLibrary/MyLibrary";
+import MyProfile from "../Pages/Shared/MyProfile/MyProfile";
+import Payment from "../Pages/Shared/Payment/Payment";
+import Pokaemon from "../Pages/Shared/Pokaemon/Pokaemon";
 import PokaemonCardDetails from "../Pages/Shared/Pokaemon/PokaemonCardDetails";
-import UnderConstruction from "../Compnent/UnderConstruction";
+import PokaemonCardUpdate from "../Pages/Shared/PokemonCardCrud/PokaemonCardUpdate";
+import PokemonCardUpload from "../Pages/Shared/PokemonCardCrud/PokemonCardUpload";
 import SignIn from "../auth/SignIn";
 import Signup from "../auth/Signup";
-import MyProfile from "../Pages/Shared/MyProfile/MyProfile";
 import VendorSignup from "../auth/VendorSignup";
-import Pokaemon from "../Pages/Shared/Pokaemon/Pokaemon";
-import PokemonCardUpload from "../Pages/Shared/PokemonCardCrud/PokemonCardUpload";
-import PokaemonCardUpdate from "../Pages/Shared/PokemonCardCrud/PokaemonCardUpdate";
-import Checkout from "../Pages/Shared/Checkout/Checkout";
-import Payment from "../Pages/Shared/Payment/Payment";
 
 export const router = createBrowserRouter([
   {
@@ -52,15 +52,15 @@ export const router = createBrowserRouter([
       {
         path: "/pokemon/:id",
         element: <PokaemonCardDetails />,
-      },   
-    
+      },
+
       {
         path: "/pokemonCardUpload",
         element: <PokemonCardUpload />,
       },
       {
         path: "/pokemonCardUpdate/:id",
-        element: <PokaemonCardUpdate/>,
+        element: <PokaemonCardUpdate />,
       },
       {
         path: "/myProfile",
@@ -79,7 +79,6 @@ export const router = createBrowserRouter([
         element: <Payment />,
       },
       { path: "*", element: <UnderConstruction /> },
-
     ],
   },
 ]);

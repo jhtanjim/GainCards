@@ -1,18 +1,19 @@
 import { createContext, useContext, useState } from "react";
 
-const ShopContext=createContext()
+const ShopContext = createContext();
 
-export const useShop =()=>useContext(ShopContext)
+export const useShop = () => useContext(ShopContext);
 
-export const ShopProvider=({children})=>{
-  const [cartItems,setCartItems]=useState([])
-  console.log( {cartItems})
+export const ShopProvider = ({ children }) => {
+  const [cartItems, setCartItems] = useState([]);
 
+  const [clientSecret, setClientSecret] = useState("");
 
-
-return <ShopContext.Provider
-
-value={{cartItems,setCartItems}}
-
->{children}</ShopContext.Provider>
-}
+  return (
+    <ShopContext.Provider
+      value={{ cartItems, setCartItems, clientSecret, setClientSecret }}
+    >
+      {children}
+    </ShopContext.Provider>
+  );
+};
