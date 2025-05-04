@@ -1,9 +1,34 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
-import { Home, Grid, Heart, ShoppingBag, Upload, CreditCard, Package, User } from "lucide-react"
-import logo from "../../assets/logo/logo.jpg"
+import {
+  CreditCard,
+  Grid,
+  Heart,
+  Home,
+  Package,
+  ShoppingBag,
+  Upload,
+  User,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import logo from "../../assets/logo/logo.jpg";
+
+function SidebarLink({ expanded, isMobile, link, name, icon }) {
+  return (
+    <li>
+      <Link
+        to={link}
+        className={`flex items-center ${
+          expanded && !isMobile ? "justify-start gap-3 px-4" : "justify-center"
+        } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
+      >
+        {icon}
+        {expanded && !isMobile && <span>{name}</span>}
+      </Link>
+    </li>
+  );
+}
 
 // Custom PokemonBall icon component
 const PokemonBall = ({ size = 24, ...props }) => (
@@ -24,52 +49,52 @@ const PokemonBall = ({ size = 24, ...props }) => (
     <line x1="2" y1="12" x2="22" y2="12" />
     <circle cx="12" cy="12" r="3" />
   </svg>
-)
+);
 
 const Sidebar = () => {
-  const [expanded, setExpanded] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
-  const [mobileVisible, setMobileVisible] = useState(false)
+  const [expanded, setExpanded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileVisible, setMobileVisible] = useState(false);
 
   // Check if device is mobile
   useEffect(() => {
     const checkIfMobile = () => {
-      const mobile = window.innerWidth < 768
-      setIsMobile(mobile)
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
 
       // Reset mobile visibility when switching between mobile and desktop
       if (!mobile) {
-        setMobileVisible(false)
+        setMobileVisible(false);
       }
-    }
+    };
 
     // Initial check
-    checkIfMobile()
+    checkIfMobile();
 
     // Add event listener for window resize
-    window.addEventListener("resize", checkIfMobile)
+    window.addEventListener("resize", checkIfMobile);
 
     // Cleanup
-    return () => window.removeEventListener("resize", checkIfMobile)
-  }, [])
+    return () => window.removeEventListener("resize", checkIfMobile);
+  }, []);
 
   // Toggle sidebar from external components (will be used by Header)
   window.toggleSidebar = () => {
     if (isMobile) {
-      setMobileVisible((prev) => !prev)
+      setMobileVisible((prev) => !prev);
     } else {
-      setExpanded((prev) => !prev)
+      setExpanded((prev) => !prev);
     }
-  }
+  };
 
   // Calculate sidebar width based on state
   const getSidebarWidth = () => {
     if (isMobile) {
-      return mobileVisible ? "w-20" : "w-0"
+      return mobileVisible ? "w-20" : "w-0";
     } else {
-      return expanded ? "w-64" : "w-20"
+      return expanded ? "w-64" : "w-20";
     }
-  }
+  };
 
   return (
     <div
@@ -80,9 +105,17 @@ const Sidebar = () => {
       onMouseLeave={() => !isMobile && setExpanded(false)}
     >
       {/* Logo */}
-      <div className={`p-6 flex items-center ${expanded && !isMobile ? "gap-2" : "justify-center"}`}>
+      <div
+        className={`p-6 flex items-center ${
+          expanded && !isMobile ? "gap-2" : "justify-center"
+        }`}
+      >
         <div className="bg-[#1a2639] p-2 rounded-lg flex-shrink-0 w-10 h-10 flex items-center justify-center overflow-hidden">
-          <img src={logo || "/placeholder.svg"} alt="PLAY Logo" className="w-full h-full object-cover" />
+          <img
+            src={logo || "/placeholder.svg"}
+            alt="PLAY Logo"
+            className="w-full h-full object-cover"
+          />
         </div>
         {expanded && !isMobile && <h1 className="text-2xl font-bold">PLAY</h1>}
       </div>
@@ -90,22 +123,21 @@ const Sidebar = () => {
       {/* Navigation */}
       <nav className="flex-1 px-4 py-4">
         <ul className="space-y-2">
-          <li>
-            <Link
-              to="/"
-              className={`flex items-center ${
-                expanded && !isMobile ? "justify-start gap-3 px-4" : "justify-center"
-              } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
-            >
-              <Home size={20} />
-              {expanded && !isMobile && <span>Home</span>}
-            </Link>
-          </li>
+          <SidebarLink
+            expanded={expanded}
+            isMobile={isMobile}
+            link={"/"}
+            name={"Home"}
+            icon={<Home />}
+          />
+
           <li>
             <Link
               to="/categories"
               className={`flex items-center ${
-                expanded && !isMobile ? "justify-start gap-3 px-4" : "justify-center"
+                expanded && !isMobile
+                  ? "justify-start gap-3 px-4"
+                  : "justify-center"
               } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
             >
               <Grid size={20} />
@@ -116,7 +148,9 @@ const Sidebar = () => {
             <Link
               to="/pokemon"
               className={`flex items-center ${
-                expanded && !isMobile ? "justify-start gap-3 px-4" : "justify-center"
+                expanded && !isMobile
+                  ? "justify-start gap-3 px-4"
+                  : "justify-center"
               } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
             >
               <PokemonBall size={20} />
@@ -127,7 +161,9 @@ const Sidebar = () => {
             <Link
               to="/myLibrary"
               className={`flex items-center ${
-                expanded && !isMobile ? "justify-start gap-3 px-4" : "justify-center"
+                expanded && !isMobile
+                  ? "justify-start gap-3 px-4"
+                  : "justify-center"
               } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
             >
               <Heart size={20} />
@@ -138,7 +174,9 @@ const Sidebar = () => {
             <Link
               to="/myBag"
               className={`flex items-center ${
-                expanded && !isMobile ? "justify-start gap-3 px-4" : "justify-center"
+                expanded && !isMobile
+                  ? "justify-start gap-3 px-4"
+                  : "justify-center"
               } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
             >
               <ShoppingBag size={20} />
@@ -149,7 +187,9 @@ const Sidebar = () => {
             <Link
               to="/pokemonCardUpload"
               className={`flex items-center ${
-                expanded && !isMobile ? "justify-start gap-3 px-4" : "justify-center"
+                expanded && !isMobile
+                  ? "justify-start gap-3 px-4"
+                  : "justify-center"
               } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
             >
               <Upload size={20} />
@@ -160,7 +200,9 @@ const Sidebar = () => {
             <Link
               to="/myOrders"
               className={`flex items-center ${
-                expanded && !isMobile ? "justify-start gap-3 px-4" : "justify-center"
+                expanded && !isMobile
+                  ? "justify-start gap-3 px-4"
+                  : "justify-center"
               } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
             >
               <Package size={20} />
@@ -171,7 +213,9 @@ const Sidebar = () => {
             <Link
               to="/admin"
               className={`flex items-center ${
-                expanded && !isMobile ? "justify-start gap-3 px-4" : "justify-center"
+                expanded && !isMobile
+                  ? "justify-start gap-3 px-4"
+                  : "justify-center"
               } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
             >
               <User size={20} />
@@ -182,7 +226,9 @@ const Sidebar = () => {
             <Link
               to="/myCards"
               className={`flex items-center ${
-                expanded && !isMobile ? "justify-start gap-3 px-4" : "justify-center"
+                expanded && !isMobile
+                  ? "justify-start gap-3 px-4"
+                  : "justify-center"
               } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
             >
               <CreditCard size={20} />
@@ -226,7 +272,7 @@ const Sidebar = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default Sidebar
+export default Sidebar;

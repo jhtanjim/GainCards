@@ -1,60 +1,84 @@
-import React, { useState } from 'react'; 
-import { useQuery, useQueryClient } from '@tanstack/react-query'; 
-import { getAllPokemonData, deletePokemon } from '../../../api/pokemondata'; 
-import { useAuth } from '../../../Context/AuthContext'; 
-import PokaemonCard from './PokaemonCard'; // Make sure this matches your file name exactly
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import React from "react";
+import {
+  getAllFavoritePokemon,
+  getAllPokemonData,
+} from "../../../api/pokemondata";
+import PokaemonCard from "./PokaemonCard";
 
-const Pokaemon = () => {   
-  const [error, setError] = useState('');   
-  const { user } = useAuth();   
-  const queryClient = useQueryClient();    
+const Pokaemon = () => {
+  const queryClient = useQueryClient();
 
-  // Use React Query for data fetching
-  const { data: pokemons, isLoading } = useQuery({     
-    queryKey: ['pokemons'],      
-    queryFn: getAllPokemonData,     
-    onError: (err) => {       
-      setError("Failed to load Pokemon data");       
-      console.error("Error fetching Pokemon data:", err);     
-    }   
-  });    
-  
+  const {
+    data: pokemons,
+    isError: isPokemonError,
+    error: pokemonError,
+    isLoading: isPokemonLoading,
+  } = useQuery({
+    queryKey: ["pokemons"],
+    queryFn: getAllPokemonData,
+  });
 
+  const {
+    data: favorites,
+    isError: isFavError,
+    isLoading: isFavLoading,
+  } = useQuery({
+    queryKey: ["pokemons", "favoriteList"],
+    queryFn: getAllFavoritePokemon,
+  });
 
-  if (isLoading) return <div className="text-center text-xl mt-10">Loading...</div>;      
-  
-  if (error) return (     
-    <div className="text-center mt-10">       
-      <p className="text-red-500 text-xl">{error}</p>       
-      <button          
-        onClick={() => queryClient.invalidateQueries(['pokemons'])}         
-        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"       
-      >         
-        Retry       
-      </button>     
-    </div>   
-  );    
-  
-  if (!pokemons || pokemons.length === 0) {     
-    return (       
-      <div className="text-center mt-10">         
-        <p className="text-xl">No Pokemon cards found.</p>       
-      </div>     
-    );   
-  }    
-  
-  return (     
+  const isLoading = isPokemonLoading || isFavLoading;
+  const isError = isPokemonError || isFavError;
+
+  if (isLoading) {
+    return (
+      <div className="text-center mt-10">
+        <p className="text-lg text-gray-600">Loading Pokémon...</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="text-center mt-10">
+        <p className="text-red-500 text-xl">
+          {pokemonError?.message || "Error fetching data."}
+        </p>
+        <button
+          onClick={() => {
+            queryClient.invalidateQueries(["pokemons"]);
+            queryClient.invalidateQueries(["pokemons", "favoriteList"]);
+          }}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!pokemons || pokemons.length === 0) {
+    return (
+      <div className="text-center mt-10">
+        <p className="text-xl">No Pokémon cards found.</p>
+      </div>
+    );
+  }
+
+  const favoriteIds = new Set(favorites?.map((fav) => fav.id));
+
+  return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
-      {pokemons.map((pokemon) => (         
-        <PokaemonCard           
-          key={pokemon.id}           
-          pokemon={pokemon}           
-    
-    
-        />       
-      ))}     
-    </div>   
-  ); 
-};  
+      {pokemons.map((pokemon) => (
+        <PokaemonCard
+          key={pokemon.id}
+          pokemon={pokemon}
+          isFavorite={favoriteIds.has(pokemon.id)}
+        />
+      ))}
+    </div>
+  );
+};
 
 export default Pokaemon;

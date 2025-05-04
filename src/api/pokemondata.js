@@ -1,6 +1,5 @@
 import api from "../Hooks/axios";
 
-
 export const getAllPokemonData = async () => {
   try {
     const response = await api.get("/products");
@@ -34,7 +33,7 @@ export const createPokemon = async (productData) => {
 };
 
 // Update a product
-export const updatePokemon= async (id, productData) => {
+export const updatePokemon = async (id, productData) => {
   try {
     const response = await api.patch(`/products/${id}`, productData);
     return response.data;
@@ -48,7 +47,7 @@ export const updatePokemon= async (id, productData) => {
 export const deletePokemon = async (id) => {
   try {
     const response = await api.delete(`/products/${id}`);
-    withCredentials: true
+
     return response.data;
   } catch (error) {
     console.error(`Error deleting product with id ${id}:`, error);
@@ -97,7 +96,7 @@ const productService = {
   deletePokemon,
   addFavoritePokemon,
   getAllFavoritePokemon,
-  removeFavoritePokemon
+  removeFavoritePokemon,
 };
 
 export default productService;
