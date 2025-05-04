@@ -13,6 +13,7 @@ import {
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import logo from "../../assets/logo/logo.jpg";
+import { useAuth } from "../../Context/AuthContext";
 
 function SidebarLink({ expanded, isMobile, link, name, icon }) {
   return (
@@ -52,6 +53,7 @@ const PokemonBall = ({ size = 24, ...props }) => (
 );
 
 const Sidebar = () => {
+  const {user}=useAuth()
   const [expanded, setExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [mobileVisible, setMobileVisible] = useState(false);
@@ -128,113 +130,76 @@ const Sidebar = () => {
             isMobile={isMobile}
             link={"/"}
             name={"Home"}
-            icon={<Home />}
+            icon={<Home size={20} />}
           />
+          <SidebarLink
+            expanded={expanded}
+            isMobile={isMobile}
+            link={"/"}
+            name={"categories"}
+            icon={<Grid size={20} />
+          }
+          />
+          <SidebarLink
+            expanded={expanded}
+            isMobile={isMobile}
+            link={"/pokemon"}
+            name={"Pokemon Cards"}
+            icon={<PokemonBall size={20} />
+          }
+          />
+          <SidebarLink
+            expanded={expanded}
+            isMobile={isMobile}
+            link={"/myLibrary"}
+            name={"My Library"}
+            icon={<Heart size={20} />
+          }
+          />
+          <SidebarLink
+            expanded={expanded}
+            isMobile={isMobile}
+            link={"/myBag"}
+            name={"My Bag"}
+            icon={<ShoppingBag size={20} />
+          }
+          />
+         {/* Conditional rendering for Pokemon Card Upload link */}
+         {user && (
+            <SidebarLink
+              expanded={expanded}
+              isMobile={isMobile}
+              link={"/pokemonCardUpload"}
+              name={"Pokemon Card Upload"}
+              icon={<Upload size={20} />}
+            />
+          )}
+         {user && (
+             <SidebarLink
+             expanded={expanded}
+             isMobile={isMobile}
+             link={"/myOrders"}
+             name={" My Orders"}
+             icon={<Package size={20} />}/>
+          )}
 
-          <li>
-            <Link
-              to="/categories"
-              className={`flex items-center ${
-                expanded && !isMobile
-                  ? "justify-start gap-3 px-4"
-                  : "justify-center"
-              } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
-            >
-              <Grid size={20} />
-              {expanded && !isMobile && <span>Categories</span>}
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/pokemon"
-              className={`flex items-center ${
-                expanded && !isMobile
-                  ? "justify-start gap-3 px-4"
-                  : "justify-center"
-              } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
-            >
-              <PokemonBall size={20} />
-              {expanded && !isMobile && <span>Pokemon Cards</span>}
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/myLibrary"
-              className={`flex items-center ${
-                expanded && !isMobile
-                  ? "justify-start gap-3 px-4"
-                  : "justify-center"
-              } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
-            >
-              <Heart size={20} />
-              {expanded && !isMobile && <span>My Library</span>}
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/myBag"
-              className={`flex items-center ${
-                expanded && !isMobile
-                  ? "justify-start gap-3 px-4"
-                  : "justify-center"
-              } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
-            >
-              <ShoppingBag size={20} />
-              {expanded && !isMobile && <span>My Bag</span>}
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/pokemonCardUpload"
-              className={`flex items-center ${
-                expanded && !isMobile
-                  ? "justify-start gap-3 px-4"
-                  : "justify-center"
-              } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
-            >
-              <Upload size={20} />
-              {expanded && !isMobile && <span>Product upload</span>}
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/myOrders"
-              className={`flex items-center ${
-                expanded && !isMobile
-                  ? "justify-start gap-3 px-4"
-                  : "justify-center"
-              } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
-            >
-              <Package size={20} />
-              {expanded && !isMobile && <span>My order</span>}
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/admin"
-              className={`flex items-center ${
-                expanded && !isMobile
-                  ? "justify-start gap-3 px-4"
-                  : "justify-center"
-              } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
-            >
-              <User size={20} />
-              {expanded && !isMobile && <span>Admin dashboard</span>}
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/myCards"
-              className={`flex items-center ${
-                expanded && !isMobile
-                  ? "justify-start gap-3 px-4"
-                  : "justify-center"
-              } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
-            >
-              <CreditCard size={20} />
-              {expanded && !isMobile && <span>My Cards</span>}
-            </Link>
-          </li>
+        
+          <SidebarLink
+            expanded={expanded}
+            isMobile={isMobile}
+            link={"/admin"}
+            name={" Admin dashboards"}
+            icon={  <User size={20} />
+          }
+          />
+          <SidebarLink
+            expanded={expanded}
+            isMobile={isMobile}
+            link={"/myCards"}
+            name={" My Cards"}
+            icon={   <CreditCard size={20} />
+          }
+          />
         </ul>
       </nav>
 

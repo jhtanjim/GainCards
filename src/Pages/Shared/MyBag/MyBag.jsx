@@ -1,29 +1,24 @@
 import React, { useState } from 'react';
 import { useShop } from '../../../Context/ShopContext';
 import { ShoppingBag, X, Trash2, ChevronRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // Added useNavigate for redirection
 import Checkout from '../Checkout/Checkout';
+import { useAuth } from '../../../Context/AuthContext';
+import Swal from 'sweetalert2'; // Import SweetAlert2
 
- const MyBag = () => {
+const MyBag = () => {
   const { cartItems, setCartItems } = useShop();
   const [isLoading, setIsLoading] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
-  
+  const { user } = useAuth();  // Get user from auth context
+  const navigate = useNavigate(); // Hook for navigation
+
   const handleRemoveItem = (id) => {
     const updatedCart = cartItems.filter(item => item.id !== id);
     setCartItems(updatedCart);
   };
   
-  const handleQuantityChange = (id, change) => {
-    const updatedCart = cartItems.map(item => {
-      if (item.id === id) {
-        const newQuantity = Math.max(1, (item.quantity || 1) + change);
-        return { ...item, quantity: newQuantity };
-      }
-      return item;
-    });
-    setCartItems(updatedCart);
-  };
+
   
   const subtotal = cartItems.reduce((total, item) => {
     return total + (item.price * (item.quantity || 1));
@@ -33,16 +28,28 @@ import Checkout from '../Checkout/Checkout';
   const total = subtotal + shipping;
 
   const handleCheckout = () => {
-    setIsLoading(true);
-    // Simulate loading
-    setTimeout(() => {
-      setShowCheckout(true);
-      setIsLoading(false);
-    }, 800);
+    if (!user) {
+      // Show SweetAlert if the user is not logged in
+      Swal.fire({
+        title: 'You must be logged in!',
+        text: 'Please log in to proceed with the checkout.',
+        icon: 'warning',
+        confirmButtonText: 'Login',
+      }).then(() => {
+        // After closing SweetAlert, redirect the user to the login page
+        navigate('/signIn');
+      });
+    } else {
+      // If the user is logged in, proceed with checkout
+      setIsLoading(true);
+      setTimeout(() => {
+        setShowCheckout(true);
+        setIsLoading(false);
+      }, 800);
+    }
   };
 
   const handleContinueShopping = () => {
-    // In a real app with routing, this would navigate to the shop page
     alert("This would navigate to the shop page in a real app");
   };
 
@@ -64,14 +71,13 @@ import Checkout from '../Checkout/Checkout';
                 <h2 className="text-2xl font-semibold mb-2">Your bag is empty</h2>
                 <p className="text-gray-500 mb-6">Looks like you haven't added any cards to your bag yet.</p>
                 <Link to={"/"}>
-                
-                
-                <button 
-                  onClick={handleContinueShopping}
-                  className="bg-indigo-600 text-white px-6 py-3 rounded-md font-medium hover:bg-indigo-700 transition-colors"
-                >
-                  Continue Shopping
-                </button></Link>
+                  <button 
+                    onClick={handleContinueShopping}
+                    className="bg-indigo-600 text-white px-6 py-3 rounded-md font-medium hover:bg-indigo-700 transition-colors"
+                  >
+                    Continue Shopping
+                  </button>
+                </Link>
               </div>
             ) : (
               <div className="flex flex-col lg:flex-row gap-8">
@@ -80,7 +86,7 @@ import Checkout from '../Checkout/Checkout';
                     <div className="p-6 border-b border-gray-200">
                       <h2 className="text-xl font-semibold">Shopping Bag ({cartItems.length} items)</h2>
                     </div>
-                    
+
                     <div className="divide-y divide-gray-200">
                       {cartItems.map((item) => (
                         <div key={item.id} className="p-6 flex flex-col sm:flex-row">
@@ -104,7 +110,7 @@ import Checkout from '../Checkout/Checkout';
                                 <X size={20} />
                               </button>
                             </div>
-                            
+
                             <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-2">
                               {item.brand && <span>{item.brand}</span>}
                               {item.cardNumber && <span>Card #{item.cardNumber}</span>}
@@ -112,23 +118,6 @@ import Checkout from '../Checkout/Checkout';
                             </div>
                             
                             <div className=" items-end">
-                              {/* <div className="flex items-center">
-                                <button 
-                                  onClick={() => handleQuantityChange(item.id, -1)}
-                                  className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-l-md"
-                                >
-                                  -
-                                </button>
-                                <span className="w-10 h-8 flex items-center justify-center bg-gray-100">
-                                  {item.quantity || 1}
-                                </span>
-                                <button 
-                                  onClick={() => handleQuantityChange(item.id, 1)}
-                                  className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-r-md"
-                                >
-                                  +
-                                </button>
-                              </div> */}
                               <div className="font-medium text-lg">
                                 ${(item.price * (item.quantity || 1)).toFixed(2)}
                               </div>
@@ -137,7 +126,7 @@ import Checkout from '../Checkout/Checkout';
                         </div>
                       ))}
                     </div>
-                    
+
                     <div className="p-6 bg-gray-50 flex justify-between">
                       <button 
                         onClick={handleContinueShopping}
@@ -155,11 +144,11 @@ import Checkout from '../Checkout/Checkout';
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="lg:w-1/3">
                   <div className="bg-white rounded-lg shadow-md p-6 sticky top-8">
                     <h2 className="text-xl font-semibold mb-6">Order Summary</h2>
-                    
+
                     <div className="space-y-4 mb-6">
                       <div className="flex justify-between">
                         <span className="text-gray-500">Subtotal</span>
@@ -174,7 +163,7 @@ import Checkout from '../Checkout/Checkout';
                         <span className="font-bold text-xl">${total.toFixed(2)}</span>
                       </div>
                     </div>
-                    
+
                     <button 
                       onClick={handleCheckout}
                       disabled={isLoading}
@@ -194,7 +183,7 @@ import Checkout from '../Checkout/Checkout';
                         </span>
                       )}
                     </button>
-                    
+
                     <div className="mt-6 text-sm text-gray-500 text-center">
                       <p>We accept:</p>
                       <div className="flex justify-center space-x-2 mt-2">

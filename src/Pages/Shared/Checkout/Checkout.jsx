@@ -105,13 +105,20 @@ const Checkout = ({
     setIsLoading(true);
 
     // Create order payload
-    const orderPayload = {
-      userId: user?.id,
-      productIds: cartItems.map((item) => item.id),
-      shippingAddress: { ...formData },
-      totalAmount: total,
-      shippingCost: shipping,
-    };
+   // Create order payload
+const orderPayload = {
+  userId: user?.id,
+  productIds: cartItems.map((item) => item.id),
+  shippingAddress: { ...formData },
+  totalAmount: total,
+  shippingCost: shipping,
+};
+
+console.log("Shipping Cost:", shipping);
+console.log("Subtotal:", subtotal);
+console.log("Total:", total);
+console.log("Order Payload:", orderPayload);
+
 
     try {
       // Log the order payload

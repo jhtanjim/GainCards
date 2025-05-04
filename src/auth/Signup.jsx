@@ -3,157 +3,107 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../Context/AuthContext'
-import Swal from 'sweetalert2' // Import SweetAlert
+import { useMutation } from '@tanstack/react-query'
+import Swal from 'sweetalert2'
+
+const fetchCountries = async () => {
+  const res = await fetch("https://restcountries.com/v3.1/all")
+  const data = await res.json()
+  return data
+    .map((country) => country.name.common)
+    .sort((a, b) => a.localeCompare(b))
+}
 
 const SignUp = () => {
+  const navigate = useNavigate()
   const { signUp } = useAuth()
+
   const [countries, setCountries] = useState([])
-  
-  useEffect(() => {
-    const fetchCountries = async () => {
-      // Show loading indicator for countries
-    
-      
-      try {
-        const res = await fetch("https://restcountries.com/v3.1/all");
-        const data = await res.json();
-        const sortedCountries = data
-          .map(country => country.name.common)
-          .sort((a, b) => a.localeCompare(b));
-        setCountries(sortedCountries);
-        
-        // Close loading indicator
-        
-      } catch (error) {
-        console.error('Error fetching countries:', error)
-      
-      }
-    };
-  
-    fetchCountries();
-  }, []);
-  
-  // Step 1: Set up state for form data and UI states
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
     confirmPassword: '',
-    country: 'Pallet Town'
+    country: 'Pallet Town',
   })
   const [profilePicture, setProfilePicture] = useState(null)
-  const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const navigate = useNavigate()
 
-  // Step 2: Handle input changes
+  useEffect(() => {
+    fetchCountries().then(setCountries).catch((err) =>
+      console.error('Error fetching countries:', err)
+    )
+  }, [])
+
+  const mutation = useMutation({
+    mutationFn: async (submitData) => {
+      return await signUp(submitData)
+    },
+    onSuccess: () => {
+      Swal.fire({
+        icon: 'success',
+        title: 'Account Created!',
+        text: 'Your GainCards account has been created successfully!',
+        confirmButtonColor: '#ca8a04',
+      }).then(() => navigate('/'))
+    },
+    onError: (err) => {
+      const errorMessage = err.response?.data?.message || 'Registration failed. Try again.'
+      Swal.fire({ icon: 'error', title: 'Error', text: errorMessage })
+    },
+    onSettled: () => {
+      if (Swal.isLoading()) Swal.close()
+    },
+  })
+
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
+    setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  // Step 3: Handle file input changes
   const handleFileChange = (e) => {
     if (e.target.files[0]) {
       setProfilePicture(e.target.files[0])
     }
   }
 
-  // Step 4: Handle form submission
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
-    setError('')
-    
-    // Step 5: Basic validation
+
     if (formData.password !== formData.confirmPassword) {
-      Swal.fire({
+      return Swal.fire({
         icon: 'error',
         title: 'Password Mismatch',
-        text: 'Passwords do not match. Please try again.',
+        text: 'Passwords do not match.',
       })
-      setError('Passwords do not match')
-      return
-    }
-    
-    if (formData.password.length < 6) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Password Too Short',
-        text: 'Password must be at least 6 characters long.',
-      })
-      setError('Password must be at least 6 characters')
-      return
     }
 
-    // Step 6: Show loading state with SweetAlert
+    if (formData.password.length < 6) {
+      return Swal.fire({
+        icon: 'error',
+        title: 'Password Too Short',
+        text: 'Password must be at least 6 characters.',
+      })
+    }
+
     Swal.fire({
       title: 'Creating your account...',
       html: 'Please wait while we set up your GainCards account.',
       allowOutsideClick: false,
       showConfirmButton: false,
-      willOpen: () => {
-        Swal.showLoading()
-      }
+      willOpen: () => Swal.showLoading(),
     })
-    
-    setIsLoading(true)
 
-    // Step 7: Create FormData object for API request
     const submitData = new FormData()
-    submitData.append('email', formData.email)
-    submitData.append('username', formData.username)
-    submitData.append('password', formData.password)
-    submitData.append('country', formData.country)
-    
+    Object.entries(formData).forEach(([key, value]) => {
+      submitData.append(key, value)
+    })
     if (profilePicture) {
       submitData.append('profilePicture', profilePicture)
     }
-    console.log(submitData)
 
-    // Step 8: Make API call with error handling
-    try {
-      const response = await signUp(submitData)
-      console.log(response)
-      
-      // Show success message
-      Swal.fire({
-        icon: 'success',
-        title: 'Account Created!',
-        text: 'Your GainCards account has been created successfully!',
-        confirmButtonColor: '#ca8a04', // yellow-600 from Tailwind
-      }).then(() => {
-        // Step 9: Navigate to sign in page after successful registration
-        navigate('/')
-      })
-    } catch (err) {
-      // Step 10: Handle errors with SweetAlert
-      console.error('Registration error:', err)
-      
-      const errorMessage = err.response?.data?.message || 
-        'An error occurred during registration. Please try again.'
-      
-      Swal.fire({
-        icon: 'error',
-        title: 'Registration Failed',
-        text: errorMessage,
-      })
-      
-      setError(errorMessage)
-    } finally {
-      // Step 11: Reset loading state
-      setIsLoading(false)
-      
-      // Close the loading dialog if it's still open
-      if (Swal.isLoading()) {
-        Swal.close()
-      }
-    }
+    mutation.mutate(submitData)
   }
 
-  // Step 12: Render the form
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
@@ -162,72 +112,29 @@ const SignUp = () => {
           <p className="mt-2 text-gray-600">Join GainCards and start collecting!</p>
         </div>
 
-        {error && (
-          <div className="p-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
-            {error}
-          </div>
-        )}
-
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-              Username
-            </label>
-            <input
-              id="username"
-              name="username"
-              type="text"
-              required
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-              value={formData.username}
-              onChange={handleChange}
-            />
-          </div>
+          {[
+            { id: 'username', label: 'Username', type: 'text' },
+            { id: 'email', label: 'Email Address', type: 'email' },
+            { id: 'password', label: 'Password', type: 'password' },
+            { id: 'confirmPassword', label: 'Confirm Password', type: 'password' },
+          ].map(({ id, label, type }) => (
+            <div key={id}>
+              <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+                {label}
+              </label>
+              <input
+                id={id}
+                name={id}
+                type={type}
+                required
+                value={formData[id]}
+                onChange={handleChange}
+                className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+              />
+            </div>
+          ))}
 
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email Address
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-              value={formData.email}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-              value={formData.password}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-              Confirm Password
-            </label>
-            <input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              required
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-            />
-          </div>
           <div>
             <label htmlFor="country" className="block text-sm font-medium text-gray-700">
               Country
@@ -236,9 +143,9 @@ const SignUp = () => {
               id="country"
               name="country"
               required
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
               value={formData.country}
               onChange={handleChange}
+              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
             >
               <option value="">Select a country</option>
               {countries.map((country) => (
@@ -258,20 +165,19 @@ const SignUp = () => {
               name="profilePicture"
               type="file"
               accept="image/*"
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+              required
               onChange={handleFileChange}
+              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
             />
           </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50"
-            >
-              {isLoading ? 'Creating Account...' : 'Sign Up'}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={mutation.isLoading}
+            className="w-full flex justify-center py-2 px-4 rounded-md text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50"
+          >
+            {mutation.isLoading ? 'Creating Account...' : 'Sign Up'}
+          </button>
         </form>
 
         <div className="text-center mt-4">
