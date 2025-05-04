@@ -35,7 +35,7 @@ const CheckoutForm = ({ clientSecret }) => {
       setMessage("Payment successful!");
       // Redirect after short delay
       setTimeout(() => {
-        navigate("/myLibrary"); // or "/orders", etc.
+        navigate("/myOrders"); // or "/orders", etc.
       }, 2000);
     }
 

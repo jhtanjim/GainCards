@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Heart } from 'lucide-react';
+import { ShoppingCart, Heart, Edit, Trash2 } from 'lucide-react';
 import { Link } from "react-router-dom";
 import { addFavoritePokemon, removeFavoritePokemon } from '../../../api/pokemondata';
 import { useShop } from '../../../Context/ShopContext';
 import Swal from 'sweetalert2';
 
-const PokemonCard = ({ pokemon, onFavoriteUpdate, initialFavorite = false }) => {
+const SingleCard = ({ pokemon, handleDelete, onFavoriteUpdate, initialFavorite = false }) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
   const [isUpdatingFavorite, setIsUpdatingFavorite] = useState(false);
@@ -76,7 +76,7 @@ const PokemonCard = ({ pokemon, onFavoriteUpdate, initialFavorite = false }) => 
       Swal.fire({
         icon: 'error',
         title: 'Oops...',
-        text: 'Already in favourite list',
+        text: 'Could not update favorites. Please try again later.',
       });
     } finally {
       setIsUpdatingFavorite(false);
@@ -107,7 +107,27 @@ const PokemonCard = ({ pokemon, onFavoriteUpdate, initialFavorite = false }) => 
     }
   };
   
- 
+  // Handle delete with confirmation
+  const confirmAndDelete = () => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: `Do you want to delete "${title}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        handleDelete.mutate(id);
+        Swal.fire(
+          'Deleted!',
+          `${title} has been deleted.`,
+          'success'
+        );
+      }
+    });
+  };
 
   // Format price with commas for thousands
   const formattedPrice = price ? price.toLocaleString() : 'N/A';
@@ -115,7 +135,9 @@ const PokemonCard = ({ pokemon, onFavoriteUpdate, initialFavorite = false }) => 
   // Format update date
   const formattedDate = updatedAt ? new Date(updatedAt).toLocaleDateString() : 'N/A';
 
- 
+  // Is the card currently being deleted?
+  const isDeleting = handleDelete?.isLoading && handleDelete?.variables === id;
+
   return (
     <div className="w-full h-full">
       <div
@@ -167,7 +189,25 @@ const PokemonCard = ({ pokemon, onFavoriteUpdate, initialFavorite = false }) => 
             </svg>
           </div>
           
-         
+          {/* Edit and Delete buttons */}
+          <div className="absolute top-2 left-2 flex space-x-2 z-10">
+            <Link to={`/pokemonCardUpdate/${id}`} state={{ pokemon }}>
+              <button className="bg-white p-2 rounded-full shadow-md hover:bg-blue-50">
+                <Edit className="w-4 h-4 text-blue-600" />
+              </button>
+            </Link>
+
+            {handleDelete && (
+              <button 
+                onClick={confirmAndDelete} 
+                disabled={isDeleting}
+                className={`bg-white p-2 rounded-full shadow-md ${isDeleting ? 'bg-gray-200' : 'hover:bg-red-50'} transition-colors`}
+                aria-label="Delete card"
+              >
+                <Trash2 className={`w-4 h-4 ${isDeleting ? 'text-gray-400' : 'text-red-600'}`} />
+              </button>
+            )}
+          </div>
           
           {/* Flip indicator text */}
           <div className="absolute bottom-0 text-xs text-center w-full text-gray-500">
@@ -249,4 +289,4 @@ const PokemonCard = ({ pokemon, onFavoriteUpdate, initialFavorite = false }) => 
   );
 };
 
-export default PokemonCard;
+export default SingleCard;

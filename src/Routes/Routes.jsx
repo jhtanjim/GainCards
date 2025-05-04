@@ -15,6 +15,8 @@ import PokemonCardUpload from "../Pages/Shared/PokemonCardCrud/PokemonCardUpload
 import SignIn from "../auth/SignIn";
 import Signup from "../auth/Signup";
 import VendorSignup from "../auth/VendorSignup";
+import MyOrders from "../Pages/Shared/MyOrders/MyOrders";
+import MyCards from "../Pages/Shared/MyCards/MyCards";
 
 export const router = createBrowserRouter([
   {
@@ -77,6 +79,14 @@ export const router = createBrowserRouter([
       {
         path: "/payment",
         element: <Payment />,
+      },
+      {
+        path: "/myOrders",
+        element: <MyOrders />,
+      },
+      {
+        path: "/myCards",
+        element: <MyCards />,
       },
       { path: "*", element: <UnderConstruction /> },
     ],

@@ -29,7 +29,7 @@ import Checkout from '../Checkout/Checkout';
     return total + (item.price * (item.quantity || 1));
   }, 0);
   
-  const shipping = subtotal > 0 ? 12.99 : 0;
+  const shipping = 12.99;
   const total = subtotal + shipping;
 
   const handleCheckout = () => {
@@ -111,8 +111,8 @@ import Checkout from '../Checkout/Checkout';
                               {item.grade && <span>Grade: {item.grade}</span>}
                             </div>
                             
-                            <div className="flex justify-between items-end">
-                              <div className="flex items-center">
+                            <div className=" items-end">
+                              {/* <div className="flex items-center">
                                 <button 
                                   onClick={() => handleQuantityChange(item.id, -1)}
                                   className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-l-md"
@@ -128,7 +128,7 @@ import Checkout from '../Checkout/Checkout';
                                 >
                                   +
                                 </button>
-                              </div>
+                              </div> */}
                               <div className="font-medium text-lg">
                                 ${(item.price * (item.quantity || 1)).toFixed(2)}
                               </div>

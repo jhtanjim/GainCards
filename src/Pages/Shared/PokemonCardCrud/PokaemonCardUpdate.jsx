@@ -1,13 +1,24 @@
 import React, { useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { updatePokemon } from "../../../api/pokemondata";
+import Swal from "sweetalert2";
 
 const PokemonCardUpdate = () => {
   const { id } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const pokemon = location.state?.pokemon;
 
   if (!pokemon) {
+    Swal.fire({
+      icon: 'error',
+      title: 'No Data Found',
+      text: 'No Pokémon data found. Please go back and try again.',
+      confirmButtonColor: '#3085d6'
+    }).then(() => {
+      navigate(-1); // Navigate back after alert is closed
+    });
+    
     return (
       <div className="text-center mt-10 text-red-500">
         No Pokémon data found. Please go back and try again.
@@ -49,15 +60,46 @@ const PokemonCardUpdate = () => {
 
   const handleImageChange = (e, type) => {
     const file = e.target.files[0];
-    if (type === "front") {
-      setFrontImage(file);
-    } else {
-      setBackImage(file);
+    if (file) {
+      if (type === "front") {
+        setFrontImage(file);
+        Swal.fire({
+          position: 'top-end',
+          icon: 'success',
+          title: 'Front image selected',
+          text: file.name,
+          showConfirmButton: false,
+          timer: 1500,
+          toast: true
+        });
+      } else {
+        setBackImage(file);
+        Swal.fire({
+          position: 'top-end',
+          icon: 'success',
+          title: 'Back image selected',
+          text: file.name,
+          showConfirmButton: false,
+          timer: 1500,
+          toast: true
+        });
+      }
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Show loading state with SweetAlert
+    Swal.fire({
+      title: 'Updating...',
+      html: 'Please wait while we update your card',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+    
     setLoading(true);
 
     // Prepare form data for image upload
@@ -87,13 +129,49 @@ const PokemonCardUpdate = () => {
 
     try {
       await updatePokemon(id, formDataToSend); // Use the API method for updating with FormData
-      alert("Pokémon card updated successfully!");
+      
+      // Success message
+      Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: 'Pokémon card updated successfully!',
+        confirmButtonColor: '#3085d6'
+      }).then(() => {
+        // After confirmation, you could navigate back to cards list
+        navigate('/myCards');
+      });
+      
     } catch (error) {
       console.error("Error updating card:", error);
-      alert("Update failed. Please try again.");
+      
+      // Error message
+      Swal.fire({
+        icon: 'error',
+        title: 'Update Failed',
+        text: `Failed to update card: ${error.message || 'Please try again.'}`,
+        confirmButtonColor: '#3085d6'
+      });
+      
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancel = () => {
+    Swal.fire({
+      title: 'Discard Changes?',
+      text: "You're about to discard all changes. This action cannot be undone.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, discard!',
+      cancelButtonText: 'No, keep editing'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        navigate('/my-cards');
+      }
+    });
   };
 
   return (
@@ -149,6 +227,12 @@ const PokemonCardUpdate = () => {
             onChange={(e) => handleImageChange(e, "front")}
             className="w-full border rounded px-4 py-3"
           />
+          {formData.frontImageUrl && !frontImage && (
+            <div className="mt-2">
+              <p className="text-sm text-gray-600">Current image: {formData.frontImageUrl.split('/').pop()}</p>
+              <img src={formData.frontImageUrl} alt="Front" className="h-20 mt-1 rounded" />
+            </div>
+          )}
         </div>
 
         {/* Back Image Upload */}
@@ -161,6 +245,12 @@ const PokemonCardUpdate = () => {
             onChange={(e) => handleImageChange(e, "back")}
             className="w-full border rounded px-4 py-3"
           />
+          {formData.backImageUrl && !backImage && (
+            <div className="mt-2">
+              <p className="text-sm text-gray-600">Current image: {formData.backImageUrl.split('/').pop()}</p>
+              <img src={formData.backImageUrl} alt="Back" className="h-20 mt-1 rounded" />
+            </div>
+          )}
         </div>
 
         {/* Year */}
@@ -305,14 +395,24 @@ const PokemonCardUpdate = () => {
           <label className="font-semibold text-gray-700">Has Reverse Barcode?</label>
         </div>
 
-        {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={loading}
-          className="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-full"
-        >
-          {loading ? "Updating..." : "Update Card"}
-        </button>
+        {/* Submit and Cancel Buttons */}
+        <div className="flex justify-between">
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-full"
+          >
+            Cancel
+          </button>
+          
+          <button
+            type="submit"
+            disabled={loading}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-full"
+          >
+            {loading ? "Updating..." : "Update Card"}
+          </button>
+        </div>
       </form>
     </div>
   );

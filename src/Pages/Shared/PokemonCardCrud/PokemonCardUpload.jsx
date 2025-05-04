@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { createPokemon } from "../../../api/pokemondata"
 import { Upload, Info, CheckCircle, AlertCircle } from "lucide-react"
+import Swal from "sweetalert2"
 
 export default function PokemonCardUpload() {
   const [formData, setFormData] = useState({
@@ -26,7 +27,6 @@ export default function PokemonCardUpload() {
   const [frontImage, setFrontImage] = useState(null)
   const [backImage, setBackImage] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState({ text: "", type: "" })
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -53,25 +53,18 @@ export default function PokemonCardUpload() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-    setMessage({ text: "", type: "" })
-
+  
     try {
-      // Create FormData object to send both file and text data
       const data = new FormData()
-
-      // Append all form fields
       Object.keys(formData).forEach((key) => {
         data.append(key, formData[key])
       })
-
-      // Append images if they exist
       if (frontImage) data.append("frontImage", frontImage)
       if (backImage) data.append("backImage", backImage)
-
-      // Send data to API
+  
       const response = await createPokemon(data)
-
-      // Reset form on success
+  
+      // Reset form
       setFormData({
         title: "",
         description: "",
@@ -91,22 +84,29 @@ export default function PokemonCardUpload() {
       })
       setFrontImage(null)
       setBackImage(null)
-
-      // Show success message
-      setMessage({
+  
+      // SweetAlert success
+      Swal.fire({
+        icon: "success",
+        title: "Success!",
         text: "Pokemon card added successfully!",
-        type: "success",
+        confirmButtonColor: "#facc15", // Tailwind yellow-400
       })
     } catch (error) {
       console.error("Error adding Pokemon card:", error)
-      setMessage({
+  
+      // SweetAlert error
+      Swal.fire({
+        icon: "error",
+        title: "Error",
         text: "Failed to add Pokemon card. Please try again.",
-        type: "error",
+        confirmButtonColor: "#f87171", // Tailwind red-400
       })
     } finally {
       setLoading(false)
     }
   }
+  
 
   return (
     <div className="max-w-4xl mx-auto p-8 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl shadow-lg">
@@ -117,7 +117,7 @@ export default function PokemonCardUpload() {
         <h2 className="text-3xl font-bold text-gray-800">Add New Pokemon Card</h2>
       </div>
 
-      {message.text && (
+      {/* {message.text && (
         <div
           className={`p-4 mb-6 rounded-lg flex items-center gap-3 ${
             message.type === "success"
@@ -128,7 +128,7 @@ export default function PokemonCardUpload() {
           {message.type === "success" ? <CheckCircle className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
           {message.text}
         </div>
-      )}
+      )} */}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="bg-white p-6 rounded-xl shadow-sm">

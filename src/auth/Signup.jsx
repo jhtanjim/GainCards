@@ -2,20 +2,32 @@
 "use client"
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-// import { register } from '../api/auth'
 import { useAuth } from '../Context/AuthContext'
+import Swal from 'sweetalert2' // Import SweetAlert
 
 const SignUp = () => {
-  const {signUp}=useAuth()
-  const [countries,setCountries]=useState([])
+  const { signUp } = useAuth()
+  const [countries, setCountries] = useState([])
+  
   useEffect(() => {
     const fetchCountries = async () => {
-      const res = await fetch("https://restcountries.com/v3.1/all");
-      const data = await res.json();
-      const sortedCountries = data
-        .map(country => country.name.common)
-        .sort((a, b) => a.localeCompare(b));
-      setCountries(sortedCountries);
+      // Show loading indicator for countries
+    
+      
+      try {
+        const res = await fetch("https://restcountries.com/v3.1/all");
+        const data = await res.json();
+        const sortedCountries = data
+          .map(country => country.name.common)
+          .sort((a, b) => a.localeCompare(b));
+        setCountries(sortedCountries);
+        
+        // Close loading indicator
+        
+      } catch (error) {
+        console.error('Error fetching countries:', error)
+      
+      }
     };
   
     fetchCountries();
@@ -57,16 +69,36 @@ const SignUp = () => {
     
     // Step 5: Basic validation
     if (formData.password !== formData.confirmPassword) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Password Mismatch',
+        text: 'Passwords do not match. Please try again.',
+      })
       setError('Passwords do not match')
       return
     }
     
     if (formData.password.length < 6) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Password Too Short',
+        text: 'Password must be at least 6 characters long.',
+      })
       setError('Password must be at least 6 characters')
       return
     }
 
-    // Step 6: Set loading state
+    // Step 6: Show loading state with SweetAlert
+    Swal.fire({
+      title: 'Creating your account...',
+      html: 'Please wait while we set up your GainCards account.',
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      willOpen: () => {
+        Swal.showLoading()
+      }
+    })
+    
     setIsLoading(true)
 
     // Step 7: Create FormData object for API request
@@ -79,23 +111,45 @@ const SignUp = () => {
     if (profilePicture) {
       submitData.append('profilePicture', profilePicture)
     }
-console.log(submitData)
+    console.log(submitData)
+
     // Step 8: Make API call with error handling
     try {
-      const response= await signUp(submitData)
+      const response = await signUp(submitData)
       console.log(response)
-      // Step 9: Navigate to sign in page after successful registration
-      navigate('/')
+      
+      // Show success message
+      Swal.fire({
+        icon: 'success',
+        title: 'Account Created!',
+        text: 'Your GainCards account has been created successfully!',
+        confirmButtonColor: '#ca8a04', // yellow-600 from Tailwind
+      }).then(() => {
+        // Step 9: Navigate to sign in page after successful registration
+        navigate('/')
+      })
     } catch (err) {
-      // Step 10: Handle errors
+      // Step 10: Handle errors with SweetAlert
       console.error('Registration error:', err)
-      setError(
-        err.response?.data?.message || 
+      
+      const errorMessage = err.response?.data?.message || 
         'An error occurred during registration. Please try again.'
-      )
+      
+      Swal.fire({
+        icon: 'error',
+        title: 'Registration Failed',
+        text: errorMessage,
+      })
+      
+      setError(errorMessage)
     } finally {
       // Step 11: Reset loading state
       setIsLoading(false)
+      
+      // Close the loading dialog if it's still open
+      if (Swal.isLoading()) {
+        Swal.close()
+      }
     }
   }
 
@@ -175,26 +229,25 @@ console.log(submitData)
             />
           </div>
           <div>
-  <label htmlFor="country" className="block text-sm font-medium text-gray-700">
-    Country
-  </label>
-  <select
-    id="country"
-    name="country"
-    required
-    className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-    value={formData.country}
-    onChange={handleChange}
-  >
-    <option value="">Select a country</option>
-    {countries.map((country) => (
-      <option key={country} value={country}>
-        {country}
-      </option>
-    ))}
-  </select>
-</div>
-
+            <label htmlFor="country" className="block text-sm font-medium text-gray-700">
+              Country
+            </label>
+            <select
+              id="country"
+              name="country"
+              required
+              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+              value={formData.country}
+              onChange={handleChange}
+            >
+              <option value="">Select a country</option>
+              {countries.map((country) => (
+                <option key={country} value={country}>
+                  {country}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div>
             <label htmlFor="profilePicture" className="block text-sm font-medium text-gray-700">
@@ -209,22 +262,6 @@ console.log(submitData)
               onChange={handleFileChange}
             />
           </div>
-
-          {/* <div className="flex items-center">
-            <input
-              id="terms"
-              name="terms"
-              type="checkbox"
-              required
-              className="w-4 h-4 text-yellow-600 border-gray-300 rounded focus:ring-yellow-500"
-            />
-            <label htmlFor="terms" className="block ml-2 text-sm text-gray-900">
-              I agree to the{' '}
-              <a href="#" className="font-medium text-yellow-600 hover:text-yellow-500">
-                Terms and Conditions
-              </a>
-            </label>
-          </div> */}
 
           <div>
             <button

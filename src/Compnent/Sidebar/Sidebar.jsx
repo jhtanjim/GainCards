@@ -2,8 +2,29 @@
 
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
-import { Home, Grid, Heart, ShoppingBag } from "lucide-react"
+import { Home, Grid, Heart, ShoppingBag, Upload, CreditCard, Package } from "lucide-react"
 import logo from "../../assets/logo/logo.jpg"
+
+// Custom PokemonBall icon component
+const PokemonBall = ({ size = 24, ...props }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <circle cx="12" cy="12" r="10" />
+    <path d="M12 2a10 10 0 0 1 0 20" fill="currentColor" fillOpacity="0.2" />
+    <line x1="2" y1="12" x2="22" y2="12" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+)
 
 const Sidebar = () => {
   const [expanded, setExpanded] = useState(false)
@@ -98,7 +119,7 @@ const Sidebar = () => {
                 expanded && !isMobile ? "justify-start gap-3 px-4" : "justify-center"
               } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
             >
-              <ShoppingBag size={20} />
+              <PokemonBall size={20} />
               {expanded && !isMobile && <span>Pokemon Cards</span>}
             </Link>
           </li>
@@ -131,11 +152,32 @@ const Sidebar = () => {
                 expanded && !isMobile ? "justify-start gap-3 px-4" : "justify-center"
               } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
             >
-              <ShoppingBag size={20} />
+              <Upload size={20} />
               {expanded && !isMobile && <span>Product upload</span>}
             </Link>
           </li>
-         
+          <li>
+            <Link
+              to="/myOrders"
+              className={`flex items-center ${
+                expanded && !isMobile ? "justify-start gap-3 px-4" : "justify-center"
+              } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
+            >
+              <Package size={20} />
+              {expanded && !isMobile && <span>My order</span>}
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/myCards"
+              className={`flex items-center ${
+                expanded && !isMobile ? "justify-start gap-3 px-4" : "justify-center"
+              } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
+            >
+              <CreditCard size={20} />
+              {expanded && !isMobile && <span>My Cards</span>}
+            </Link>
+          </li>
         </ul>
       </nav>
 
@@ -177,4 +219,3 @@ const Sidebar = () => {
 }
 
 export default Sidebar
-

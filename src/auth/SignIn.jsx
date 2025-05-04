@@ -4,13 +4,13 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { login } from '../api/auth'
 import { useAuth } from '../Context/AuthContext'
+import Swal from 'sweetalert2' // Import SweetAlert
 
 const SignIn = () => {
-const {  signIn}=useAuth()
+  const { signIn } = useAuth()
 
   // Step 1: Set up state for form data and UI states
-  const [formData, setFormData] = useState(
-    {
+  const [formData, setFormData] = useState({
     email: '', // For email or username
     password: ''
   })
@@ -27,22 +27,92 @@ const {  signIn}=useAuth()
     }))
   }
 
+  // Handle forgot password
+  const handleForgotPassword = (e) => {
+    e.preventDefault()
+    
+    Swal.fire({
+      title: 'Reset Password',
+      text: 'Enter your email address to reset your password',
+      input: 'email',
+      inputPlaceholder: 'Enter your email',
+      showCancelButton: true,
+      confirmButtonColor: '#EAB308',
+      cancelButtonColor: '#6B7280',
+      confirmButtonText: 'Send Reset Link',
+      showLoaderOnConfirm: true,
+      preConfirm: (email) => {
+        // Here you would connect to your password reset API
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve()
+          }, 1000)
+        })
+      },
+      allowOutsideClick: () => !Swal.isLoading()
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: 'Email Sent!',
+          text: 'Check your inbox for password reset instructions',
+          icon: 'success',
+          confirmButtonColor: '#EAB308'
+        })
+      }
+    })
+  }
+
   // Step 3: Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setIsLoading(true)
 
+    // Loading indicator
+    Swal.fire({
+      title: 'Signing in...',
+      text: 'Please wait',
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      willOpen: () => {
+        Swal.showLoading()
+      }
+    })
+
     // Step 4: Make API call with error handling
     try {
       const data = await signIn(formData)
 
-     
-      // Step 6: Redirect to home page or dashboard
-      navigate('/')
+      if (data.success) {
+        // Step 6: Redirect to home page or dashboard
+        Swal.fire({
+          title: 'Welcome back!',
+          text: 'You have been successfully logged in',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false
+        }).then(() => {
+          navigate('/')
+        })
+      } else {
+        Swal.fire({
+          title: 'Invalid Credentials',
+          text: 'Please check your email and password',
+          icon: 'error',
+          confirmButtonColor: '#EAB308'
+        })
+      }
     } catch (err) {
       // Step 7: Handle errors
       console.error('Login error:', err)
+      
+      Swal.fire({
+        title: 'Login Failed',
+        text: err.response?.data?.message || 'Invalid email/username or password',
+        icon: 'error',
+        confirmButtonColor: '#EAB308'
+      })
+      
       setError(
         err.response?.data?.message || 
         'Invalid email/username or password'
@@ -100,20 +170,35 @@ const {  signIn}=useAuth()
           </div>
 
           <div className="flex items-center justify-between">
-            <div className="flex items-center">
+            {/* <div className="flex items-center">
               <input
                 id="remember-me"
                 name="remember-me"
                 type="checkbox"
                 className="w-4 h-4 text-yellow-600 border-gray-300 rounded focus:ring-yellow-500"
+                onClick={() => {
+                  Swal.fire({
+                    title: 'Remember Me',
+                    text: 'Your login details will be remembered on this device',
+                    icon: 'info',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                  })
+                }}
               />
               <label htmlFor="remember-me" className="block ml-2 text-sm text-gray-900">
                 Remember me
               </label>
-            </div>
+            </div> */}
 
             <div className="text-sm">
-              <a href="#" className="font-medium text-yellow-600 hover:text-yellow-500">
+              <a 
+                href="#" 
+                className="font-medium text-yellow-600 hover:text-yellow-500"
+                onClick={handleForgotPassword}
+              >
                 Forgot your password?
               </a>
             </div>
@@ -133,7 +218,28 @@ const {  signIn}=useAuth()
         <div className="text-center mt-4">
           <p className="text-sm text-gray-600">
             Don't have an account?{' '}
-            <Link to="/signup" className="font-medium text-yellow-600 hover:text-yellow-500">
+            <Link 
+              to="/signup" 
+              className="font-medium text-yellow-600 hover:text-yellow-500"
+              onClick={(e) => {
+                // If you want a transition effect between pages
+                if (e.ctrlKey || e.metaKey) return; // Allow ctrl/cmd+click to open in new tab
+                e.preventDefault();
+                
+                Swal.fire({
+                  title: 'Creating an account...',
+                  allowOutsideClick: false,
+                  showConfirmButton: false,
+                  willOpen: () => {
+                    Swal.showLoading();
+                  },
+                  timer: 800,
+                  timerProgressBar: true
+                }).then(() => {
+                  navigate('/signup');
+                });
+              }}
+            >
               Sign up
             </Link>
           </p>
