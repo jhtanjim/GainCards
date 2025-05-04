@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
-import { Home, Grid, Heart, ShoppingBag, Upload, CreditCard, Package } from "lucide-react"
+import { Home, Grid, Heart, ShoppingBag, Upload, CreditCard, Package, User } from "lucide-react"
 import logo from "../../assets/logo/logo.jpg"
 
 // Custom PokemonBall icon component
@@ -165,6 +165,17 @@ const Sidebar = () => {
             >
               <Package size={20} />
               {expanded && !isMobile && <span>My order</span>}
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/admin"
+              className={`flex items-center ${
+                expanded && !isMobile ? "justify-start gap-3 px-4" : "justify-center"
+              } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
+            >
+              <User size={20} />
+              {expanded && !isMobile && <span>Admin dashboard</span>}
             </Link>
           </li>
           <li>

@@ -17,6 +17,11 @@ import Signup from "../auth/Signup";
 import VendorSignup from "../auth/VendorSignup";
 import MyOrders from "../Pages/Shared/MyOrders/MyOrders";
 import MyCards from "../Pages/Shared/MyCards/MyCards";
+import AdminLayout from "../Layout/AdminLayout";
+import AdminDashBoard from "../Pages/DashBoard/AdminDashBoard/AdminDashBoard";
+import OrderList from "../Pages/DashBoard/AdminDashBoard/OrderList";
+import PaymentList from "../Pages/DashBoard/AdminDashBoard/paymentList";
+import UserList from "../Pages/DashBoard/AdminDashBoard/UserList";
 
 export const router = createBrowserRouter([
   {
@@ -91,4 +96,35 @@ export const router = createBrowserRouter([
       { path: "*", element: <UnderConstruction /> },
     ],
   },
+// Admin Routes
+{
+  path: "/admin",
+  element: <AdminLayout />,
+  children: [
+    {
+      path: "/admin",
+      element: <AdminDashBoard />,
+    },
+    {
+      path: "/admin/orders",
+      element: <OrderList />,
+    },
+    {
+      path: "/admin/payments",
+      element: <PaymentList />,
+    },
+    {
+      path: "/admin/users",
+      element: <UserList />,
+    },
+    {
+      path: "/admin/users/vendors",
+      element: <UserList />,
+    },
+    {
+      path: "/admin/users/normal",
+      element: <UserList />,
+    },
+  ],
+},
 ]);

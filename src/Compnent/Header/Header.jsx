@@ -4,8 +4,11 @@ import { Settings, Heart, ShoppingBag, Search, X, LogIn } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../../Context/AuthContext"
+import { useShop } from "../../Context/ShopContext"
 
 export default function Header() {
+    const { cartItems } = useShop();
+  
   const navigate = useNavigate()
   const { user, signOut } = useAuth()
   const [searchOpen, setSearchOpen] = useState(false)
@@ -105,7 +108,7 @@ export default function Header() {
               </button>
              
                 <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 text-xs rounded-full h-4 w-4 flex items-center justify-center">
-               
+               {cartItems.length}
                 </span>
            
             </Link>
