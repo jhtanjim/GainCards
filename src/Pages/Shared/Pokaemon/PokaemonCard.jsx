@@ -5,9 +5,9 @@ import { addFavoritePokemon, removeFavoritePokemon } from '../../../api/pokemond
 import { useShop } from '../../../Context/ShopContext';
 import Swal from 'sweetalert2';
 
-const PokemonCard = ({ pokemon, onFavoriteUpdate, initialFavorite = false }) => {
+const PokemonCard = ({ pokemon   }) => {
   const [isFlipped, setIsFlipped] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(initialFavorite);
+  const [isFavorite, setIsFavorite] = useState();
   const [isUpdatingFavorite, setIsUpdatingFavorite] = useState(false);
   const { cartItems, setCartItems } = useShop();
   
@@ -21,8 +21,8 @@ const PokemonCard = ({ pokemon, onFavoriteUpdate, initialFavorite = false }) => 
   
   // Initialize isFavorite from props and update when it changes
   useEffect(() => {
-    setIsFavorite(initialFavorite);
-  }, [initialFavorite]);
+    setIsFavorite();
+  }, []);
   
   // Set background color based on card label type
   const getBackgroundClass = () => {
@@ -40,7 +40,7 @@ const PokemonCard = ({ pokemon, onFavoriteUpdate, initialFavorite = false }) => 
   
   // Event handlers
   const handleToggleFavorite = async () => {
-    if (isUpdatingFavorite) return; // Prevent multiple clicks
+    if (isUpdatingFavorite) return; 
     
     setIsUpdatingFavorite(true);
     try {
@@ -82,10 +82,10 @@ const PokemonCard = ({ pokemon, onFavoriteUpdate, initialFavorite = false }) => 
       setIsUpdatingFavorite(false);
     }
   };
-  
+  const isInCart = cartItems.some(item => item.id === pokemon.id);
+
   const handleAddToCart = () => {
     // Check if item is already in cart
-    const isInCart = cartItems.some(item => item.id === pokemon.id);
     
     if (!isInCart) {
       setCartItems([...cartItems, pokemon]);
@@ -228,9 +228,13 @@ const PokemonCard = ({ pokemon, onFavoriteUpdate, initialFavorite = false }) => 
             </div>
 
             {/* Add to Cart Button */}
+
+
+
             <button
               onClick={handleAddToCart}
-              className="mt-2 w-full py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
+              disabled={isInCart}
+              className="mt-2 w-full py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center disabled:bg-gray-600 "
             >
               <ShoppingCart className="w-4 h-4 mr-2" />
               Add to Cart
