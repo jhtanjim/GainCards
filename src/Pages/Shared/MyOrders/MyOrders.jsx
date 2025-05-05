@@ -44,7 +44,7 @@ const MyOrders = () => {
       try {
         const data = await getMyOrders()
         setOrders(data)
-console.log(data)
+
         // Initialize expanded state for all orders
         const expandedState = {}
         data.forEach((order) => {

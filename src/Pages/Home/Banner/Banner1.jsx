@@ -76,7 +76,7 @@ const Book = () => {
         <div className="space-y-9">
           <div className="space-y-4">
             <h4 className="font-semibold uppercase text-2xl sm:text-2xl md:text-3xl lg:text-4xl">
-              Patrick Bet-David&apos;s
+              GainCards&apos;s
             </h4>
             <h3 className="font-bold uppercase text-4xl sm:text-4xl md:text-5xl lg:text-6xl  text-red-500    ">
               Signed <br /> Collection
@@ -90,7 +90,7 @@ const Book = () => {
 
           {/* <img
             src={signature}
-            alt="Patrick Bet-David's Signed Collection"
+            alt="GainCards's Signed Collection"
             className="w-full h-fit -ml-5"
           /> */}
         </div>
@@ -110,7 +110,7 @@ const Book = () => {
               >
                 <img
                   src={book}
-                  alt={`Patrick Bet-David's Book ${index + 1}`}
+                  alt={`GainCards's Book ${index + 1}`}
                   className="w-full rotate-z-30  h-full object-contain"
                 />
               </div>

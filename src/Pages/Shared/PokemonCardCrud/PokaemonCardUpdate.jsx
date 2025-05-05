@@ -345,16 +345,21 @@ const PokemonCardUpdate = () => {
         </div>
 
         {/* Label Type */}
-        <div>
+   {/* Label Type (Select Dropdown) */}
+   <div>
           <label className="block font-semibold text-gray-700 mb-2">Label Type</label>
-          <input
-            type="text"
+          <select
             name="labelType"
             value={formData.labelType}
             onChange={handleChange}
             className="w-full border rounded px-4 py-3"
             required
-          />
+          >
+            <option value="">Select Label Type</option>
+            <option value="Premium">Premium</option>
+            <option value="Rare">Rare</option>
+            <option value="Limited">Limited</option>
+          </select>
         </div>
 
         {/* Grade */}

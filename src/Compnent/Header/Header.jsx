@@ -7,11 +7,12 @@ import { useAuth } from "../../Context/AuthContext"
 import { useShop } from "../../Context/ShopContext"
 
 export default function Header() {
-    const { cartItems } = useShop();
-  
+  const { cartItems } = useShop();
   const navigate = useNavigate()
   const { user, signOut } = useAuth()
   const [searchOpen, setSearchOpen] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+
   const handleToggleSidebar = () => {
     if (window.toggleSidebar) {
       window.toggleSidebar()
@@ -19,9 +20,26 @@ export default function Header() {
   }
 
   const handleLogout = async () => {
-    const result = await signOut()
-    if (result.success) {
+    try {
+      setIsLoggingOut(true)
+      const result = await signOut()
+      
+      if (result.success) {
+        // If logout was successful (either through API or locally)
+        navigate("/signIn")
+        
+        // If the logout was local only, show a message or handle accordingly
+        if (result.localOnly) {
+          console.warn("Server logout failed, but you've been logged out locally")
+          // You could add a toast notification here
+        }
+      }
+    } catch (error) {
+      console.error("Logout error:", error)
+      // Fallback - force logout even if everything fails
       navigate("/signIn")
+    } finally {
+      setIsLoggingOut(false)
     }
   }
 
@@ -65,7 +83,7 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-4">
-        <Link to={"/vendorSignup"}><h2 className="text-white hover:underline transition">Become a Vendor</h2></Link>
+          <Link to={"/vendorSignup"}><h2 className="text-white hover:underline transition">Become a Vendor</h2></Link>
 
           {/* Search button */}
           <button
@@ -92,11 +110,8 @@ export default function Header() {
               <button className="p-2 rounded-lg hover:bg-purple-800/30 transition-colors">
                 <Heart size={20} className="text-purple-300" />
               </button>
-            
-                <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  
-                </span>
-          
+              <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 text-xs rounded-full h-4 w-4 flex items-center justify-center">
+              </span>
             </Link>
           </div>
 
@@ -106,11 +121,9 @@ export default function Header() {
               <button className="p-2 rounded-lg hover:bg-purple-800/30 transition-colors">
                 <ShoppingBag size={20} className="text-purple-300" />
               </button>
-             
-                <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 text-xs rounded-full h-4 w-4 flex items-center justify-center">
-               {cartItems.length}
-                </span>
-           
+              <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                {cartItems.length}
+              </span>
             </Link>
           </div>
 
@@ -119,10 +132,15 @@ export default function Header() {
             <div className="flex items-center gap-4">
               {/* Logout */}
               <button
-                onClick={()=>handleLogout()}
-                className="p-2 text-sm rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors"
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className={`p-2 text-sm rounded-lg ${
+                  isLoggingOut 
+                    ? "bg-gray-500 cursor-not-allowed" 
+                    : "bg-red-600 hover:bg-red-700"
+                } text-white transition-colors`}
               >
-                Logout
+                {isLoggingOut ? "Logging out..." : "Logout"}
               </button>
 
               {/* Profile */}
@@ -134,8 +152,7 @@ export default function Header() {
                 />
                 <div className="text-xs hidden md:block">
                   <p className="font-semibold text-white">{user?.username}</p>
-                  <Link to={"/myProfile"}>  <p className="text-purple-300">View Profile</p></Link>
-                
+                  <Link to={"/myProfile"}><p className="text-purple-300">View Profile</p></Link>
                 </div>
               </div>
             </div>

@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, ShoppingCart, CreditCard, Users, Store, User, X, Menu } from 'lucide-react'
+import { LayoutDashboard, ShoppingCart, CreditCard, Users, Store, User, X, Menu, Home } from 'lucide-react'
 
 const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const location = useLocation()
@@ -9,6 +9,7 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Order List', href: '/admin/orders', icon: ShoppingCart },
     { name: 'Payment List', href: '/admin/payments', icon: CreditCard },
+    { name: 'Home', href: '/', icon: Home },
     { 
       name: 'Users', 
       href: '/admin/users', 

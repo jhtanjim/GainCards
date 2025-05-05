@@ -37,13 +37,13 @@ const PokemonCard = ({ pokemon, isFavorite }) => {
 
     switch (labelType?.toLowerCase()) {
       case "premium":
-        return "bg-blue-50";
+        return "bg-blue-100";
       case "rare":
-        return "bg-purple-50";
+        return "bg-purple-100";
       case "limited":
-        return "bg-yellow-50";
+        return "bg-yellow-100";
       default:
-        return "bg-gray-50";
+        return "bg-gray-100";
     }
   };
 

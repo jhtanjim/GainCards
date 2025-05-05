@@ -4,8 +4,7 @@ import {
   useStripe,
 } from "@stripe/react-stripe-js";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // <-- import this
-
+import { useNavigate } from "react-router-dom"; 
 const CheckoutForm = ({ clientSecret }) => {
   const stripe = useStripe();
   const elements = useElements();

@@ -1,7 +1,6 @@
 "use client"
 import { createContext, useContext, useState, useEffect } from "react"
-// import { useNavigate } from "react-router-dom" // Changed from useRouter
-import { login, logout, register, refresh } from "../api/auth.js" // Import your API functions
+import { login, logout, register, refresh } from "../api/auth.js"
 import { myProfile } from "../api/profile" 
 
 const AuthContext = createContext()
@@ -11,8 +10,6 @@ export const useAuth = () => useContext(AuthContext)
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
-  // const navigate = useNavigate() // React Router's hook for navigation
-
  
   const fetchUserData = async () => {
     setLoading(true)
@@ -28,6 +25,7 @@ export const AuthProvider = ({ children }) => {
       setLoading(false)
     }
   }
+
   useEffect(() => {
     // Check auth status when component mounts
     fetchUserData()
@@ -36,8 +34,8 @@ export const AuthProvider = ({ children }) => {
   const signIn = async (FormData) => {
     setLoading(true)
     try {
-      const data = await login( FormData )
-      await fetchUserData()  // 👈 fetch user from profile endpoint
+      const data = await login(FormData)
+      await fetchUserData()  // fetch user from profile endpoint
       return { success: true }
     } catch (error) {
       return { 
@@ -53,7 +51,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(true)
     try {
       const data = await register(userData)
-      await fetchUserData()  // 👈 fetch user from profile endpoint
+      await fetchUserData()  // fetch user from profile endpoint
       return { success: true }
     } catch (error) {
       return { 
@@ -67,13 +65,17 @@ export const AuthProvider = ({ children }) => {
 
   const signOut = async () => {
     try {
+      // Try to logout through the API
       await logout()
+      // Even if the API call fails, we should still clear the user state
       setUser(null)
-      // Navigate('/signin')
       return { success: true }
     } catch (error) {
       console.error("Error during logout:", error)
-      return { success: false, error: error.message }
+      // Even if server logout fails, we should still log out locally
+      setUser(null)
+      // Return success true because the user was still logged out locally
+      return { success: true, localOnly: true }
     }
   }
 

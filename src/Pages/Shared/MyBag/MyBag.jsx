@@ -49,10 +49,7 @@ const MyBag = () => {
     }
   };
 
-  const handleContinueShopping = () => {
-    alert("This would navigate to the shop page in a real app");
-  };
-
+  
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="max-w-6xl mx-auto px-4 py-8">
@@ -72,7 +69,7 @@ const MyBag = () => {
                 <p className="text-gray-500 mb-6">Looks like you haven't added any cards to your bag yet.</p>
                 <Link to={"/"}>
                   <button 
-                    onClick={handleContinueShopping}
+                    
                     className="bg-indigo-600 text-white px-6 py-3 rounded-md font-medium hover:bg-indigo-700 transition-colors"
                   >
                     Continue Shopping
