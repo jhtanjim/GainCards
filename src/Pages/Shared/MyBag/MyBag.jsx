@@ -126,7 +126,7 @@ const MyBag = () => {
 
                     <div className="p-6 bg-gray-50 flex justify-between">
                       <button 
-                        onClick={handleContinueShopping}
+                        
                         className="text-indigo-600 hover:text-indigo-800 font-medium flex items-center"
                       >
                         Continue Shopping
