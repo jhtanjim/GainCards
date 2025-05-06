@@ -130,6 +130,7 @@ console.log("Order Payload:", orderPayload);
 
       setClientSecret(response.clientSecret);
       setOrderDetails(response);
+     
       setOrderComplete(true);
 
       navigate("/payment");

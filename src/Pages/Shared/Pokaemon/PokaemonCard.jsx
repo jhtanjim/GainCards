@@ -30,7 +30,6 @@ const PokemonCard = ({ pokemon, isFavorite }) => {
     varietyPedigree,
     updatedAt,
   } = pokemon;
-
   // Set background color based on card label type
   const getBackgroundClass = () => {
     if (!labelType) return "bg-gray-50";

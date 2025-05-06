@@ -4,7 +4,7 @@ import { useShop } from "../../../Context/ShopContext";
 import { stripePromise } from "../../../api/stripe";
 
 const Payment = () => {
-  const { clientSecret } = useShop();
+  const { clientSecret,clearCart  } = useShop();
 
   if (!clientSecret) {
     return <p>Loading payment form...</p>;
@@ -15,9 +15,11 @@ const Payment = () => {
   };
 
   return (
-    <Elements stripe={stripePromise} options={options}>
+    <Elements stripe={stripePromise} options={options}
+   
+    >
       <div className="flex justify-center items-center">
-        <CheckoutForm />
+        <CheckoutForm  clearCart={clearCart}  />
       </div>
     </Elements>
   );

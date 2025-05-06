@@ -5,7 +5,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom"; 
-const CheckoutForm = ({ clientSecret }) => {
+const CheckoutForm = ({ clientSecret,clearCart  }) => {
   const stripe = useStripe();
   const elements = useElements();
   const navigate = useNavigate(); // <-- initialize
@@ -33,6 +33,7 @@ const CheckoutForm = ({ clientSecret }) => {
     } else if (paymentIntent?.status === "succeeded") {
       setMessage("Payment successful!");
       // Redirect after short delay
+      clearCart();
       setTimeout(() => {
         navigate("/myOrders"); // or "/orders", etc.
       }, 2000);
