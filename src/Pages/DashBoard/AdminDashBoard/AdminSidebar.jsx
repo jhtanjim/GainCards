@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, ShoppingCart, CreditCard, Users, Store, User, X, Menu, Home } from 'lucide-react'
+import { LayoutDashboard, ShoppingCart, CreditCard, Users, Store, User, X, Menu, Home, ArrowBigLeft } from 'lucide-react'
 
 const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const location = useLocation()
@@ -9,7 +9,6 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Order List', href: '/admin/orders', icon: ShoppingCart },
     { name: 'Payment List', href: '/admin/payments', icon: CreditCard },
-    { name: 'Home', href: '/', icon: Home },
     { 
       name: 'Users', 
       href: '/admin/users', 
@@ -128,7 +127,12 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 ))}
               </nav>
             </div>
-          </div>
+
+<Link to={"/"} className='pb-20 ps-8 text-lg flex hover:text-blue-900 transition' ><ArrowBigLeft className='my-auto'/> <h2 >Back To Home</h2>
+</Link>          
+
+
+</div>
         </div>
       </div>
     </>
