@@ -6,6 +6,7 @@ import {
 import { useState } from "react";
 import toast from "react-hot-toast";
 
+// eslint-disable-next-line no-unused-vars
 const PaymentForm = ({ clientSecret, onSuccess }) => {
   const stripe = useStripe();
   const elements = useElements();

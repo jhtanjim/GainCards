@@ -172,10 +172,6 @@ const VendorRegistration = () => {
     navigate("/", { replace: true });
   };
 
-  // Debug information
-  console.log("Current step:", currentStep);
-  console.log("Client secret present:", !!clientSecret);
-
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
       {/* Registration Steps */}

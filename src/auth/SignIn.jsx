@@ -40,14 +40,14 @@ const SignIn = () => {
       cancelButtonColor: "#6B7280",
       confirmButtonText: "Send Reset Link",
       showLoaderOnConfirm: true,
-      preConfirm: (email) => {
-        // Here you would connect to your password reset API
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            resolve();
-          }, 1000);
-        });
-      },
+      // preConfirm: (email) => {
+      //   // Here you would connect to your password reset API
+      //   return new Promise((resolve) => {
+      //     setTimeout(() => {
+      //       resolve();
+      //     }, 1000);
+      //   });
+      // },
       allowOutsideClick: () => !Swal.isLoading(),
     }).then((result) => {
       if (result.isConfirmed) {
