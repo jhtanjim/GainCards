@@ -1,93 +1,99 @@
-"use client"
-import { createContext, useContext, useState, useEffect } from "react"
-import { login, logout, register, refresh } from "../api/auth.js"
-import { myProfile } from "../api/profile" 
+"use client";
+import { createContext, useContext, useEffect, useState } from "react";
+import { login, logout, refresh, register } from "../api/auth.js";
+import { myProfile } from "../api/profile";
 
-const AuthContext = createContext()
+const AuthContext = createContext();
 
-export const useAuth = () => useContext(AuthContext)
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
- 
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
   const fetchUserData = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const userData = await myProfile()
-      setUser(userData)
-      console.log(userData)
-      return userData
+      const userData = await myProfile();
+      setUser(userData);
+      console.log(userData);
+      return userData;
     } catch (error) {
-      console.error("Error fetching user data:", error)
-      setUser(null)
+      console.error("Error fetching user data:", error);
+      setUser(null);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     // Check auth status when component mounts
-    fetchUserData()
-  }, [])
+    fetchUserData();
+  }, []);
 
-  const signIn = async (FormData) => {
-    setLoading(true)
+  const signIn = async (formData) => {
+    setLoading(true);
+
     try {
-      const data = await login(FormData)
-      await fetchUserData()  // fetch user from profile endpoint
-      return { success: true }
+      console.log(formData);
+      const data = await login(formData);
+      await fetchUserData(); // fetch user from profile endpoint
+      return { success: true };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.message || error.message || 'Failed to sign in' 
-      }
+      return {
+        success: false,
+        error:
+          error.response?.data?.message || error.message || "Failed to sign in",
+      };
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const signUp = async (userData) => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const data = await register(userData)
-      await fetchUserData()  // fetch user from profile endpoint
-      return { success: true }
+      const data = await register(userData);
+      await fetchUserData(); // fetch user from profile endpoint
+      return { success: true };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.message || error.message || 'Failed to create account' 
-      }
+      return {
+        success: false,
+        error:
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to create account",
+      };
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const signOut = async () => {
     try {
       // Try to logout through the API
-      await logout()
+      await logout();
       // Even if the API call fails, we should still clear the user state
-      setUser(null)
-      return { success: true }
+      setUser(null);
+      return { success: true };
     } catch (error) {
-      console.error("Error during logout:", error)
+      console.error("Error during logout:", error);
       // Even if server logout fails, we should still log out locally
-      setUser(null)
+      setUser(null);
       // Return success true because the user was still logged out locally
-      return { success: true, localOnly: true }
+      return { success: true, localOnly: true };
     }
-  }
+  };
 
   const refreshToken = async () => {
     try {
-      await refresh()
-      return true
+      await refresh();
+      return true;
     } catch (error) {
-      console.error("Error refreshing token:", error)
-      return false
+      console.error("Error refreshing token:", error);
+      return false;
     }
-  }
+  };
 
   const value = {
     user,
@@ -97,8 +103,8 @@ export const AuthProvider = ({ children }) => {
     signOut,
     refreshToken,
     isAuthenticated: !!user,
-    fetchUserData
-  }
+    fetchUserData,
+  };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};

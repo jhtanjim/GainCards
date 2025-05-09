@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 const ShopContext = createContext();
 
@@ -9,9 +9,9 @@ export const ShopProvider = ({ children }) => {
     const storedCart = localStorage.getItem("cartItems");
     return storedCart ? JSON.parse(storedCart) : [];
   });
-  
+
   const [clientSecret, setClientSecret] = useState("");
-  
+
   // Add a function to clear the cart
   const clearCart = () => {
     setCartItems([]);
@@ -21,15 +21,15 @@ export const ShopProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem("cartItems", JSON.stringify(cartItems));
   }, [cartItems]);
-    
+
   return (
     <ShopContext.Provider
-      value={{ 
-        cartItems, 
-        setCartItems, 
-        clientSecret, 
+      value={{
+        cartItems,
+        setCartItems,
+        clientSecret,
         setClientSecret,
-        clearCart // Include the new clearCart function
+        clearCart, // Include the new clearCart function
       }}
     >
       {children}
