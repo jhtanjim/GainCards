@@ -11,13 +11,12 @@ import PaymentList from "../Pages/DashBoard/AdminDashBoard/paymentList";
 import UserList from "../Pages/DashBoard/AdminDashBoard/UserList";
 import Categories from "../Pages/Home/Categories/Categories";
 import Home from "../Pages/Home/Home/Home";
-import Checkout from "../Pages/Shared/Checkout/Checkout";
-import MyBag from "../Pages/Shared/MyBag/MyBag";
+import CheckoutPage from "../Pages/Shared/Checkout/Checkout";
+import CartPage from "../Pages/Shared/MyBag/MyBag";
 import MyCards from "../Pages/Shared/MyCards/MyCards";
 import MyLibrary from "../Pages/Shared/MyLibrary/MyLibrary";
 import MyOrders from "../Pages/Shared/MyOrders/MyOrders";
 import MyProfile from "../Pages/Shared/MyProfile/MyProfile";
-import Payment from "../Pages/Shared/Payment/Payment";
 import Pokaemon from "../Pages/Shared/Pokaemon/Pokaemon";
 import PokaemonCardDetails from "../Pages/Shared/Pokaemon/PokaemonCardDetails";
 import PokaemonCardUpdate from "../Pages/Shared/PokemonCardCrud/PokaemonCardUpdate";
@@ -38,7 +37,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "/myBag",
-        element: <MyBag />,
+        element: <CartPage />,
       },
       {
         path: "/signin",
@@ -83,12 +82,12 @@ export const router = createBrowserRouter([
       // },
       {
         path: "/checkout",
-        element: <Checkout />,
+        element: <CheckoutPage />,
       },
-      {
-        path: "/payment",
-        element: <Payment />,
-      },
+      // {
+      //   path: "/payment",
+      //   element: <Payment />,
+      // },
       {
         path: "/myOrders",
         element: <MyOrders />,
