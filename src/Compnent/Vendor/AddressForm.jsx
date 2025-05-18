@@ -1,4 +1,7 @@
+import React from "react";
+import PhoneInput from "react-phone-input-2";
 import { X } from "lucide-react";
+import "react-phone-input-2/lib/style.css";
 
 const AddressForm = ({ formData, setFormData, onBack }) => {
   const handleChange = (e) => {
@@ -6,6 +9,13 @@ const AddressForm = ({ formData, setFormData, onBack }) => {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  const handlePhoneChange = (value) => {
+    setFormData((prev) => ({
+      ...prev,
+      phone: value,
     }));
   };
 
@@ -22,6 +32,7 @@ const AddressForm = ({ formData, setFormData, onBack }) => {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {/* Full Name */}
         <div className="col-span-2">
           <label className="mb-1 block text-sm font-medium text-gray-700">
             Full Name
@@ -36,6 +47,7 @@ const AddressForm = ({ formData, setFormData, onBack }) => {
           />
         </div>
 
+        {/* Address Line 1 */}
         <div className="col-span-2">
           <label className="mb-1 block text-sm font-medium text-gray-700">
             Address Line 1
@@ -45,11 +57,12 @@ const AddressForm = ({ formData, setFormData, onBack }) => {
             name="line1"
             value={formData.line1}
             onChange={handleChange}
-            className="w-full rounded-md border border-gray-300 p-2 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
             required
+            className="w-full rounded-md border border-gray-300 p-2 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
           />
         </div>
 
+        {/* Address Line 2 */}
         <div className="col-span-2">
           <label className="mb-1 block text-sm font-medium text-gray-700">
             Address Line 2 (Optional)
@@ -63,6 +76,7 @@ const AddressForm = ({ formData, setFormData, onBack }) => {
           />
         </div>
 
+        {/* City */}
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">
             City
@@ -72,11 +86,12 @@ const AddressForm = ({ formData, setFormData, onBack }) => {
             name="city"
             value={formData.city}
             onChange={handleChange}
-            className="w-full rounded-md border border-gray-300 p-2 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
             required
+            className="w-full rounded-md border border-gray-300 p-2 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
           />
         </div>
 
+        {/* State */}
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">
             State/Province
@@ -86,11 +101,12 @@ const AddressForm = ({ formData, setFormData, onBack }) => {
             name="state"
             value={formData.state}
             onChange={handleChange}
-            className="w-full rounded-md border border-gray-300 p-2 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
             required
+            className="w-full rounded-md border border-gray-300 p-2 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
           />
         </div>
 
+        {/* Country */}
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">
             Country
@@ -100,11 +116,12 @@ const AddressForm = ({ formData, setFormData, onBack }) => {
             name="country"
             value={formData.country}
             onChange={handleChange}
-            className="w-full rounded-md border border-gray-300 p-2 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
             required
+            className="w-full rounded-md border border-gray-300 p-2 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
           />
         </div>
 
+        {/* Postal Code */}
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">
             Postal Code
@@ -114,22 +131,25 @@ const AddressForm = ({ formData, setFormData, onBack }) => {
             name="postalCode"
             value={formData.postalCode}
             onChange={handleChange}
-            className="w-full rounded-md border border-gray-300 p-2 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
             required
+            className="w-full rounded-md border border-gray-300 p-2 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
           />
         </div>
 
+        {/* Phone */}
         <div className="col-span-2">
           <label className="mb-1 block text-sm font-medium text-gray-700">
             Phone Number
           </label>
-          <input
-            type="tel"
-            name="phone"
+          <PhoneInput
+            country={"us"}
             value={formData.phone}
-            onChange={handleChange}
-            className="w-full rounded-md border border-gray-300 p-2 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-            required
+            onChange={handlePhoneChange}
+            inputClass="!w-full !rounded-md !border-gray-300 !p-2 focus:!border-purple-500 focus:!outline-none focus:!ring-1 focus:!ring-purple-500"
+            inputProps={{
+              name: "phone",
+              required: true,
+            }}
           />
         </div>
       </div>
