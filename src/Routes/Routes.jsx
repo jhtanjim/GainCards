@@ -8,7 +8,6 @@ import Main from "../Layout/Main";
 import AdminDashBoard from "../Pages/DashBoard/AdminDashBoard/AdminDashBoard";
 import OrderList from "../Pages/DashBoard/AdminDashBoard/OrderList";
 import PaymentList from "../Pages/DashBoard/AdminDashBoard/paymentList";
-import UserList from "../Pages/DashBoard/AdminDashBoard/UserList";
 import Categories from "../Pages/Home/Categories/Categories";
 import Home from "../Pages/Home/Home/Home";
 import Checkout from "../Pages/Shared/Checkout/Checkout";
@@ -22,6 +21,9 @@ import Pokaemon from "../Pages/Shared/Pokaemon/Pokaemon";
 import PokaemonCardDetails from "../Pages/Shared/Pokaemon/PokaemonCardDetails";
 import PokaemonCardUpdate from "../Pages/Shared/PokemonCardCrud/PokaemonCardUpdate";
 import PokemonCardUpload from "../Pages/Shared/PokemonCardCrud/PokemonCardUpload";
+import NormalUsers from "../Pages/DashBoard/AdminDashBoard/UserList/NormalUsers";
+import VendorUsers from "../Pages/DashBoard/AdminDashBoard/UserList/VendorUsers";
+import AllUsers from "../Pages/DashBoard/AdminDashBoard/UserList/AllUsers";
 
 export const router = createBrowserRouter([
   {
@@ -119,15 +121,15 @@ export const router = createBrowserRouter([
       },
       {
         path: "/admin/users",
-        element: <UserList />,
+        element: <AllUsers  />,
       },
       {
         path: "/admin/users/vendors",
-        element: <UserList />,
+        element: <VendorUsers />,
       },
       {
         path: "/admin/users/normal",
-        element: <UserList />,
+        element: <NormalUsers  />,
       },
     ],
   },

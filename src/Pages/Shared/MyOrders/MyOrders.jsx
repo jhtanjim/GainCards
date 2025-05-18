@@ -96,10 +96,7 @@ const MyOrders = () => {
   toggleOrderExpansion={toggleOrderExpansion}
   ></OrderCard>)
   
-}
-
-          
-         
+}   
         </div>
       )}
     </div>

@@ -12,7 +12,6 @@ import {
 const PokemonCard = ({ pokemon, isFavorite }) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const { cartItems, setCartItems } = useShop();
-
   // Destructure all pokemon card properties
   const {
     id,
