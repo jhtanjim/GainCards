@@ -6,7 +6,6 @@ import VendorRegistration from "../Compnent/Vendor/VendorRegistration";
 import AdminLayout from "../Layout/AdminLayout";
 import Main from "../Layout/Main";
 import AdminDashBoard from "../Pages/DashBoard/AdminDashBoard/AdminDashBoard";
-import OrderList from "../Pages/DashBoard/AdminDashBoard/OrderList";
 import PaymentList from "../Pages/DashBoard/AdminDashBoard/paymentList";
 import Categories from "../Pages/Home/Categories/Categories";
 import Home from "../Pages/Home/Home/Home";
@@ -23,6 +22,7 @@ import PokemonCardUpload from "../Pages/Shared/PokemonCardCrud/PokemonCardUpload
 import NormalUsers from "../Pages/DashBoard/AdminDashBoard/UserList/NormalUsers";
 import VendorUsers from "../Pages/DashBoard/AdminDashBoard/UserList/VendorUsers";
 import AllUsers from "../Pages/DashBoard/AdminDashBoard/UserList/AllUsers";
+import OrderList from "../Pages/DashBoard/AdminDashBoard/OrderList/OrderList";
 
 export const router = createBrowserRouter([
   {

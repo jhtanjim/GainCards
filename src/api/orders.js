@@ -21,3 +21,27 @@ export const getMyOrders = async () => {
     throw error;
   }
 };
+
+// get all orders for admin pannel
+
+
+export const getAllOrders = async () => {
+  try {
+    const response = await api.get("/orders/all");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching orders/all:", error);
+    throw error;
+  }
+};
+
+// Get a single user by ID
+export const getOrdersDataById = async (id) => {
+  try {
+    const response = await api.get(`/orders/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching orders with id ${id}:`, error);
+    throw error;
+  }
+};

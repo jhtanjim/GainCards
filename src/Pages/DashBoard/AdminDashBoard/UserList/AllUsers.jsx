@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getAllUsers } from '../../../../api/users'
 import UserTable from './UserTable'
+import { data } from 'react-router-dom'
 
 const AllUsers = () => {
   const [filter, setFilter] = useState('all')
@@ -15,6 +16,7 @@ const AllUsers = () => {
     retry: 2,
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
+  console.log(users)
 
   const filteredUsers = users.filter(user => {
     if (filter === 'all') return true
