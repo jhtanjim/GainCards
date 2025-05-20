@@ -23,6 +23,15 @@ import NormalUsers from "../Pages/DashBoard/AdminDashBoard/UserList/NormalUsers"
 import VendorUsers from "../Pages/DashBoard/AdminDashBoard/UserList/VendorUsers";
 import AllUsers from "../Pages/DashBoard/AdminDashBoard/UserList/AllUsers";
 import OrderList from "../Pages/DashBoard/AdminDashBoard/OrderList/OrderList";
+import AdminRoutes from "./AdminRoutes";
+import VendorRoutes from "./VendorRoutes";
+import VendorLayout from "../Layout/VendorLayout";
+import VendorDashBoard from "../Pages/DashBoard/VendorDashBoard/VendorDashBoard";
+import VendorProducts from "../Pages/DashBoard/VendorDashBoard/VendorProducts";
+import VendorOrders from "../Pages/DashBoard/VendorDashBoard/VendorOrders";
+import VendorAnalytics from "../Pages/DashBoard/VendorDashBoard/VendorAnalytics";
+import VendorEarnings from "../Pages/DashBoard/VendorDashBoard/VendorEarnings";
+import VendorSettings from "../Pages/DashBoard/VendorDashBoard/VendorSettings";
 
 export const router = createBrowserRouter([
   {
@@ -104,7 +113,8 @@ export const router = createBrowserRouter([
   // Admin Routes
   {
     path: "/admin",
-    element: <AdminLayout />,
+    element:
+   <AdminLayout />,
     children: [
       {
         path: "/admin",
@@ -132,4 +142,48 @@ export const router = createBrowserRouter([
       },
     ],
   },
-]);
+
+
+
+   // Vendor Routes
+  {
+    path: "/vendor",
+    element: (
+      <VendorRoutes>
+        <VendorLayout />
+      </VendorRoutes>
+    ),
+    children: [
+      {
+        path: "/vendor",
+        element: <VendorDashBoard />,
+      },
+      {
+        path: "/vendor/products",
+        element: <VendorProducts />,
+      },
+      {
+        path: "/vendor/upload",
+        element: <PokemonCardUpload />,
+      },
+      {
+        path: "/vendor/orders",
+        element: <VendorOrders />,
+      },
+      {
+        path: "/vendor/analytics",
+        element: <VendorAnalytics />,
+      },
+      {
+        path: "/vendor/earnings",
+        element: <VendorEarnings />,
+      },
+      {
+        path: "/vendor/settings",
+        element: <VendorSettings />,
+      },
+    ],
+  },
+])
+
+;

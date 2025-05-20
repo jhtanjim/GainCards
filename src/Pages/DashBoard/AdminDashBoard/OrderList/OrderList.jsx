@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getAllOrders } from '../../../../api/orders'
 import OrderFilterBar from './OrderFilterBar'
 import OrderTable from './OrderTable'
+import { data } from 'react-router-dom'
 
 const OrderList = () => {
   const [filter, setFilter] = useState('all')
@@ -12,6 +13,7 @@ const OrderList = () => {
     queryKey: ['orders'],
     queryFn: getAllOrders,
   })
+  console.log(orders)
 
   const filteredOrders = orders.filter(order => {
     const query = searchQuery.toLowerCase()

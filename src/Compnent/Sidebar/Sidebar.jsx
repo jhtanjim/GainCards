@@ -195,6 +195,14 @@ const Sidebar = () => {
           <SidebarLink
             expanded={expanded}
             isMobile={isMobile}
+            link={"/vendor"}
+            name={" vendor dashboards"}
+            icon={  <User size={20} />
+          }
+          />
+          <SidebarLink
+            expanded={expanded}
+            isMobile={isMobile}
             link={"/myCards"}
             name={" My Cards"}
             icon={   <CreditCard size={20} />
