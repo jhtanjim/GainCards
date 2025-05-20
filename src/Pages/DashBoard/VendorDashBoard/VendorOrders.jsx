@@ -17,8 +17,8 @@ const VendorOrders = () => {
     queryKey: ["orders"],
     queryFn: getAllOrders,
   })
+console.log(allOrders)
 
-  // ✅ Filter orders by logged-in vendor's profileId
   const orders = allOrders.filter(order => order.vendorProfileId === user?.profileId)
 
   const filteredOrders = orders.filter((order) => {

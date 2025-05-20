@@ -359,10 +359,7 @@ const VendorSettings = () => {
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-700">Two-Factor Authentication</h3>
-                    <p className="text-sm text-gray-500">Add an extra layer of security to your account</p>
-                  </div>
+                 
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"

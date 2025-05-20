@@ -149,9 +149,9 @@ export const router = createBrowserRouter([
   {
     path: "/vendor",
     element: (
-      <VendorRoutes>
+     <VendorRoutes>
         <VendorLayout />
-      </VendorRoutes>
+     </VendorRoutes>
     ),
     children: [
       {
