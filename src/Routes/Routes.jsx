@@ -29,10 +29,13 @@ import VendorLayout from "../Layout/VendorLayout";
 import VendorDashBoard from "../Pages/DashBoard/VendorDashBoard/VendorDashBoard";
 import VendorProducts from "../Pages/DashBoard/VendorDashBoard/VendorProducts";
 import VendorOrders from "../Pages/DashBoard/VendorDashBoard/VendorOrders";
-import VendorAnalytics from "../Pages/DashBoard/VendorDashBoard/VendorAnalytics";
+// import VendorAnalytics from "../Pages/DashBoard/VendorDashBoard/VendorAnalytics";
 import VendorEarnings from "../Pages/DashBoard/VendorDashBoard/VendorEarnings";
 import VendorSettings from "../Pages/DashBoard/VendorDashBoard/VendorSettings";
-
+import Donate from "../Pages/Shared/Donate/Donate";
+import ManageSubscription from "../Pages/DashBoard/AdminDashBoard/ManageSubscription.jsx/ManageSubscription";
+import VendorSubscription from "../Pages/DashBoard/VendorDashBoard/VendorSubscription";
+import DonateCardReceiver from "../Pages/Shared/Donate/DonateCardReciever/DonateCardReciever";
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -65,6 +68,10 @@ export const router = createBrowserRouter([
       {
         path: "/pokemon",
         element: <Pokaemon />,
+      },
+      {
+        path: "/donateCardReceiver",
+        element: <DonateCardReceiver />,
       },
       {
         path: "/pokemon/:id",
@@ -107,6 +114,10 @@ export const router = createBrowserRouter([
         path: "/myCards",
         element: <MyCards />,
       },
+      {
+        path: "/donate",
+        element: <Donate />,
+      },
       { path: "*", element: <UnderConstruction /> },
     ],
   },
@@ -129,6 +140,10 @@ export const router = createBrowserRouter([
         element: <PaymentList />,
       },
       {
+        path: "/admin/manageSubscription",
+        element: <ManageSubscription />,
+      },
+      {
         path: "/admin/users",
         element: <AllUsers  />,
       },
@@ -149,9 +164,9 @@ export const router = createBrowserRouter([
   {
     path: "/vendor",
     element: (
-     <VendorRoutes>
+     // <VendorRoutes>
         <VendorLayout />
-     </VendorRoutes>
+    // </VendorRoutes>
     ),
     children: [
       {
@@ -170,10 +185,10 @@ export const router = createBrowserRouter([
         path: "/vendor/orders",
         element: <VendorOrders />,
       },
-      {
-        path: "/vendor/analytics",
-        element: <VendorAnalytics />,
-      },
+      // {
+      //   path: "/vendor/analytics",
+      //   element: <VendorAnalytics />,
+      // },
       {
         path: "/vendor/earnings",
         element: <VendorEarnings />,
@@ -181,6 +196,10 @@ export const router = createBrowserRouter([
       {
         path: "/vendor/settings",
         element: <VendorSettings />,
+      },
+      {
+        path: "/vendor/vendorSubsCription",
+        element: <VendorSubscription />,
       },
     ],
   },

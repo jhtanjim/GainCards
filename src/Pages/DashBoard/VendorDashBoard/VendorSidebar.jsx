@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Link, useLocation } from "react-router-dom"
-import { Home, Package, Upload, BarChart2, DollarSign, Settings, LogOut, HomeIcon } from "lucide-react"
+import { Home, Package, Upload, BarChart2, DollarSign, Settings, LogOut, HomeIcon, SubscriptIcon } from "lucide-react"
 import logo from "../../../assets/logo/logo.jpg"
 import { useAuth } from "../../../Context/AuthContext"
 
@@ -41,9 +41,10 @@ const VendorSidebar = () => {
     { name: "My Products", icon: <Package size={20} />, path: "/vendor/products" },
     { name: "Upload Card", icon: <Upload size={20} />, path: "/vendor/upload" },
     { name: "Orders", icon: <Package size={20} />, path: "/vendor/orders" },
-    { name: "Analytics", icon: <BarChart2 size={20} />, path: "/vendor/analytics" },
+    // { name: "Analytics", icon: <BarChart2 size={20} />, path: "/vendor/analytics" },
     { name: "Earnings", icon: <DollarSign size={20} />, path: "/vendor/earnings" },
     { name: "Settings", icon: <Settings size={20} />, path: "/vendor/settings" },
+    { name: "Subscription", icon: <SubscriptIcon size={20} />, path: "/vendor/vendorSubsCription" },
   ]
 
   return (

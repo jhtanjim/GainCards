@@ -2,6 +2,7 @@
 
 import {
   CreditCard,
+  Gift,
   Grid,
   Heart,
   Home,
@@ -161,7 +162,24 @@ const Sidebar = () => {
             isMobile={isMobile}
             link={"/myBag"}
             name={"My Bag"}
-            icon={<ShoppingBag size={20} />
+            icon={<ShoppingBag size={20} />  
+          }
+          />
+
+          <SidebarLink
+            expanded={expanded}
+            isMobile={isMobile}
+            link={"/donate"}
+            name={" Donate"}
+            icon={   <Gift  size={20} />
+          }
+          />
+          <SidebarLink
+            expanded={expanded}
+            isMobile={isMobile}
+            link={"/donateCardReceiver"}
+            name={" DonateCardReceiver"}
+            icon={   <Gift  size={20} />
           }
           />
          {/* Conditional rendering for Pokemon Card Upload link */}
@@ -208,6 +226,7 @@ const Sidebar = () => {
             icon={   <CreditCard size={20} />
           }
           />
+          
         </ul>
       </nav>
 

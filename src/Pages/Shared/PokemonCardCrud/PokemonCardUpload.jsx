@@ -7,22 +7,29 @@ import Swal from "sweetalert2"
 
 export default function PokemonCardUpload() {
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    price: 0,
-    certificationNumber: "",
-    labelType: "",
-    hasReverseBarcode: false,
-    year: "",
-    brand: "",
-    sport: "TCG Cards",
-    cardNumber: "",
-    player: "",
-    varietyPedigree: "",
-    grade: "",
-    population: 0,
-    vendorId: "",
-  })
+  title: "",
+  description: "",
+  price: 0,
+  certificationNumber: "",
+  labelType: "",
+  hasReverseBarcode: false,
+  year: "",
+  brand: "",
+  sport: "TCG Cards",
+  cardNumber: "",
+  player: "",
+  varietyPedigree: "",
+  grade: "",
+  population: 0,
+  vendorId: "",
+  length: "",
+  width: "",
+  height: "",
+  weight: "",
+  distanceUnit: "cm", 
+  massUnit: "kg",      
+})
+
 
   const [frontImage, setFrontImage] = useState(null)
   const [backImage, setBackImage] = useState(null)
@@ -164,6 +171,22 @@ export default function PokemonCardUpload() {
             </div>
           </div>
         </div>
+{/* Packaging & Dimensions Section */}
+<div className="bg-white p-6 rounded-xl shadow-sm">
+  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+    <Info className="h-5 w-5 text-yellow-500" />
+    Packaging & Dimensions
+  </h3>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+   
+    <InputField label="Length" name="length" value={formData.length} onChange={handleInputChange} />
+    <InputField label="Width" name="width" value={formData.width} onChange={handleInputChange} />
+    <InputField label="Height" name="height" value={formData.height} onChange={handleInputChange} />
+    <InputField label="Weight" name="weight" value={formData.weight} onChange={handleInputChange} />
+    <SelectField label="Distance Unit" name="distanceUnit" value={formData.distanceUnit} onChange={handleInputChange} options={["cm", "inch", "mm"]} />
+    <SelectField label="Mass Unit" name="massUnit" value={formData.massUnit} onChange={handleInputChange} options={["kg", "g", "lb"]} />
+  </div>
+</div>
 
         {/* Image Upload Section */}
         <div className="bg-white p-6 rounded-xl shadow-sm">
