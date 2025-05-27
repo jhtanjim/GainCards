@@ -13,6 +13,12 @@ import {
   RefreshCw,
   Search,
   Truck,
+  Share2,
+  Facebook,
+  Twitter,
+  MessageCircle,
+  Link,
+  Copy
 } from "lucide-react";
 import { useState } from "react";
 import { getMyOrders } from "../../../api/orders";
@@ -21,6 +27,7 @@ export default function MyOrdersPage() {
   const [expandedOrderId, setExpandedOrderId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [showShareMenu, setShowShareMenu] = useState(null);
 
   const {
     data: orderGroups = [],
@@ -73,6 +80,207 @@ export default function MyOrdersPage() {
       setExpandedOrderId(orderId);
     }
   };
+
+  const toggleShareMenu = (orderGroupId) => {
+    if (showShareMenu === orderGroupId) {
+      setShowShareMenu(null);
+    } else {
+      setShowShareMenu(orderGroupId);
+    }
+  };
+
+  // Generate share content for an order
+  const generateShareContent = (orderGroup) => {
+    const orderSummary = orderGroup.orders[0];
+    const itemCount = orderGroup.orders.reduce((total, order) => total + order.items.length, 0);
+    const firstProduct = orderSummary.items[0]?.product?.title || "Product";
+    
+    // Updated share text to say "I just bought this card"
+    const shareText = `🃏 I just bought this card! ${firstProduct}${itemCount > 1 ? ` and ${itemCount - 1} more cards` : ''} for $${orderGroup.totalAmount.toFixed(2)}. Order #${orderGroup.id.substring(0, 8)} - Status: ${orderGroup.status} 📦`;
+    
+    const shareUrl = `${window.location.origin}/orders/${orderGroup.id}`;
+    
+    return { shareText, shareUrl };
+  };
+
+  // Add this function to handle card clicks - redirects to product page
+  const handleCardClick = (product) => {
+    // Assuming your product pages follow this pattern - adjust as needed
+    const productUrl = `/products/${product.id}` || `/cards/${product.id}`;
+    window.open(productUrl, '_blank');
+  };
+
+  // Add this new function to generate a visual card preview for sharing
+  const generateCardPreview = (orderGroup) => {
+    const firstOrder = orderGroup.orders[0];
+    const firstItem = firstOrder?.items[0];
+    
+    if (!firstItem?.product) return null;
+
+    const product = firstItem.product;
+    
+    return (
+      <div 
+        className="mt-4 p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all"
+        onClick={() => handleCardClick(product)}
+      >
+        <div className="flex items-center space-x-4">
+          <div className="relative h-20 w-16 rounded-md overflow-hidden shadow-md">
+            {product.frontImageUrl ? (
+              <img
+                src={product.frontImageUrl}
+                alt={product.title}
+                className="object-cover h-full w-full"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "/api/placeholder/64/80";
+                }}
+              />
+            ) : (
+              <div className="bg-gray-200 h-full w-full flex items-center justify-center">
+                <Package className="h-8 w-8 text-gray-400" />
+              </div>
+            )}
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-lg">{product.title}</h3>
+            <div className="text-sm text-gray-600">
+              {product.brand} • Grade: {product.grade}
+            </div>
+            {product.cardNumber && (
+              <div className="text-xs text-gray-500">
+                Card #{product.cardNumber}
+              </div>
+            )}
+            <div className="text-lg font-bold text-green-600 mt-1">
+              ${firstItem.price.toFixed(2)}
+            </div>
+          </div>
+          <div className="text-blue-500">
+            <ChevronDown className="h-5 w-5 transform -rotate-90" />
+          </div>
+        </div>
+        <div className="text-center mt-2 text-sm text-blue-600 font-medium">
+          Click to view on site
+        </div>
+      </div>
+    );
+  };
+
+  // Share functions
+  const shareToFacebook = (orderGroup) => {
+    const { shareText, shareUrl } = generateShareContent(orderGroup);
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`;
+    window.open(facebookUrl, '_blank', 'width=600,height=400');
+    setShowShareMenu(null);
+  };
+
+  const shareToTwitter = (orderGroup) => {
+    const { shareText, shareUrl } = generateShareContent(orderGroup);
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+    window.open(twitterUrl, '_blank', 'width=600,height=400');
+    setShowShareMenu(null);
+  };
+
+  const shareToWhatsApp = (orderGroup) => {
+    const { shareText, shareUrl } = generateShareContent(orderGroup);
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`;
+    window.open(whatsappUrl, '_blank');
+    setShowShareMenu(null);
+  };
+
+  const copyToClipboard = async (orderGroup) => {
+    const { shareText, shareUrl } = generateShareContent(orderGroup);
+    const textToCopy = `${shareText}\n${shareUrl}`;
+    
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      alert('Order details copied to clipboard!');
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = textToCopy;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      alert('Order details copied to clipboard!');
+    }
+    setShowShareMenu(null);
+  };
+
+  const shareViaWebAPI = async (orderGroup) => {
+    const { shareText, shareUrl } = generateShareContent(orderGroup);
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'My Card Purchase',
+          text: shareText,
+          url: shareUrl,
+        });
+        setShowShareMenu(null);
+      } catch (err) {
+        console.log('Error sharing:', err);
+      }
+    } else {
+      // Fallback to copy to clipboard
+      copyToClipboard(orderGroup);
+    }
+  };
+
+  // Updated share menu component with card preview
+  const ShareMenuWithCardPreview = ({ orderGroup }) => (
+    <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+      <div className="p-4">
+        <h4 className="font-semibold text-gray-800 mb-2">Share Your Purchase</h4>
+        
+        {/* Card Preview */}
+        {generateCardPreview(orderGroup)}
+        
+        {/* Share Options */}
+        <div className="mt-4 space-y-1">
+          <button
+            onClick={() => shareToFacebook(orderGroup)}
+            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+          >
+            <Facebook className="h-4 w-4 mr-3 text-blue-600" />
+            Share on Facebook
+          </button>
+          <button
+            onClick={() => shareToTwitter(orderGroup)}
+            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+          >
+            <Twitter className="h-4 w-4 mr-3 text-blue-400" />
+            Share on Twitter
+          </button>
+          <button
+            onClick={() => shareToWhatsApp(orderGroup)}
+            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+          >
+            <MessageCircle className="h-4 w-4 mr-3 text-green-500" />
+            Share on WhatsApp
+          </button>
+          <button
+            onClick={() => copyToClipboard(orderGroup)}
+            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+          >
+            <Copy className="h-4 w-4 mr-3 text-gray-500" />
+            Copy to Clipboard
+          </button>
+          {navigator.share && (
+            <button
+              onClick={() => shareViaWebAPI(orderGroup)}
+              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+            >
+              <Share2 className="h-4 w-4 mr-3 text-gray-500" />
+              More Options
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
   // Filter and search functionality
   const filteredOrders = orderGroups.filter((orderGroup) => {
@@ -271,10 +479,26 @@ export default function MyOrdersPage() {
                       {formatDate(orderGroup.createdAt)}
                     </div>
                   </div>
-                  <div className="mt-2 sm:mt-0">
+                  <div className="mt-2 sm:mt-0 flex items-center space-x-3">
                     <span className="font-semibold text-lg">
                       ${orderGroup.totalAmount.toFixed(2)}
                     </span>
+                    
+                    {/* Share Button */}
+                    <div className="relative">
+                      <button
+                        onClick={() => toggleShareMenu(orderGroup.id)}
+                        className="flex items-center justify-center p-2 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
+                        title="Share order"
+                      >
+                        <Share2 className="h-4 w-4 text-gray-600" />
+                      </button>
+
+                      {/* Share Menu */}
+                      {showShareMenu === orderGroup.id && (
+                        <ShareMenuWithCardPreview orderGroup={orderGroup} />
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -450,6 +674,14 @@ export default function MyOrdersPage() {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Click outside to close share menu */}
+      {showShareMenu && (
+        <div
+          className="fixed inset-0 z-5"
+          onClick={() => setShowShareMenu(null)}
+        />
       )}
     </div>
   );

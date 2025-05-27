@@ -29,6 +29,7 @@ export default function Donate() {
   const [backImage, setBackImage] = useState(null)
   const [loading, setLoading] = useState(false)
   const [showCompletionForm, setShowCompletionForm] = useState(false)
+  const [donationData, setDonationData] = useState(null) // Store donation response
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -54,8 +55,8 @@ export default function Donate() {
       if (frontImage) data.append("frontImage", frontImage)
       if (backImage) data.append("backImage", backImage)
 
-      await donatePokemon(data)
-
+      const response = await donatePokemon(data)
+      setDonationData(response) // Store the response for later use
       setShowCompletionForm(true)
     } catch (error) {
       console.error("Error donating Pokémon card:", error)
@@ -69,16 +70,38 @@ export default function Donate() {
       setLoading(false)
     }
   }
+const handleDonationComplete = async (completionData) => {
+  try {
+    // completionData now contains both addressData and apiResponse
+    const { addressData, apiResponse } = completionData;
+    
+    console.log("Address saved:", apiResponse);
+    console.log("Address data:", addressData);
 
-  const handleDonationComplete = async (donorData) => {
-    Swal.fire({
+    // Show final success message
+    await Swal.fire({
       icon: "success",
-      title: "Thank you!",
-      text: "Your donation was successful!",
+      title: "Donation Complete!",
+      html: `
+        <div class="text-center">
+          <p class="mb-2">Your Pokémon card donation is now complete!</p>
+          <p class="text-sm text-gray-600">Thank you for your generous contribution.</p>
+          <p class="text-xs text-gray-500 mt-2">Your contact information has been saved securely.</p>
+        </div>
+      `,
       confirmButtonColor: "#22c55e",
-    })
+      confirmButtonText: "Continue"
+    });
 
     // Reset everything
+    resetForm();
+  } catch (error) {
+    console.error("Error completing donation:", error);
+    // Error handling is already done in DonationCompletionForm
+  }
+};
+
+  const resetForm = () => {
     setFormData({
       title: "",
       description: "",
@@ -99,10 +122,11 @@ export default function Donate() {
     setFrontImage(null)
     setBackImage(null)
     setShowCompletionForm(false)
+    setDonationData(null)
   }
 
   if (showCompletionForm) {
-    return <DonationCompletionForm onSubmit={handleDonationComplete} />
+    return <DonationCompletionForm onSubmit={handleDonationComplete} donationData={donationData} />
   }
 
   return (
@@ -122,9 +146,17 @@ export default function Donate() {
             <InputField label="Year" name="year" type="number" value={formData.year} onChange={handleInputChange} />
             <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <textarea name="description" value={formData.description} onChange={handleInputChange} rows="3" className="input" required />
+              <textarea 
+                name="description" 
+                value={formData.description} 
+                onChange={handleInputChange} 
+                rows="3" 
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors" 
+                required 
+                placeholder="Describe your Pokémon card..."
+              />
             </div>
-            <InputField label="Price ($)" name="price" type="number" value={formData.price} onChange={handleInputChange} />
+            <InputField label="Price ($)" name="price" type="number" step="0.01" value={formData.price} onChange={handleInputChange} />
           </div>
         </Section>
 
@@ -142,7 +174,13 @@ export default function Donate() {
             <InputField label="Population" name="population" type="number" value={formData.population} onChange={handleInputChange} />
             <InputField label="Vendor ID" name="vendorId" value={formData.vendorId} onChange={handleInputChange} />
             <div className="flex items-center">
-              <input type="checkbox" name="hasReverseBarcode" checked={formData.hasReverseBarcode} onChange={handleInputChange} className="h-5 w-5 text-yellow-500 border-gray-300 rounded" />
+              <input 
+                type="checkbox" 
+                name="hasReverseBarcode" 
+                checked={formData.hasReverseBarcode} 
+                onChange={handleInputChange} 
+                className="h-5 w-5 text-yellow-500 border-gray-300 rounded focus:ring-yellow-500" 
+              />
               <label className="ml-2 text-sm text-gray-700">Has Reverse Barcode</label>
             </div>
           </div>
@@ -160,9 +198,16 @@ export default function Donate() {
           <button
             type="submit"
             disabled={loading}
-            className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-6 py-3 rounded-lg shadow-md disabled:opacity-60"
+            className="bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-400 text-white font-semibold px-8 py-3 rounded-lg shadow-md transition-all disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {loading ? "Submitting..." : "Donate Card"}
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Donating...
+              </div>
+            ) : (
+              "Donate Card"
+            )}
           </button>
         </div>
       </form>
@@ -181,11 +226,19 @@ function Section({ title, icon, children }) {
   )
 }
 
-function InputField({ label, name, value, onChange, type = "text" }) {
+function InputField({ label, name, value, onChange, type = "text", step, required = true }) {
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <input type={type} name={name} value={value} onChange={onChange} className="input" required />
+      <input 
+        type={type} 
+        name={name} 
+        value={value} 
+        onChange={onChange} 
+        step={step}
+        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors" 
+        required={required}
+      />
     </div>
   )
 }
@@ -194,7 +247,13 @@ function SelectField({ label, name, value, onChange, options }) {
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <select name={name} value={value} onChange={onChange} className="input" required>
+      <select 
+        name={name} 
+        value={value} 
+        onChange={onChange} 
+        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors" 
+        required
+      >
         <option value="">Select a value</option>
         {options.map((opt) => (
           <option key={opt} value={opt}>{opt}</option>
@@ -208,14 +267,22 @@ function ImageUpload({ label, file, setFile }) {
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg">
+      <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-yellow-400 transition-colors">
         <div className="space-y-1 text-center">
           <Upload className="mx-auto h-12 w-12 text-gray-400" />
-          <label className="relative cursor-pointer bg-white rounded-md font-medium text-yellow-600 hover:text-yellow-500">
+          <label className="relative cursor-pointer bg-white rounded-md font-medium text-yellow-600 hover:text-yellow-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-yellow-500">
             <span>Upload a file</span>
             <input type="file" accept="image/*" onChange={setFile} className="sr-only" required />
           </label>
-          {file && <p className="text-xs text-green-600 font-medium">Selected: {file.name}</p>}
+          <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+          {file && (
+            <div className="mt-2">
+              <p className="text-xs text-green-600 font-medium flex items-center justify-center gap-1">
+                <Check className="h-3 w-3" />
+                Selected: {file.name}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
