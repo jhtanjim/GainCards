@@ -1,60 +1,59 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Edit, Trash2, Plus, ToggleLeft, ToggleRight } from "lucide-react"
+import { useEffect, useState } from "react";
+import { Edit, Trash2, Plus, ToggleLeft, ToggleRight } from "lucide-react";
 
 // Import your actual API functions
-import { getAllPlan, createPlan, updatePlan, deletePlan } from  "../../../../api/subscription"
+import {
+  getAllPlan,
+  createPlan,
+  updatePlan,
+  deletePlan,
+} from "../../../../api/subscription";
 
 const ManageSubscription = () => {
-  const [plans, setPlans] = useState([])
+  const [plans, setPlans] = useState([]);
   const [formData, setFormData] = useState({
     name: "",
     price: 0,
     discountPct: 0,
     cardLimit: 0,
-  })
-  const [editingId, setEditingId] = useState(null)
-  const [loading, setLoading] = useState(false)
+  });
+  const [editingId, setEditingId] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const fetchPlans = async () => {
     try {
-      setLoading(true)
-      const data = await getAllPlan()
-      setPlans(data)
+      setLoading(true);
+      const data = await getAllPlan();
+      console.log(data)
+      setPlans(data);
     } catch (error) {
-      console.error("Error fetching plans:", error)
-
-      if (error.response?.status === 401) {
-        alert("Session expired. Please login again.")
-      } else if (error.response?.status === 403) {
-        alert("Access denied. You don't have permission to view subscription plans.")
-      } else {
-        alert("Error fetching plans. Please refresh the page.")
-      }
+      console.error("Error fetching plans:", error);
+      alert("Error fetching plans. Please refresh the page.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchPlans()
-  }, [])
+    fetchPlans();
+  }, []);
 
   const handleChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: name === "name" ? value : Number(value),
-    })
-  }
+    });
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!formData.name.trim()) {
-      alert("Plan name is required")
-      return
+      alert("Plan name is required");
+      return;
     }
 
     // Validate data before sending
@@ -63,74 +62,54 @@ const ManageSubscription = () => {
       price: Number(formData.price),
       discountPct: Number(formData.discountPct),
       cardLimit: Number(formData.cardLimit),
-    }
+    };
 
     // Additional validation
     if (planData.price < 0) {
-      alert("Price cannot be negative")
-      return
+      alert("Price cannot be negative");
+      return;
     }
     if (planData.discountPct < 0 || planData.discountPct > 100) {
-      alert("Discount must be between 0 and 100")
-      return
+      alert("Discount must be between 0 and 100");
+      return;
     }
     if (planData.cardLimit < 0) {
-      alert("Card limit cannot be negative")
-      return
+      alert("Card limit cannot be negative");
+      return;
     }
 
-    console.log("Sending plan data:", planData)
+    console.log("Sending plan data:", planData);
 
     try {
-      setLoading(true)
+      setLoading(true);
 
       if (editingId) {
-        const updatedPlan = await updatePlan(editingId, planData)
-        setPlans(plans.map((plan) => (plan._id === editingId ? { ...plan, ...planData } : plan)))
-        alert("Plan updated successfully")
+        const updatedPlan = await updatePlan(editingId, planData);
+        setPlans(
+          plans.map((plan) =>
+            plan.id === editingId ? { ...plan, ...planData } : plan
+          )
+        );
+        alert("Plan updated successfully");
       } else {
-        const newPlan = await createPlan(planData)
-        setPlans([...plans, newPlan])
-        alert("Plan created successfully")
+        const newPlan = await createPlan(planData);
+        setPlans([...plans, newPlan]);
+        alert("Plan created successfully");
       }
 
-      resetForm()
+      resetForm();
     } catch (error) {
-      console.error("Failed to save plan:", error)
-
-      // More detailed error handling
-      if (error.response) {
-        // Server responded with error status
-        const status = error.response.status
-        const message = error.response.data?.message || error.response.data || "Unknown server error"
-
-        if (status === 400) {
-          alert(`Validation Error: ${message}`)
-        } else if (status === 401) {
-          alert("Unauthorized. Please login again.")
-        } else if (status === 403) {
-          alert("Access denied. You don't have permission to perform this action.")
-        } else if (status === 500) {
-          alert(`Server Error: ${message}. Please try again later or contact support.`)
-        } else {
-          alert(`Error ${status}: ${message}`)
-        }
-      } else if (error.request) {
-        // Network error
-        alert("Network error. Please check your internet connection.")
-      } else {
-        // Other error
-        alert(`Error: ${error.message}`)
-      }
+      console.error("Failed to save plan:", error);
+      alert("Failed to save plan. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const resetForm = () => {
-    setFormData({ name: "", price: 0, discountPct: 0, cardLimit: 0 })
-    setEditingId(null)
-  }
+    setFormData({ name: "", price: 0, discountPct: 0, cardLimit: 0 });
+    setEditingId(null);
+  };
 
   const handleEdit = (plan) => {
     setFormData({
@@ -138,53 +117,40 @@ const ManageSubscription = () => {
       price: plan.price,
       discountPct: plan.discountPct,
       cardLimit: plan.cardLimit,
-    })
-    setEditingId(plan._id)
-  }
+    });
+    setEditingId(plan.id);
+  };
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this plan?")) {
       try {
-        setLoading(true)
-        await deletePlan(id)
-        setPlans(plans.filter((plan) => plan._id !== id))
-        alert("Plan deleted successfully")
+        setLoading(true);
+        await deletePlan(id);
+        setPlans(plans.filter((plan) => plan.id !== id));
+        alert("Plan deleted successfully");
       } catch (error) {
-        console.error("Failed to delete plan:", error)
-
-        if (error.response?.status === 404) {
-          alert("Plan not found. It may have already been deleted.")
-          // Remove from local state anyway
-          setPlans(plans.filter((plan) => plan._id !== id))
-        } else if (error.response?.status === 403) {
-          alert("Access denied. You don't have permission to delete this plan.")
-        } else {
-          alert("Failed to delete plan. Please try again.")
-        }
+        console.error("Failed to delete plan:", error);
+        alert("Failed to delete plan. Please try again.");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-  }
+  };
 
   const toggleActive = async (plan) => {
+    console.log(plan)
     try {
-      const updatedPlan = await updatePlan(plan._id, { active: !plan.active })
-      setPlans(plans.map((p) => (p._id === plan._id ? { ...p, active: !p.active } : p)))
-      alert(`Plan ${!plan.active ? "activated" : "deactivated"} successfully`)
-    } catch (error) {
-      console.error("Failed to toggle plan status:", error)
+      const updatedPlan = await updatePlan(plan.id, { isActive: !plan.isActive });
 
-      if (error.response?.status === 404) {
-        alert("Plan not found. Please refresh the page.")
-        fetchPlans() // Refresh the list
-      } else if (error.response?.status === 403) {
-        alert("Access denied. You don't have permission to modify this plan.")
-      } else {
-        alert("Failed to update plan status. Please try again.")
-      }
+      setPlans(
+        plans.map((p) => (p.id === plan.id ? { ...p, isActive: !p.isActive } : p))
+      );
+      alert(`Plan ${!plan.isActive ? "activated" : "deactivated"} successfully`);
+    } catch (error) {
+      console.error("Failed to toggle plan status:", error);
+      alert("Failed to update plan status. Please try again.");
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -198,7 +164,9 @@ const ManageSubscription = () => {
           <form onSubmit={handleSubmit} className="mb-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Plan Name *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Plan Name *
+                </label>
                 <input
                   type="text"
                   name="name"
@@ -211,7 +179,9 @@ const ManageSubscription = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Price ($) *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Price ($) *
+                </label>
                 <input
                   type="number"
                   name="price"
@@ -226,7 +196,9 @@ const ManageSubscription = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Discount (%)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Discount (%)
+                </label>
                 <input
                   type="number"
                   name="discountPct"
@@ -240,7 +212,9 @@ const ManageSubscription = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Card Limit</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Card Limit
+                </label>
                 <input
                   type="number"
                   name="cardLimit"
@@ -282,7 +256,9 @@ const ManageSubscription = () => {
 
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-xl font-semibold text-gray-900">Subscription Plans</h3>
+            <h3 className="text-xl font-semibold text-gray-900">
+              Subscription Plans
+            </h3>
           </div>
 
           {loading ? (
@@ -321,49 +297,70 @@ const ManageSubscription = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {plans.map((plan) => (
-                    <tr key={plan._id} className="hover:bg-gray-50 transition-colors">
+                    <tr
+                      key={plan.id}
+                      className="hover:bg-gray-50 transition-colors"
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{plan.name}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {plan.name}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">${plan.price}</div>
+                        <div className="text-sm text-gray-900">
+                          ${plan.price}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{plan.discountPct}%</div>
+                        <div className="text-sm text-gray-900">
+                          {plan.discountPct}%
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{plan.cardLimit}</div>
+                        <div className="text-sm text-gray-900">
+                          {plan.cardLimit}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <button
-                          onClick={() => toggleActive(plan)}
-                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-all hover:scale-105 ${
-                            plan.active
-                              ? "bg-green-100 text-green-800 hover:bg-green-200"
-                              : "bg-red-100 text-red-800 hover:bg-red-200"
-                          }`}
-                        >
-                          {plan.active ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
-                          {plan.active ? "Active" : "Inactive"}
-                        </button>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex gap-2">
+                        <div className="flex items-center gap-2">
                           <button
-                            onClick={() => handleEdit(plan)}
-                            className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm"
+                            onClick={() => toggleActive(plan)}
+                            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                              plan.isActive
+                                ? "text-green-700 bg-green-100 hover:bg-green-200"
+                                : "text-red-700 bg-red-100 hover:bg-red-200"
+                            }`}
+                            title={plan.isActive ? "Click to deactivate" : "Click to activate"}
                           >
-                            <Edit className="w-3 h-3" />
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(plan._id)}
-                            className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                            Delete
+                            {plan.isActive ? (
+                              <>
+                                <ToggleRight className="w-4 h-4" />
+                                Active
+                              </>
+                            ) : (
+                              <>
+                                <ToggleLeft className="w-4 h-4" />
+                                Inactive
+                              </>
+                            )}
                           </button>
                         </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap flex items-center gap-3">
+                        <button
+                          onClick={() => handleEdit(plan)}
+                          className="text-green-600 hover:text-green-800 transition-colors"
+                          title="Edit"
+                        >
+                          <Edit className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(plan.id)}
+                          className="text-red-600 hover:text-red-800 transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -374,7 +371,7 @@ const ManageSubscription = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default ManageSubscription
+export default ManageSubscription;

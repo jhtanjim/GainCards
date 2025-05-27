@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { createPokemon } from "../../../api/pokemondata"
+import { donatePokemon } from "../../../api/pokemondata"
 import { Upload, Info, Check } from "lucide-react"
 import Swal from "sweetalert2"
 import DonationCompletionForm from "./DonationCompletionForm"
@@ -54,7 +54,7 @@ export default function Donate() {
       if (frontImage) data.append("frontImage", frontImage)
       if (backImage) data.append("backImage", backImage)
 
-      await createPokemon(data)
+      await donatePokemon(data)
 
       setShowCompletionForm(true)
     } catch (error) {

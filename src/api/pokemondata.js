@@ -31,6 +31,16 @@ export const createPokemon = async (productData) => {
     throw error;
   }
 };
+// Donatee a new product
+export const donatePokemon = async (productData) => {
+  try {
+    const response = await api.post("/products/donate", productData);
+    return response.data;
+  } catch (error) {
+    console.error("Error donating product:", error);
+    throw error;
+  }
+};
 
 // Update a product
 export const updatePokemon = async (id, productData) => {

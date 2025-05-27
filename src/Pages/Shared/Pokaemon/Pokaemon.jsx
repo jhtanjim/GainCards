@@ -9,6 +9,7 @@ const Pokemon = () => {
     queryKey: ['pokemons'],
     queryFn: getAllPokemonData,
   });
+  console.log(pokemons)
 
   // Loading state
   if (isLoading) {
