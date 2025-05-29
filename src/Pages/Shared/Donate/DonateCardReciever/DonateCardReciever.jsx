@@ -1,85 +1,202 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
-import { User, MapPin, CreditCard, Heart, Package, ArrowLeft, Gift } from "lucide-react"
-import { useNavigate } from "react-router-dom"
+import { useState, useEffect } from "react"
+import { Gift, ArrowLeft, Loader2 } from "lucide-react"
+import { useNavigate, useParams } from "react-router-dom"
+import { Elements } from "@stripe/react-stripe-js"
+import { loadStripe } from "@stripe/stripe-js"
 import { useMutation, useQuery } from "@tanstack/react-query"
 
-import useAddressForm from "../../../../Hooks/useAddressForm"
-import useShippingRates from "../../../../Hooks/useShippingRates"
+import { DonationCardDisplay } from "./DonationCardDisplay"
+import { StepIndicator } from "./StepIndicator"
+import { UserInfoStep } from "./UserInfoStep"
+import { AddressStep } from "./AddressStep"
+import { CheckoutStep } from "./CheckoutStep"
+import { SuccessStep } from "./SuccessStep"
 
-const DonateCardReceiver = () => {
+import { useAuth } from "../../../../Context/AuthContext"
+import api from "../../../../Hooks/axios"
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
+
+export default function DonateCardReceiver() {
+  const { cardId } = useParams()
+  const navigate = useNavigate()
+  const { user } = useAuth()
   const [currentStep, setCurrentStep] = useState(1)
+  const [clientSecret, setClientSecret] = useState("")
   const [donationCard, setDonationCard] = useState(null)
-  const [user, setUser] = useState(null) // You'll need to get this from your auth context
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     phone: "",
     reason: "",
-    preferredCards: "",
-    urgency: "normal",
   })
 
-  const [loading, setLoading] = useState(false)
-  const navigate = useNavigate()
+  const [addressData, setAddressData] = useState({
+    name: "",
+    line1: "",
+    line2: "",
+    city: "",
+    state: "",
+    country: "",
+    postalCode: "",
+    phone: "",
+  })
 
-  // Get donation card from sessionStorage
+  // Check for card data in sessionStorage first (from card selection)
   useEffect(() => {
-    const cardData = sessionStorage.getItem("donationCard")
-    if (cardData) {
-      setDonationCard(JSON.parse(cardData))
+    const storedCard = sessionStorage.getItem("donationCard")
+    if (storedCard) {
+      try {
+        const parsedCard = JSON.parse(storedCard)
+        setDonationCard(parsedCard)
+      } catch (error) {
+        console.error("Error parsing stored card data:", error)
+      }
     }
-    
-    // Get user data - replace this with your actual user fetching logic
-    // const currentUser = getCurrentUser() // Your auth function
-    // setUser(currentUser)
   }, [])
 
-  // Address form hook
+  // Fetch donation card details if not in sessionStorage
   const {
-    showAddressForm,
-    setShowAddressForm,
-    addressFormData,
-    setAddressFormData,
-    handleAddressSubmit,
-    isSavingAddress,
-  } = useAddressForm(user, () => {
-    // Callback when address is saved
-    console.log("Address saved successfully")
+    data: fetchedCard,
+    isLoading: isLoadingCard,
+    error: cardError,
+  } = useQuery({
+    queryKey: ["donationCard", cardId],
+    queryFn: async () => {
+      if (!cardId) {
+        throw new Error("No card ID provided")
+      }
+
+      try {
+        const response = await api.get(`/donation-cards/${cardId}`)
+        return response.data
+      } catch (error) {
+        // Try alternative endpoints if the first one fails
+        try {
+          const altResponse = await api.get(`/pokemon/${cardId}`)
+          return altResponse.data
+        } catch (altError) {
+          throw new Error(`Card not found with ID: ${cardId}`)
+        }
+      }
+    },
+    enabled: !!cardId && !donationCard,
+    retry: 1,
   })
 
-  // Shipping rates hook
-  const {
-    shippingRates,
-    selectedRates,
-    isLoadingRates,
-    handleSelectRate,
-    calculateTotalShipping,
-    allVendorsHaveRates,
-  } = useShippingRates(user, donationCard ? [donationCard.id] : [])
+  // Set the fetched card if we don't have one from sessionStorage
+  useEffect(() => {
+    if (fetchedCard && !donationCard) {
+      setDonationCard(fetchedCard)
+    }
+  }, [fetchedCard, donationCard])
 
-  // Donation request mutation
-  const donationRequestMutation = useMutation({
-    mutationFn: async (requestData) => {
-      // Replace with your actual API call
-      const response = await fetch('/api/donation-requests', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-      })
-      return response.json()
+  // Fetch shipping rates
+  const {
+    data: shippingRates,
+    isLoading: isLoadingShipping,
+    refetch: refetchShipping,
+  } = useQuery({
+    queryKey: ["shippingRates", addressData, donationCard?.id],
+    queryFn: async () => {
+      if (!addressData.city || !addressData.state || !addressData.postalCode || !donationCard?.id) {
+        return null
+      }
+
+      try {
+        const response = await api.post("/shippo/rates", {
+          productIds: [donationCard.id],
+          address: addressData,
+        })
+        return response.data
+      } catch (error) {
+        console.error("Error fetching shipping rates:", error)
+        // Return default shipping if API fails
+        return [
+          {
+            vendorId: "default",
+            rates: [
+              {
+                objectId: "default",
+                provider: "Standard",
+                servicelevel: { name: "Ground" },
+                amount: "12.50",
+                durationTerms: "5-7 business days",
+              },
+            ],
+          },
+        ]
+      }
     },
-    onSuccess: () => {
-      setCurrentStep(4) // Go to success step
+    enabled: !!(
+      addressData.city &&
+      addressData.state &&
+      addressData.postalCode &&
+      donationCard?.id &&
+      currentStep >= 2
+    ),
+  })
+
+  // Save address mutation
+  const saveAddressMutation = useMutation({
+    mutationFn: async (address) => {
+      const response = await api.post("/user/address", address)
+      return response.data
     },
     onError: (error) => {
-      console.error('Error submitting donation request:', error)
-      alert('Error submitting request. Please try again.')
+      console.error("Error saving address:", error)
+      // Continue anyway if address save fails
     },
   })
+
+  // Create payment intent mutation
+  const createPaymentIntentMutation = useMutation({
+    mutationFn: async (paymentData) => {
+      const response = await api.post("/create-payment-intent", paymentData)
+      return response.data
+    },
+    onSuccess: (data) => {
+      setClientSecret(data.clientSecret)
+    },
+    onError: (error) => {
+      console.error("Error creating payment intent:", error)
+      alert("Error processing payment setup. Please try again.")
+    },
+  })
+
+  // Submit donation request mutation
+  const submitDonationMutation = useMutation({
+    mutationFn: async (donationData) => {
+      const response = await api.post("/donation-requests", donationData)
+      return response.data
+    },
+    onError: (error) => {
+      console.error("Error submitting donation request:", error)
+      alert("Payment successful but error submitting request. Please contact support.")
+    },
+  })
+
+  // Pre-populate form with user data
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        username: user.username || "",
+        email: user.email || "",
+        phone: user.phone || "",
+      }))
+
+      if (user.address) {
+        setAddressData((prev) => ({
+          ...prev,
+          ...user.address,
+        }))
+      }
+    }
+  }, [user])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -91,7 +208,7 @@ const DonateCardReceiver = () => {
 
   const handleAddressInputChange = (e) => {
     const { name, value } = e.target
-    setAddressFormData((prev) => ({
+    setAddressData((prev) => ({
       ...prev,
       [name]: value,
     }))
@@ -105,391 +222,150 @@ const DonateCardReceiver = () => {
     setCurrentStep((prev) => prev - 1)
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    
-    const requestData = {
-      cardId: donationCard?.id,
-      userInfo: formData,
-      shippingAddress: addressFormData,
-      shippingRate: selectedRates,
-      totalAmount: calculateTotalShipping(5) + 5, // Base processing fee
-    }
+  const handleAddressStepNext = async () => {
+    try {
+      // Save address if user is logged in
+      if (user) {
+        await saveAddressMutation.mutateAsync(addressData)
+      }
 
-    donationRequestMutation.mutate(requestData)
+      // Refetch shipping rates with new address
+      if (donationCard?.id) {
+        await refetchShipping()
+      }
+      setCurrentStep(3)
+    } catch (error) {
+      console.error("Error in address step:", error)
+      // Continue to next step even if address save fails
+      setCurrentStep(3)
+    }
   }
 
   const handlePayment = async () => {
-    setLoading(true)
-
     try {
-      // Simulate payment processing - replace with actual payment gateway
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      
-      // Process the donation request
-      await handleSubmit()
-      
-      alert("Payment successful! Your donation request has been submitted.")
-      
-      // Clear sessionStorage and reset form
-      sessionStorage.removeItem("donationCard")
-      setFormData({
-        username: "",
-        email: "",
-        phone: "",
-        reason: "",
-        preferredCards: "",
-        urgency: "normal",
+      const processingFee = 5.0
+      const shippingCost = shippingRates?.[0]?.rates?.[0]?.amount
+        ? Number.parseFloat(shippingRates[0].rates[0].amount)
+        : 12.5
+      const totalAmount = processingFee + shippingCost
+
+      // Create payment intent
+      await createPaymentIntentMutation.mutateAsync({
+        amount: Math.round(totalAmount * 100), // Convert to cents and round
+        cardId: donationCard?.id || cardId,
+        formData,
+        addressData,
+        shippingRate: shippingRates?.[0]?.rates?.[0],
       })
-      setCurrentStep(1)
     } catch (error) {
-      console.error('Payment error:', error)
-      alert('Payment failed. Please try again.')
-    } finally {
-      setLoading(false)
+      console.error("Error creating payment intent:", error)
+      alert("Error processing payment. Please try again.")
+    }
+  }
+
+  const handlePaymentSuccess = async (paymentIntent) => {
+    try {
+      // Submit donation request after successful payment
+      await submitDonationMutation.mutateAsync({
+        cardId: donationCard?.id || cardId,
+        paymentIntentId: paymentIntent.id,
+        formData,
+        addressData,
+        shippingRate: shippingRates?.[0]?.rates?.[0],
+      })
+
+      setCurrentStep(4)
+    } catch (error) {
+      console.error("Error submitting donation request:", error)
+      // Still proceed to success step since payment was successful
+      setCurrentStep(4)
     }
   }
 
   const handleBackToCards = () => {
-    navigate("/")
+    // Clear stored card data
+    sessionStorage.removeItem("donationCard")
+    navigate("/donation-cards")
   }
 
-  const StepIndicator = () => (
-    <div className="flex items-center justify-center mb-8">
-      {[1, 2, 3].map((step) => (
-        <React.Fragment key={step}>
-          <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-              currentStep >= step ? "bg-pink-500 text-white" : "bg-gray-200 text-gray-600"
-            }`}
-          >
-            {step}
-          </div>
-          {step < 3 && <div className={`w-12 h-1 mx-2 ${currentStep > step ? "bg-pink-500" : "bg-gray-200"}`}></div>}
-        </React.Fragment>
-      ))}
-    </div>
-  )
+  const handleSubmitAnother = () => {
+    setCurrentStep(1)
+    setClientSecret("")
+    setDonationCard(null)
+    sessionStorage.removeItem("donationCard")
+    setFormData({
+      username: user?.username || "",
+      email: user?.email || "",
+      phone: user?.phone || "",
+      reason: "",
+    })
+  }
 
-  // Step 1: User Information
-  const UserInfoStep = () => (
-    <div className="space-y-6">
-      <div className="text-center mb-6">
-        <h3 className="text-xl font-semibold text-gray-800 mb-2">Personal Information</h3>
-        <p className="text-gray-600">Tell us about yourself</p>
-      </div>
+  // Calculate costs
+  const processingFee = 5.0
+  const shippingCost = shippingRates?.[0]?.rates?.[0]?.amount
+    ? Number.parseFloat(shippingRates[0].rates[0].amount)
+    : 12.5
+  const totalAmount = processingFee + shippingCost
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField
-          label="Username"
-          name="username"
-          value={formData.username}
-          onChange={handleInputChange}
-          icon={<User className="h-4 w-4" />}
-          required
-        />
-        <InputField
-          label="Email"
-          name="email"
-          type="email"
-          value={formData.email}
-          onChange={handleInputChange}
-          required
-        />
-        <InputField 
-          label="Phone Number" 
-          name="phone" 
-          value={formData.phone} 
-          onChange={handleInputChange} 
-          required 
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Why do you need this card? *</label>
-        <textarea
-          name="reason"
-          value={formData.reason}
-          onChange={handleInputChange}
-          rows="4"
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
-          placeholder="Please explain your situation and why you would benefit from receiving this donated card..."
-          required
-        />
-      </div>
-
-      <InputField
-        label="Preferred Card Types (Optional)"
-        name="preferredCards"
-        value={formData.preferredCards}
-        onChange={handleInputChange}
-        placeholder="e.g., Pokémon, Yu-Gi-Oh, Magic: The Gathering"
-      />
-
-      <div className="flex justify-end">
-        <button
-          onClick={handleNextStep}
-          disabled={!formData.username || !formData.email || !formData.phone || !formData.reason}
-          className="bg-pink-500 hover:bg-pink-600 text-white font-semibold px-6 py-3 rounded-lg shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-        >
-          Next: Shipping Address
-        </button>
-      </div>
-    </div>
-  )
-
-  // Step 2: Address Information
-  const AddressStep = () => (
-    <div className="space-y-6">
-      <div className="text-center mb-6">
-        <h3 className="text-xl font-semibold text-gray-800 mb-2">Shipping Address</h3>
-        <p className="text-gray-600">Where should we send your donated card?</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="md:col-span-2">
-          <InputField
-            label="Full Name"
-            name="name"
-            value={addressFormData.name}
-            onChange={handleAddressInputChange}
-            icon={<User className="h-4 w-4" />}
-            required
-          />
-        </div>
-        <div className="md:col-span-2">
-          <InputField
-            label="Address Line 1"
-            name="line1"
-            value={addressFormData.line1}
-            onChange={handleAddressInputChange}
-            icon={<MapPin className="h-4 w-4" />}
-            required
-          />
-        </div>
-        <div className="md:col-span-2">
-          <InputField
-            label="Address Line 2 (Optional)"
-            name="line2"
-            value={addressFormData.line2}
-            onChange={handleAddressInputChange}
-          />
-        </div>
-        <InputField 
-          label="City" 
-          name="city" 
-          value={addressFormData.city} 
-          onChange={handleAddressInputChange} 
-          required 
-        />
-        <InputField 
-          label="State/Province" 
-          name="state" 
-          value={addressFormData.state} 
-          onChange={handleAddressInputChange} 
-          required 
-        />
-        <InputField 
-          label="Country" 
-          name="country" 
-          value={addressFormData.country} 
-          onChange={handleAddressInputChange} 
-          required 
-        />
-        <InputField
-          label="Postal Code"
-          name="postalCode"
-          value={addressFormData.postalCode}
-          onChange={handleAddressInputChange}
-          required
-        />
-        <InputField
-          label="Phone Number"
-          name="phone"
-          value={addressFormData.phone}
-          onChange={handleAddressInputChange}
-          required
-        />
-      </div>
-
-      <div className="flex justify-between">
-        <button
-          onClick={handlePrevStep}
-          className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold px-6 py-3 rounded-lg shadow-md transition-all"
-        >
-          Previous
-        </button>
-        <button
-          onClick={handleNextStep}
-          disabled={
-            !addressFormData.name || !addressFormData.line1 || !addressFormData.city || 
-            !addressFormData.state || !addressFormData.country || !addressFormData.postalCode || 
-            !addressFormData.phone
-          }
-          className="bg-pink-500 hover:bg-pink-600 text-white font-semibold px-6 py-3 rounded-lg shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-        >
-          Next: Checkout
-        </button>
-      </div>
-    </div>
-  )
-
-  // Step 3: Checkout & Payment
-  const CheckoutStep = () => {
-    const processingFee = 5.00
-    const shippingCost = formData.urgency === "emergency" ? 15.00 : 
-                        formData.urgency === "urgent" ? 10.00 : 5.00
-    const totalAmount = processingFee + shippingCost
-
+  // Loading state
+  if (isLoadingCard && !donationCard) {
     return (
-      <div className="space-y-6">
-        <div className="text-center mb-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">Checkout & Payment</h3>
-          <p className="text-gray-600">Review your request and complete payment</p>
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 py-8 flex items-center justify-center">
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Loading card details...</span>
         </div>
+      </div>
+    )
+  }
 
-        {/* Request Summary */}
-        <div className="bg-pink-50 p-6 rounded-lg border border-pink-200">
-          <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Gift className="h-5 w-5 text-pink-500" />
-            Donation Request Summary
-          </h4>
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Requested by:</span>
-              <span className="font-medium">{formData.username}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Email:</span>
-              <span className="font-medium">{formData.email}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Shipping to:</span>
-              <span className="font-medium">{addressFormData.city}, {addressFormData.state}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Reason:</span>
-              <span className="font-medium text-right max-w-xs">{formData.reason.substring(0, 100)}...</span>
-            </div>
+  // Error state - show more helpful error message
+  if (cardError && !donationCard) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 py-8 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8 bg-white rounded-2xl shadow-lg">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Gift className="h-8 w-8 text-red-500" />
           </div>
-        </div>
-
-        {/* Urgency Selection */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Shipping Urgency</label>
-          <select
-            name="urgency"
-            value={formData.urgency}
-            onChange={handleInputChange}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-          >
-            <option value="normal">Normal (2-3 weeks) - $5.00</option>
-            <option value="urgent">Urgent (1 week) - $10.00</option>
-            <option value="emergency">Emergency (3-5 days) - $15.00</option>
-          </select>
-        </div>
-
-        {/* Shipping Rates */}
-        {isLoadingRates && (
-          <div className="text-center py-4">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
-            <p className="mt-2 text-gray-600">Calculating shipping rates...</p>
-          </div>
-        )}
-
-        {/* Cost Breakdown */}
-        <div className="bg-gray-50 p-6 rounded-lg">
-          <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Package className="h-5 w-5" />
-            Cost Breakdown
-          </h4>
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <span>Processing Fee:</span>
-              <span>${processingFee.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Shipping Cost:</span>
-              <span>${shippingCost.toFixed(2)}</span>
-            </div>
-            <hr className="my-3" />
-            <div className="flex justify-between font-semibold text-lg">
-              <span>Total Amount:</span>
-              <span className="text-pink-600">${totalAmount.toFixed(2)}</span>
-            </div>
-            <p className="text-sm text-gray-500 mt-2">
-              * This covers processing and shipping costs for your donated card
-            </p>
-          </div>
-        </div>
-
-        <div className="flex justify-between">
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Card Not Found</h2>
+          <p className="text-gray-600 mb-4">
+            {cardError?.message || "The requested donation card could not be found."}
+          </p>
+          <p className="text-sm text-gray-500 mb-6">
+            This might happen if the card was recently removed or the link is outdated.
+          </p>
           <button
-            onClick={handlePrevStep}
-            className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold px-6 py-3 rounded-lg shadow-md transition-all"
+            onClick={handleBackToCards}
+            className="bg-pink-500 hover:bg-pink-600 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
           >
-            Previous
-          </button>
-          <button
-            onClick={handlePayment}
-            disabled={loading}
-            className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-lg shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
-          >
-            <CreditCard className="h-4 w-4" />
-            {loading ? "Processing Payment..." : `Pay $${totalAmount.toFixed(2)}`}
+            Back to Cards
           </button>
         </div>
       </div>
     )
   }
 
-  // Success Step
-  const SuccessStep = () => (
-    <div className="text-center space-y-6">
-      <div className="w-16 h-16 bg-pink-500 rounded-full flex items-center justify-center mx-auto">
-        <Heart className="h-8 w-8 text-white" />
+  // No card found state
+  if (!donationCard && !isLoadingCard) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 py-8 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8 bg-white rounded-2xl shadow-lg">
+          <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Gift className="h-8 w-8 text-yellow-500" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">No Card Selected</h2>
+          <p className="text-gray-600 mb-4">Please select a donation card to continue with your request.</p>
+          <button
+            onClick={handleBackToCards}
+            className="bg-pink-500 hover:bg-pink-600 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
+          >
+            Browse Donation Cards
+          </button>
+        </div>
       </div>
-      <h3 className="text-2xl font-semibold text-gray-800">Donation Request Submitted!</h3>
-      <p className="text-gray-600 max-w-md mx-auto">
-        Thank you for your request! We've received your donation request and payment. 
-        We'll match you with the requested card and ship it to your address. 
-        You'll receive email updates on the status of your request.
-      </p>
-      <div className="bg-pink-50 p-4 rounded-lg border border-pink-200">
-        <p className="text-sm text-gray-700">
-          <strong>What happens next:</strong><br />
-          1. We'll verify your request<br />
-          2. Match you with available donated cards<br />
-          3. Ship the card to your address<br />
-          4. Send you tracking information
-        </p>
-      </div>
-      <div className="flex gap-4 justify-center">
-        <button
-          onClick={() => {
-            setCurrentStep(1)
-            setFormData({
-              username: "",
-              email: "",
-              phone: "",
-              reason: "",
-              preferredCards: "",
-              urgency: "normal",
-            })
-          }}
-          className="bg-pink-500 hover:bg-pink-600 text-white font-semibold px-6 py-3 rounded-lg shadow-md transition-all"
-        >
-          Submit Another Request
-        </button>
-        <button
-          onClick={handleBackToCards}
-          className="bg-gray-500 hover:bg-gray-600 text-white font-semibold px-6 py-3 rounded-lg shadow-md transition-all"
-        >
-          Back to Cards
-        </button>
-      </div>
-    </div>
-  )
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 py-8">
@@ -512,64 +388,53 @@ const DonateCardReceiver = () => {
         </div>
 
         {/* Show selected card info */}
-        {donationCard && currentStep < 4 && (
-          <div className="bg-pink-50 p-4 rounded-lg shadow-sm mb-6 border border-pink-200">
-            <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-              <Gift className="h-4 w-4 text-pink-500" />
-              Selected Donation Card:
-            </h4>
-            <div className="flex items-center gap-4">
-              <img
-                src={donationCard.frontImageUrl || "/placeholder.svg?height=80&width=80"}
-                alt={donationCard.title}
-                className="w-16 h-16 object-contain rounded"
-              />
-              <div>
-                <p className="font-medium">{donationCard.title}</p>
-                <p className="text-sm text-gray-600">
-                  {donationCard.player} • {donationCard.year}
-                </p>
-                <p className="text-xs text-pink-600 font-medium">Available for Donation</p>
-              </div>
-            </div>
-          </div>
-        )}
+        {donationCard && currentStep < 4 && <DonationCardDisplay card={donationCard} />}
 
-        {currentStep < 4 && <StepIndicator />}
+        {currentStep < 4 && <StepIndicator currentStep={currentStep} totalSteps={3} />}
 
         <div className="bg-gray-50 p-8 rounded-xl">
-          {currentStep === 1 && <UserInfoStep />}
-          {currentStep === 2 && <AddressStep />}
-          {currentStep === 3 && <CheckoutStep />}
-          {currentStep === 4 && <SuccessStep />}
+          {currentStep === 1 && (
+            <UserInfoStep
+              formData={formData}
+              onInputChange={handleInputChange}
+              onNext={handleNextStep}
+              hasUser={!!user}
+            />
+          )}
+
+          {currentStep === 2 && (
+            <AddressStep
+              addressData={addressData}
+              onInputChange={handleAddressInputChange}
+              onNext={handleAddressStepNext}
+              onPrevious={handlePrevStep}
+              isLoading={saveAddressMutation.isLoading}
+              hasUserAddress={!!user?.address}
+            />
+          )}
+
+          {currentStep === 3 && (
+            <Elements stripe={stripePromise}>
+              <CheckoutStep
+                formData={formData}
+                addressData={addressData}
+                totalAmount={totalAmount}
+                processingFee={processingFee}
+                shippingCost={shippingCost}
+                onPayment={handlePayment}
+                onPrevious={handlePrevStep}
+                isLoading={createPaymentIntentMutation.isLoading}
+                clientSecret={clientSecret}
+                onPaymentSuccess={handlePaymentSuccess}
+                shippingRates={shippingRates}
+                isLoadingShipping={isLoadingShipping}
+              />
+            </Elements>
+          )}
+
+          {currentStep === 4 && <SuccessStep onSubmitAnother={handleSubmitAnother} onBackToCards={handleBackToCards} />}
         </div>
       </div>
     </div>
   )
 }
-
-function InputField({ label, name, value, onChange, type = "text", icon, placeholder, required = false }) {
-  return (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <div className="relative">
-        {icon && <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">{icon}</div>}
-        <input
-          type={type}
-          name={name}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          required={required}
-          className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all ${
-            icon ? "pl-10" : ""
-          }`}
-        />
-      </div>
-    </div>
-  )
-}
-
-export default DonateCardReceiver

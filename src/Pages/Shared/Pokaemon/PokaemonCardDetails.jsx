@@ -255,34 +255,26 @@ const PokemonCardDetails = () => {
         <div className="mt-12">
           <h2 className="text-2xl font-bold mb-6">Similar Cards You May Like</h2>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[1, 2, 3, 4].map((item) => (
-              <div key={item} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="h-48 bg-gray-100 flex items-center justify-center">
-                  <img 
-                    src={`/api/placeholder/240/320`} 
-                    alt={`Similar card ${item}`}
-                    className="max-h-full max-w-full object-contain"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-medium text-gray-900">Pokémon Card #{item}</h3>
-                  <div className="flex items-center mt-1">
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} size={14} className={i < 4 ? "text-yellow-400 fill-yellow-400" : "text-gray-300"} />
-                      ))}
-                    </div>
-                    <span className="text-xs text-gray-500 ml-1">(16)</span>
-                  </div>
-                  <div className="mt-2 flex justify-between items-center">
-                    <span className="font-bold text-gray-900">${(Math.random() * 100 + 50).toFixed(2)}</span>
-                    <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">View</button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+  {[1, 2, 3, 4].map((item) => (
+    <div key={item} className="bg-white p-4 rounded-xl shadow hover:shadow-lg transition">
+      <img
+        src="/api/placeholder/400/560"
+        alt={`Similar card ${item}`}
+        className="rounded-lg mb-3 w-full h-52 object-contain"
+      />
+      <h3 className="text-sm font-medium text-gray-800 mb-1">Sample Card #{item}</h3>
+      <p className="text-gray-500 text-sm mb-2">Sample Description</p>
+      <div className="flex justify-between items-center">
+        <span className="text-blue-600 font-semibold">$99.99</span>
+        <button className="text-gray-500 hover:text-red-500">
+          <Heart size={18} />
+        </button>
+      </div>
+    </div>
+  ))}
+</div>
+
         </div>
       </div>
     </div>

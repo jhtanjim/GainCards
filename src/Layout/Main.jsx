@@ -5,7 +5,7 @@ import Header from "../Compnent/Header/Header";
 
 const Main = () => {
   return (
-    <div className="flex h-screen w-full bg-black">
+    <div className="flex h-screen w-full bg-[#FDF3F9]">
       <Sidebar className="w-4" />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />

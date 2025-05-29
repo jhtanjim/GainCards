@@ -15,6 +15,7 @@ const Pokemon = () => {
     queryKey: ['pokemons'],
     queryFn: getAllPokemonData,
   });
+  console.log(pokemons)
 
   // Filter and sort pokemons
   const processedPokemons = React.useMemo(() => {

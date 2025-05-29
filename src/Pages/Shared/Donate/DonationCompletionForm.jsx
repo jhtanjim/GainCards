@@ -1,13 +1,15 @@
 // Updated handleDonationComple"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { User, MapPin, Phone, Check } from "lucide-react";
 import { createAddress } from "../../../api/profile"; // Adjust path as needed
 import Swal from "sweetalert2";
+import { useAuth } from "../../../Context/AuthContext";
 
 export default function DonationCompletionForm({ onSubmit, donationData }) {
   const [formData, setFormData] = useState({
+
     name: "",
     line1: "",
     line2: "",
@@ -17,7 +19,8 @@ export default function DonationCompletionForm({ onSubmit, donationData }) {
     postalCode: "",
     phone: "",
   });
-
+const {user}=useAuth()
+    console.log(user)
   // Mutation for saving address via API
   const { mutate: saveAddress, isLoading } = useMutation({
     mutationFn: () => createAddress(formData),
@@ -50,7 +53,20 @@ export default function DonationCompletionForm({ onSubmit, donationData }) {
       });
     },
   });
-
+useEffect(() => {
+  if (user?.address) {
+    setFormData({
+      name: user.address.name || "",
+      line1: user.address.line1 || "",
+      line2: user.address.line2 || "",
+      city: user.address.city || "",
+      state: user.address.state || "",
+      country: user.address.country || "",
+      postalCode: user.address.postalCode || "",
+      phone: user.address.phone || "",
+    });
+  }
+}, [user]);
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
