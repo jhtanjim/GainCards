@@ -1,15 +1,43 @@
-// routes/AdminRoutes.jsx
-import React from 'react';
-import useUserRole from '../Hooks/useUserRole';
+"use client"
+import useUserRole from "../hooks/useUserRole"
+import Swal from "sweetalert2"
+import { useEffect } from "react"
 
 const AdminRoutes = ({ children }) => {
-  const { isAdmin } = useUserRole();
+  const { isAdmin, isLoading } = useUserRole()
 
-  if (!isAdmin) {
-    return <p>Access denied. Admins only.</p>;
+  useEffect(() => {
+    if (!isLoading && !isAdmin) {
+      Swal.fire({
+        icon: "error",
+        title: "Access Denied",
+        text: "Admin access required",
+        confirmButtonColor: "#ef4444",
+      })
+    }
+  }, [isAdmin, isLoading])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500 text-lg">Checking access...</p>
+      </div>
+    )
   }
 
-  return <>{children}</>;
-};
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="bg-white p-8 rounded-lg shadow-md text-center">
+          <div className="text-red-500 text-6xl mb-4">🚫</div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Access Denied</h2>
+          <p className="text-gray-600">Admin privileges required</p>
+        </div>
+      </div>
+    )
+  }
 
-export default AdminRoutes;
+  return <>{children}</>
+}
+
+export default AdminRoutes

@@ -1,440 +1,562 @@
-"use client"
+import {
+  CreditCard,
+  Gift,
+  Loader2,
+  Heart,
+  User,
+  MapPin,
+  MessageSquare,
+  Truck,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Swal from 'sweetalert2';
+import { ErrorBoundary } from "../../../../../error-boundary";
+import { useAuth } from "../../../../Context/AuthContext";
+import useAddressForm from "../../../../Hooks/useAddressForm";
+import useShippingRates from "../../../../Hooks/useShippingRates";
+import { placeOrder } from "../../../../api/orders";
+import AddressForm from "../../../../Compnent/Vendor/AddressForm";
 
-import { useState, useEffect } from "react"
-import { Gift, ArrowLeft, Loader2 } from "lucide-react"
-import { useNavigate, useParams } from "react-router-dom"
-import { Elements } from "@stripe/react-stripe-js"
-import { loadStripe } from "@stripe/stripe-js"
-import { useMutation, useQuery } from "@tanstack/react-query"
 
-import { DonationCardDisplay } from "./DonationCardDisplay"
-import { StepIndicator } from "./StepIndicator"
-import { UserInfoStep } from "./UserInfoStep"
-import { AddressStep } from "./AddressStep"
-import { CheckoutStep } from "./CheckoutStep"
-import { SuccessStep } from "./SuccessStep"
+const DonateCardReceiver = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [donationCard, setDonationCard] = useState(null);
+  const [donationForm, setDonationForm] = useState({
+    username: '',
+    reason: ''
+  });
 
-import { useAuth } from "../../../../Context/AuthContext"
-import api from "../../../../Hooks/axios"
-
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
-
-export default function DonateCardReceiver() {
-  const { cardId } = useParams()
-  const navigate = useNavigate()
-  const { user } = useAuth()
-  const [currentStep, setCurrentStep] = useState(1)
-  const [clientSecret, setClientSecret] = useState("")
-  const [donationCard, setDonationCard] = useState(null)
-
-  const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    phone: "",
-    reason: "",
-  })
-
-  const [addressData, setAddressData] = useState({
-    name: "",
-    line1: "",
-    line2: "",
-    city: "",
-    state: "",
-    country: "",
-    postalCode: "",
-    phone: "",
-  })
-
-  // Check for card data in sessionStorage first (from card selection)
+  // Get donation card from sessionStorage
   useEffect(() => {
-    const storedCard = sessionStorage.getItem("donationCard")
+    const storedCard = sessionStorage.getItem('donationCard');
     if (storedCard) {
-      try {
-        const parsedCard = JSON.parse(storedCard)
-        setDonationCard(parsedCard)
-      } catch (error) {
-        console.error("Error parsing stored card data:", error)
-      }
+      setDonationCard(JSON.parse(storedCard));
+    } else {
+      // Redirect back if no donation card found
+      navigate('/');
     }
-  }, [])
+  }, [navigate]);
 
-  // Fetch donation card details if not in sessionStorage
+  // Handle address form
   const {
-    data: fetchedCard,
-    isLoading: isLoadingCard,
-    error: cardError,
-  } = useQuery({
-    queryKey: ["donationCard", cardId],
-    queryFn: async () => {
-      if (!cardId) {
-        throw new Error("No card ID provided")
+    showAddressForm,
+    setShowAddressForm,
+    addressFormData,
+    setAddressFormData,
+    handleAddressSubmit,
+    isSavingAddress,
+  } = useAddressForm(user, () => refetchRates());
+
+  // Get shipping rates for donation card
+  const productIds = donationCard ? [donationCard.id] : [];
+  
+  const {
+    shippingRates,
+    selectedRates,
+    isLoadingRates,
+    refetchRates,
+    handleSelectRate,
+    calculateTotalShipping,
+    allVendorsHaveRates,
+  } = useShippingRates(user, productIds);
+
+  // Calculate shipping total
+  const shippingTotal =
+    typeof calculateTotalShipping === "function" ? calculateTotalShipping() : 0;
+
+  // Handle form input changes
+  const handleFormChange = (field, value) => {
+    setDonationForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // Validate form
+  const isFormValid = () => {
+    return donationForm.username.trim() !== '' && 
+           donationForm.reason.trim() !== '' &&
+           donationForm.reason.trim().length >= 20;
+  };
+
+  // Handle donation request checkout
+  const handleDonationCheckout = async () => {
+    if (!user) {
+      navigate("/signin?redirect=/donateCardReceiver");
+      return;
+    }
+
+    if (!user.address && !showAddressForm) {
+      setShowAddressForm(true);
+      return;
+    }
+
+    if (!isFormValid()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Incomplete Form',
+        text: 'Please fill in all required fields. Reason must be at least 20 characters.',
+        confirmButtonColor: '#ef4444'
+      });
+      return;
+    }
+
+    if (!donationCard) {
+      Swal.fire({
+        icon: 'error',
+        title: 'No Card Selected',
+        text: 'No donation card found. Please select a card first.',
+        confirmButtonColor: '#ef4444'
+      });
+      return;
+    }
+
+    try {
+      setIsProcessingPayment(true);
+
+      // Get selected shipping rate
+      const vendorId = donationCard.vendorId;
+      const shippingRate = selectedRates[vendorId] || null;
+
+      if (!shippingRate) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Select Shipping',
+          text: 'Please select a shipping option.',
+          confirmButtonColor: '#ef4444'
+        });
+        return;
       }
 
-      try {
-        const response = await api.get(`/donation-cards/${cardId}`)
-        return response.data
-      } catch (error) {
-        // Try alternative endpoints if the first one fails
-        try {
-          const altResponse = await api.get(`/pokemon/${cardId}`)
-          return altResponse.data
-        } catch (altError) {
-          throw new Error(`Card not found with ID: ${cardId}`)
+      // Prepare donation order data
+      const orderData = [{
+        vendorId: donationCard.vendorId,
+        items: [donationCard.id],
+        isDonation: true,
+        donationDetails: {
+          username: donationForm.username.trim(),
+          reason: donationForm.reason.trim(),
+          requestedAt: new Date().toISOString()
+        },
+        shipping: {
+          rateId: shippingRate.objectId,
+          amount: parseFloat(shippingRate.amount),
+          provider: shippingRate.provider,
+          service: shippingRate.servicelevel?.name || "Standard",
+          estimatedDays: shippingRate.estimatedDays || null,
         }
-      }
-    },
-    enabled: !!cardId && !donationCard,
-    retry: 1,
-  })
+      }];
 
-  // Set the fetched card if we don't have one from sessionStorage
+      const data = await placeOrder(orderData);
+      const { paymentIntent } = data;
+
+      // Clear the donation card from session storage
+      sessionStorage.removeItem('donationCard');
+
+      // Navigate to payment (user only pays for shipping)
+      navigate(`/checkout?client_secret=${paymentIntent.clientSecret}&donation=true`);
+    } catch (error) {
+      console.error("Error creating donation request:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Request Failed',
+        text: 'Something went wrong. Please try again.',
+        confirmButtonColor: '#ef4444'
+      });
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
+  // Show address form if user is not logged in or doesn't have an address
   useEffect(() => {
-    if (fetchedCard && !donationCard) {
-      setDonationCard(fetchedCard)
+    if (user && !user.address) {
+      setShowAddressForm(true);
     }
-  }, [fetchedCard, donationCard])
+  }, [user]);
 
-  // Fetch shipping rates
-  const {
-    data: shippingRates,
-    isLoading: isLoadingShipping,
-    refetch: refetchShipping,
-  } = useQuery({
-    queryKey: ["shippingRates", addressData, donationCard?.id],
-    queryFn: async () => {
-      if (!addressData.city || !addressData.state || !addressData.postalCode || !donationCard?.id) {
-        return null
-      }
-
-      try {
-        const response = await api.post("/shippo/rates", {
-          productIds: [donationCard.id],
-          address: addressData,
-        })
-        return response.data
-      } catch (error) {
-        console.error("Error fetching shipping rates:", error)
-        // Return default shipping if API fails
-        return [
-          {
-            vendorId: "default",
-            rates: [
-              {
-                objectId: "default",
-                provider: "Standard",
-                servicelevel: { name: "Ground" },
-                amount: "12.50",
-                durationTerms: "5-7 business days",
-              },
-            ],
-          },
-        ]
-      }
-    },
-    enabled: !!(
-      addressData.city &&
-      addressData.state &&
-      addressData.postalCode &&
-      donationCard?.id &&
-      currentStep >= 2
-    ),
-  })
-
-  // Save address mutation
-  const saveAddressMutation = useMutation({
-    mutationFn: async (address) => {
-      const response = await api.post("/user/address", address)
-      return response.data
-    },
-    onError: (error) => {
-      console.error("Error saving address:", error)
-      // Continue anyway if address save fails
-    },
-  })
-
-  // Create payment intent mutation
-  const createPaymentIntentMutation = useMutation({
-    mutationFn: async (paymentData) => {
-      const response = await api.post("/create-payment-intent", paymentData)
-      return response.data
-    },
-    onSuccess: (data) => {
-      setClientSecret(data.clientSecret)
-    },
-    onError: (error) => {
-      console.error("Error creating payment intent:", error)
-      alert("Error processing payment setup. Please try again.")
-    },
-  })
-
-  // Submit donation request mutation
-  const submitDonationMutation = useMutation({
-    mutationFn: async (donationData) => {
-      const response = await api.post("/donation-requests", donationData)
-      return response.data
-    },
-    onError: (error) => {
-      console.error("Error submitting donation request:", error)
-      alert("Payment successful but error submitting request. Please contact support.")
-    },
-  })
-
-  // Pre-populate form with user data
-  useEffect(() => {
-    if (user) {
-      setFormData((prev) => ({
-        ...prev,
-        username: user.username || "",
-        email: user.email || "",
-        phone: user.phone || "",
-      }))
-
-      if (user.address) {
-        setAddressData((prev) => ({
-          ...prev,
-          ...user.address,
-        }))
-      }
-    }
-  }, [user])
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-  }
-
-  const handleAddressInputChange = (e) => {
-    const { name, value } = e.target
-    setAddressData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-  }
-
-  const handleNextStep = () => {
-    setCurrentStep((prev) => prev + 1)
-  }
-
-  const handlePrevStep = () => {
-    setCurrentStep((prev) => prev - 1)
-  }
-
-  const handleAddressStepNext = async () => {
-    try {
-      // Save address if user is logged in
-      if (user) {
-        await saveAddressMutation.mutateAsync(addressData)
-      }
-
-      // Refetch shipping rates with new address
-      if (donationCard?.id) {
-        await refetchShipping()
-      }
-      setCurrentStep(3)
-    } catch (error) {
-      console.error("Error in address step:", error)
-      // Continue to next step even if address save fails
-      setCurrentStep(3)
-    }
-  }
-
-  const handlePayment = async () => {
-    try {
-      const processingFee = 5.0
-      const shippingCost = shippingRates?.[0]?.rates?.[0]?.amount
-        ? Number.parseFloat(shippingRates[0].rates[0].amount)
-        : 12.5
-      const totalAmount = processingFee + shippingCost
-
-      // Create payment intent
-      await createPaymentIntentMutation.mutateAsync({
-        amount: Math.round(totalAmount * 100), // Convert to cents and round
-        cardId: donationCard?.id || cardId,
-        formData,
-        addressData,
-        shippingRate: shippingRates?.[0]?.rates?.[0],
-      })
-    } catch (error) {
-      console.error("Error creating payment intent:", error)
-      alert("Error processing payment. Please try again.")
-    }
-  }
-
-  const handlePaymentSuccess = async (paymentIntent) => {
-    try {
-      // Submit donation request after successful payment
-      await submitDonationMutation.mutateAsync({
-        cardId: donationCard?.id || cardId,
-        paymentIntentId: paymentIntent.id,
-        formData,
-        addressData,
-        shippingRate: shippingRates?.[0]?.rates?.[0],
-      })
-
-      setCurrentStep(4)
-    } catch (error) {
-      console.error("Error submitting donation request:", error)
-      // Still proceed to success step since payment was successful
-      setCurrentStep(4)
-    }
-  }
-
-  const handleBackToCards = () => {
-    // Clear stored card data
-    sessionStorage.removeItem("donationCard")
-    navigate("/donation-cards")
-  }
-
-  const handleSubmitAnother = () => {
-    setCurrentStep(1)
-    setClientSecret("")
-    setDonationCard(null)
-    sessionStorage.removeItem("donationCard")
-    setFormData({
-      username: user?.username || "",
-      email: user?.email || "",
-      phone: user?.phone || "",
-      reason: "",
-    })
-  }
-
-  // Calculate costs
-  const processingFee = 5.0
-  const shippingCost = shippingRates?.[0]?.rates?.[0]?.amount
-    ? Number.parseFloat(shippingRates[0].rates[0].amount)
-    : 12.5
-  const totalAmount = processingFee + shippingCost
-
-  // Loading state
-  if (isLoadingCard && !donationCard) {
+  if (!donationCard) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 py-8 flex items-center justify-center">
-        <div className="flex items-center gap-2">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Loading card details...</span>
-        </div>
-      </div>
-    )
-  }
-
-  // Error state - show more helpful error message
-  if (cardError && !donationCard) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 py-8 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-8 bg-white rounded-2xl shadow-lg">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Gift className="h-8 w-8 text-red-500" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Card Not Found</h2>
-          <p className="text-gray-600 mb-4">
-            {cardError?.message || "The requested donation card could not be found."}
-          </p>
-          <p className="text-sm text-gray-500 mb-6">
-            This might happen if the card was recently removed or the link is outdated.
+      <div className="mx-auto max-w-6xl p-4 mt-8">
+        <div className="flex flex-col items-center justify-center py-12">
+          <Gift size={64} className="text-gray-400 mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            No donation card selected
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Please select a donation card first.
           </p>
           <button
-            onClick={handleBackToCards}
-            className="bg-pink-500 hover:bg-pink-600 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
+            onClick={() => navigate("/")}
+            className="bg-pink-500 hover:bg-pink-600 text-white font-medium py-2 px-6 rounded-md transition-colors"
           >
-            Back to Cards
+            Browse Cards
           </button>
         </div>
       </div>
-    )
-  }
-
-  // No card found state
-  if (!donationCard && !isLoadingCard) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 py-8 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-8 bg-white rounded-2xl shadow-lg">
-          <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Gift className="h-8 w-8 text-yellow-500" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">No Card Selected</h2>
-          <p className="text-gray-600 mb-4">Please select a donation card to continue with your request.</p>
-          <button
-            onClick={handleBackToCards}
-            className="bg-pink-500 hover:bg-pink-600 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
-          >
-            Browse Donation Cards
-          </button>
-        </div>
-      </div>
-    )
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 py-8">
-      <div className="max-w-4xl mx-auto p-8 bg-white rounded-2xl shadow-lg">
-        {/* Header with back button */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 bg-pink-500 rounded-full flex items-center justify-center">
-              <Gift className="h-5 w-5 text-white" />
+    <div className="mx-auto max-w-6xl p-4 mt-8">
+      <h1 className="text-3xl font-bold text-gray-900 mb-8 flex items-center">
+        <Gift className="mr-2 text-pink-500" size={28} /> 
+        Request Donation Card
+      </h1>
+
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Donation Card & Form Section */}
+        <div className="w-full lg:w-2/3">
+          {/* Donation Card Display */}
+          <div className="mb-8 bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="border-b border-gray-200 p-4 bg-pink-50 rounded-t-lg">
+              <div className="flex items-center">
+                <Gift size={20} className="text-pink-600 mr-2" />
+                <h3 className="font-medium text-gray-800">Donation Card</h3>
+              </div>
             </div>
-            <h2 className="text-3xl font-bold text-gray-800">Receive Donated Card</h2>
+
+            <div className="p-4 flex items-center">
+              <div className="w-20 h-28 relative flex-shrink-0 bg-gray-100 rounded overflow-hidden">
+                {donationCard.frontImageUrl ? (
+                  <img
+                    src={donationCard.frontImageUrl}
+                    alt={donationCard.title}
+                    className="object-cover w-full h-full"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-400">
+                    No image
+                  </div>
+                )}
+              </div>
+
+              <div className="ml-4 flex-grow">
+                <h4 className="font-medium text-gray-900">
+                  {donationCard.player} - {donationCard.brand}
+                </h4>
+                <p className="text-sm text-gray-600">
+                  Card #{donationCard.cardNumber} • {donationCard.grade || 'Ungraded'}
+                </p>
+                <p className="text-sm text-gray-500 mt-1">
+                  {donationCard.certificationNumber || 'No certification'}
+                </p>
+                <div className="mt-2">
+                  <span className="bg-pink-100 text-pink-800 px-2 py-1 rounded text-xs font-medium">
+                    Donation Item
+                  </span>
+                </div>
+              </div>
+
+              <div className="ml-4 flex flex-col items-end">
+                <span className="font-bold text-pink-600 text-lg">FREE</span>
+                <span className="text-xs text-gray-500">Donation</span>
+              </div>
+            </div>
+
+            {/* Shipping options */}
+            {user && user.address && !showAddressForm && (
+              <div className="p-4 bg-gray-50 border-t border-gray-200">
+                <div className="flex items-center mb-2">
+                  <Truck size={18} className="text-gray-600 mr-2" />
+                  <h4 className="font-medium text-gray-800">
+                    Shipping Options (You pay shipping only)
+                  </h4>
+                </div>
+
+                {isLoadingRates ? (
+                  <div className="flex items-center space-x-2 text-gray-500">
+                    <Loader2 className="animate-spin" size={16} />
+                    <span>Loading shipping options...</span>
+                  </div>
+                ) : (
+                  <>
+                    {(() => {
+                      const vendorRates = shippingRates?.find(
+                        (group) => group.vendorId === donationCard.vendorId
+                      );
+
+                      if (
+                        !vendorRates ||
+                        !vendorRates.rates ||
+                        vendorRates.rates.length === 0
+                      ) {
+                        return (
+                          <div className="flex items-center justify-between p-2 rounded-md my-1 bg-yellow-50 border border-yellow-200">
+                            <span className="text-yellow-700 text-sm">
+                              No shipping options available
+                            </span>
+                          </div>
+                        );
+                      }
+
+                      return vendorRates.rates.map((rate) => (
+                        <div
+                          key={rate.objectId}
+                          className={`flex items-center justify-between p-2 rounded-md cursor-pointer my-1 border ${
+                            selectedRates[donationCard.vendorId]?.objectId ===
+                            rate.objectId
+                              ? "border-pink-500 bg-pink-50"
+                              : "border-gray-200 hover:bg-gray-100"
+                          }`}
+                          onClick={() => handleSelectRate(donationCard.vendorId, rate)}
+                        >
+                          <div className="flex items-center">
+                            <input
+                              type="radio"
+                              checked={
+                                selectedRates[donationCard.vendorId]?.objectId ===
+                                rate.objectId
+                              }
+                              onChange={() =>
+                                handleSelectRate(donationCard.vendorId, rate)
+                              }
+                              className="mr-2 text-pink-600 focus:ring-pink-500"
+                            />
+                            <div>
+                              <p className="font-medium">
+                                {rate.provider} - {rate.servicelevel.name}
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {rate.durationTerms ||
+                                  `Est. delivery: ${rate.estimatedDays} days`}
+                              </p>
+                              {rate.attributes &&
+                                rate.attributes.length > 0 && (
+                                  <p className="text-xs text-pink-600 mt-1">
+                                    {rate.attributes.includes("CHEAPEST") &&
+                                      "Cheapest • "}
+                                    {rate.attributes.includes("FASTEST") &&
+                                      "Fastest • "}
+                                    {rate.attributes.includes("BESTVALUE") &&
+                                      "Best Value"}
+                                  </p>
+                                )}
+                            </div>
+                          </div>
+                          <span className="font-medium">
+                            ${parseFloat(rate.amount).toFixed(2)}
+                          </span>
+                        </div>
+                      ));
+                    })()}
+                  </>
+                )}
+              </div>
+            )}
           </div>
-          <button
-            onClick={handleBackToCards}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Cards
-          </button>
+
+          {/* Donation Request Form */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+              <Heart className="mr-2 text-pink-500" size={20} />
+              Tell us why you'd like this card
+            </h3>
+
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+                  <User size={16} className="inline mr-1" />
+                  Your Name/Username *
+                </label>
+                <input
+                  type="text"
+                  id="username"
+                  value={donationForm.username}
+                  onChange={(e) => handleFormChange('username', e.target.value)}
+                  placeholder="Enter your name or username"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="reason" className="block text-sm font-medium text-gray-700 mb-1">
+                  <MessageSquare size={16} className="inline mr-1" />
+                  Why do you need this card? *
+                </label>
+                <textarea
+                  id="reason"
+                  value={donationForm.reason}
+                  onChange={(e) => handleFormChange('reason', e.target.value)}
+                  placeholder="Please explain why you would like to receive this donation card. Tell us about your collection, your passion for the sport/player, or any special reason. (Minimum 20 characters)"
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                  required
+                  minLength={20}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {donationForm.reason.length}/20 minimum characters
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Show selected card info */}
-        {donationCard && currentStep < 4 && <DonationCardDisplay card={donationCard} />}
-
-        {currentStep < 4 && <StepIndicator currentStep={currentStep} totalSteps={3} />}
-
-        <div className="bg-gray-50 p-8 rounded-xl">
-          {currentStep === 1 && (
-            <UserInfoStep
-              formData={formData}
-              onInputChange={handleInputChange}
-              onNext={handleNextStep}
-              hasUser={!!user}
-            />
-          )}
-
-          {currentStep === 2 && (
-            <AddressStep
-              addressData={addressData}
-              onInputChange={handleAddressInputChange}
-              onNext={handleAddressStepNext}
-              onPrevious={handlePrevStep}
-              isLoading={saveAddressMutation.isLoading}
-              hasUserAddress={!!user?.address}
-            />
-          )}
-
-          {currentStep === 3 && (
-            <Elements stripe={stripePromise}>
-              <CheckoutStep
-                formData={formData}
-                addressData={addressData}
-                totalAmount={totalAmount}
-                processingFee={processingFee}
-                shippingCost={shippingCost}
-                onPayment={handlePayment}
-                onPrevious={handlePrevStep}
-                isLoading={createPaymentIntentMutation.isLoading}
-                clientSecret={clientSecret}
-                onPaymentSuccess={handlePaymentSuccess}
-                shippingRates={shippingRates}
-                isLoadingShipping={isLoadingShipping}
+        {/* Summary Section */}
+        <div className="w-full lg:w-1/3">
+          {showAddressForm ? (
+            <div className="mb-6">
+              <AddressForm
+                formData={addressFormData}
+                setFormData={setAddressFormData}
+                onBack={() => setShowAddressForm(false)}
               />
-            </Elements>
-          )}
+              <button
+                onClick={handleAddressSubmit}
+                disabled={isSavingAddress}
+                className="w-full bg-pink-500 hover:bg-pink-600 text-white font-medium py-3 px-4 rounded-md transition-colors mt-4 flex items-center justify-center"
+              >
+                {isSavingAddress ? (
+                  <>
+                    <Loader2 size={20} className="animate-spin mr-2" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Address & Continue"
+                )}
+              </button>
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">
+                Donation Summary
+              </h3>
 
-          {currentStep === 4 && <SuccessStep onSubmitAnother={handleSubmitAnother} onBackToCards={handleBackToCards} />}
+              <div className="space-y-3 mb-4">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Card Value</span>
+                  <span className="font-medium text-pink-600">FREE</span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Shipping Cost</span>
+                  {isLoadingRates ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <span className="font-medium">
+                      ${shippingTotal.toFixed(2)}
+                    </span>
+                  )}
+                </div>
+
+                <div className="border-t border-gray-200 pt-3 flex justify-between">
+                  <span className="font-bold text-gray-900">You Pay</span>
+                  <span className="font-bold text-gray-900">
+                    ${shippingTotal.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mb-4 p-3 bg-pink-50 rounded-md border border-pink-200">
+                <p className="text-sm text-pink-700">
+                  <Gift size={14} className="inline mr-1" />
+                  You're receiving this card as a donation! You only pay for shipping.
+                </p>
+              </div>
+
+              {user ? (
+                <div>
+                  {user.address && (
+                    <div className="mb-4 p-3 bg-gray-50 rounded-md border border-gray-200">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="text-sm font-medium text-gray-800 flex items-center">
+                          <MapPin size={14} className="mr-1" />
+                          Shipping Address
+                        </h4>
+                        <button
+                          onClick={() => setShowAddressForm(true)}
+                          className="text-xs text-pink-600 hover:text-pink-800"
+                        >
+                          Change
+                        </button>
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        {user.address.name}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {user.address.line1}
+                      </p>
+                      {user.address.line2 && (
+                        <p className="text-sm text-gray-600">
+                          {user.address.line2}
+                        </p>
+                      )}
+                      <p className="text-sm text-gray-600">
+                        {user.address.city}, {user.address.state}{" "}
+                        {user.address.postalCode}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {user.address.country}
+                      </p>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleDonationCheckout}
+                    disabled={
+                      isProcessingPayment ||
+                      isLoadingRates ||
+                      !isFormValid() ||
+                      !shippingRates ||
+                      Object.keys(selectedRates).length === 0 ||
+                      !allVendorsHaveRates
+                    }
+                    className={`w-full font-medium py-3 px-4 rounded-md transition-colors flex items-center justify-center
+                      ${
+                        isProcessingPayment ||
+                        isLoadingRates ||
+                        !isFormValid() ||
+                        !shippingRates ||
+                        Object.keys(selectedRates).length === 0 ||
+                        !allVendorsHaveRates
+                          ? "bg-gray-400 cursor-not-allowed text-white"
+                          : "bg-pink-500 hover:bg-pink-600 text-white"
+                      }`}
+                  >
+                    {isProcessingPayment ? (
+                      <>
+                        <Loader2 size={20} className="animate-spin mr-2" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard size={20} className="mr-2" />
+                        Request Donation
+                      </>
+                    )}
+                  </button>
+
+                  {!isFormValid() && (
+                    <p className="text-xs text-red-500 mt-2 text-center">
+                      Please complete the form above
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={() => navigate("/signin?redirect=/donateCardReceiver")}
+                  className="w-full bg-pink-500 hover:bg-pink-600 text-white font-medium py-3 px-4 rounded-md transition-colors"
+                >
+                  Sign In to Request
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
+
+// Wrap with ErrorBoundary
+const DonateCardReceiverWithErrorBoundary = () => (
+  <ErrorBoundary>
+    <DonateCardReceiver />
+  </ErrorBoundary>
+);
+
+export default DonateCardReceiverWithErrorBoundary;

@@ -116,7 +116,7 @@ const ManageSubscription = () => {
       name: plan.name,
       price: plan.price,
       discountPct: plan.discountPct,
-      cardLimit: plan.cardLimit,
+      cardLimit: plan.cardLimit, 
     });
     setEditingId(plan.id);
   };
