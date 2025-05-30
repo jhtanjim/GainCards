@@ -1,7 +1,7 @@
 "use client"
-import useUserRole from "../hooks/useUserRole"
 import Swal from "sweetalert2"
 import { useEffect } from "react"
+import useUserRole from "../Hooks/useUserRole"
 
 const AdminRoutes = ({ children }) => {
   const { isAdmin, isLoading } = useUserRole()
