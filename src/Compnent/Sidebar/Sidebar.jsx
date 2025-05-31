@@ -133,14 +133,14 @@ const Sidebar = () => {
             name={"Home"}
             icon={<Home size={20} />}
           />
-          <SidebarLink
+          {/* <SidebarLink
             expanded={expanded}
             isMobile={isMobile}
             link={"/"}
             name={"categories"}
             icon={<Grid size={20} />
           }
-          />
+          /> */}
           <SidebarLink
             expanded={expanded}
             isMobile={isMobile}
@@ -183,7 +183,7 @@ const Sidebar = () => {
           }
           />
          {/* Conditional rendering for Pokemon Card Upload link */}
-         {user && (
+         {/* {user && (
             <SidebarLink
               expanded={expanded}
               isMobile={isMobile}
@@ -191,7 +191,7 @@ const Sidebar = () => {
               name={"Pokemon Card Upload"}
               icon={<Upload size={20} />}
             />
-          )}
+          )} */}
          {user && (
              <SidebarLink
              expanded={expanded}
@@ -218,14 +218,14 @@ const Sidebar = () => {
             icon={  <User size={20} />
           }
           />
-          <SidebarLink
+          {/* <SidebarLink
             expanded={expanded}
             isMobile={isMobile}
             link={"/myCards"}
             name={" My Cards"}
             icon={   <CreditCard size={20} />
           }
-          />
+          /> */}
           
         </ul>
       </nav>

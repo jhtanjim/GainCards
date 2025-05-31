@@ -9,7 +9,7 @@ import { useShop } from "../../Context/ShopContext"
 export default function Header() {
   const { cartItems } = useShop();
   const navigate = useNavigate()
-  const { user, signOut } = useAuth()
+  const { user, signOut, loading } = useAuth()
   const [searchOpen, setSearchOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
@@ -20,27 +20,91 @@ export default function Header() {
   }
 
   const handleLogout = async () => {
+    if (isLoggingOut) return; // Prevent double clicks
+    
     try {
       setIsLoggingOut(true)
+      console.log("Starting logout process...")
+      
       const result = await signOut()
       
       if (result.success) {
-        // If logout was successful (either through API or locally)
-        navigate("/signIn")
+        console.log("Logout successful, navigating to sign in...")
+        navigate("/signIn", { replace: true }) // Use replace to prevent back navigation
         
-        // If the logout was local only, show a message or handle accordingly
         if (result.localOnly) {
           console.warn("Server logout failed, but you've been logged out locally")
-          // You could add a toast notification here
+          // You could add a toast notification here if you have one
         }
+      } else {
+        console.error("Logout failed")
+        // Still navigate to sign in even if logout "failed"
+        navigate("/signIn", { replace: true })
       }
     } catch (error) {
       console.error("Logout error:", error)
-      // Fallback - force logout even if everything fails
-      navigate("/signIn")
+      // Force navigation even if everything fails
+      navigate("/signIn", { replace: true })
     } finally {
       setIsLoggingOut(false)
     }
+  }
+
+  // Don't render auth section while loading
+  const renderAuthSection = () => {
+    if (loading) {
+      return (
+        <div className="flex items-center gap-4">
+          <div className="h-8 w-8 bg-gray-700 rounded-full animate-pulse"></div>
+        </div>
+      )
+    }
+
+    if (user) {
+      return (
+        <div className="flex items-center gap-4">
+          {/* Logout */}
+          <button
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+              isLoggingOut 
+                ? "bg-gray-500 cursor-not-allowed text-gray-300" 
+                : "bg-red-600 hover:bg-red-700 text-white"
+            }`}
+          >
+            {isLoggingOut ? "Logging out..." : "Logout"}
+          </button>
+
+          {/* Profile */}
+          <div className="flex items-center gap-2">
+            <img
+              src={user?.profilePicture || "/default-profile.png"}
+              alt={user?.username || "User"}
+              className="h-8 w-8 rounded-full border-2 border-purple-500 object-cover"
+              onError={(e) => {
+                e.target.src = "/default-profile.png"; // Fallback image
+              }}
+            />
+            <div className="text-xs hidden md:block">
+              <p className="font-semibold text-white">{user?.username || "User"}</p>
+              <Link to={"/myProfile"} className="text-purple-300 hover:text-purple-200 transition-colors">
+                View Profile
+              </Link>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <Link to="/signIn">
+        <button className="p-2 rounded-lg hover:bg-purple-800/30 transition-colors">
+          <LogIn size={20} className="text-purple-300" />
+          <span className="sr-only">Sign In</span>
+        </button>
+      </Link>
+    )
   }
 
   return (
@@ -57,7 +121,14 @@ export default function Header() {
 
           <div className="hidden md:flex items-center gap-3">
             <div className="h-10 w-10 relative overflow-hidden rounded-full border-2 border-purple-700">
-              <img src="/logo.jpg" alt="Gain Cards Logo" className="object-contain" />
+              <img 
+                src="/logo.jpg" 
+                alt="Gain Cards Logo" 
+                className="object-contain"
+                onError={(e) => {
+                  e.target.style.display = 'none'; // Hide broken image
+                }}
+              />
             </div>
             <span className="text-xl font-bold bg-gradient-to-r from-red-500 via-purple-500 to-red-500 text-transparent bg-clip-text">
               GAIN CARDS
@@ -76,14 +147,21 @@ export default function Header() {
             placeholder="Search for cards..."
             className="w-full bg-gray-800 border border-purple-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
-          <button className="ml-2 p-2 rounded-lg bg-gray-800 hover:bg-gray-700" onClick={() => setSearchOpen(false)}>
+          <button 
+            className="ml-2 p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors" 
+            onClick={() => setSearchOpen(false)}
+          >
             <X className="h-5 w-5 text-purple-300" />
             <span className="sr-only">Close search</span>
           </button>
         </div>
 
         <div className="flex items-center gap-4">
-          <Link to={"/vendorSignup"}><h2 className="text-white hover:underline transition">Become a Vendor</h2></Link>
+          <Link to={"/vendorSignup"}>
+            <h2 className="text-white hover:underline transition-all duration-200">
+              Become a Vendor
+            </h2>
+          </Link>
 
           {/* Search button */}
           <button
@@ -109,9 +187,8 @@ export default function Header() {
             <Link to="/mylibrary">
               <button className="p-2 rounded-lg hover:bg-purple-800/30 transition-colors">
                 <Heart size={20} className="text-purple-300" />
+                <span className="sr-only">My Library</span>
               </button>
-              <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 text-xs rounded-full h-4 w-4 flex items-center justify-center">
-              </span>
             </Link>
           </div>
 
@@ -120,49 +197,18 @@ export default function Header() {
             <Link to="/mybag">
               <button className="p-2 rounded-lg hover:bg-purple-800/30 transition-colors">
                 <ShoppingBag size={20} className="text-purple-300" />
+                <span className="sr-only">Shopping Bag</span>
               </button>
-              <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                {cartItems.length}
-              </span>
+              {cartItems && cartItems.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 text-xs rounded-full h-4 w-4 flex items-center justify-center text-white font-bold">
+                  {cartItems.length}
+                </span>
+              )}
             </Link>
           </div>
 
           {/* Auth Section */}
-          {user ? (
-            <div className="flex items-center gap-4">
-              {/* Logout */}
-              <button
-                onClick={handleLogout}
-                disabled={isLoggingOut}
-                className={`p-2 text-sm rounded-lg ${
-                  isLoggingOut 
-                    ? "bg-gray-500 cursor-not-allowed" 
-                    : "bg-red-600 hover:bg-red-700"
-                } text-white transition-colors`}
-              >
-                {isLoggingOut ? "Logging out..." : "Logout"}
-              </button>
-
-              {/* Profile */}
-              <div className="flex items-center gap-2">
-                <img
-                  src={user?.profilePicture || "/default-profile.png"}
-                  alt={user?.username || "User"}
-                  className="h-8 w-8 rounded-full border-2 border-purple-500 object-cover"
-                />
-                <div className="text-xs hidden md:block">
-                  <p className="font-semibold text-white">{user?.username}</p>
-                  <Link to={"/myProfile"}><p className="text-purple-300">View Profile</p></Link>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <Link to="/signIn">
-              <button className="p-2 rounded-lg hover:bg-purple-800/30 transition-colors">
-                <LogIn size={20} className="text-purple-300" />
-              </button>
-            </Link>
-          )}
+          {renderAuthSection()}
         </div>
       </div>
     </header>

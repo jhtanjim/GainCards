@@ -1,24 +1,50 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://gain-card.onrender.com", // Update with your backend URL
-  withCredentials: true, // This is the key for cookie-based auth!
+  baseURL: "https://gain-card.onrender.com",
+  withCredentials: true,
+  timeout: 10000, // Add timeout
 });
 
 api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 403 && !originalRequest._retry) {
+    
+    // Only handle 401 (Unauthorized) and 403 (Forbidden) for token refresh
+    if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
       originalRequest._retry = true;
+      
       try {
+        console.log("Attempting token refresh...");
         await api.post("/auth/refresh");
-        return api(originalRequest); // retry original request
+        console.log("Token refreshed successfully");
+        return api(originalRequest); // Retry original request
       } catch (refreshErr) {
         console.error("Refresh failed:", refreshErr);
-        window.location.href = "/signin";
+        
+        // Clear any stored user data and redirect
+        localStorage.clear(); // Clear any local storage
+        sessionStorage.clear(); // Clear session storage
+        
+        // Use consistent route name (match your routing setup)
+        window.location.href = "/signIn"; // Changed to match your Header.jsx
+        return Promise.reject(refreshErr);
       }
     }
+    
+    return Promise.reject(error);
+  }
+);
+
+// Add request interceptor for debugging
+api.interceptors.request.use(
+  (config) => {
+    console.log(`Making ${config.method?.toUpperCase()} request to ${config.url}`);
+    return config;
+  },
+  (error) => {
+    console.error("Request error:", error);
     return Promise.reject(error);
   }
 );

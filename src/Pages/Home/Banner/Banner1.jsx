@@ -10,7 +10,7 @@ const book3 = "https://images.pokemontcg.io/smp/SM212.png";
 import bannerBg from "../../../assets/banner/hero.webp"
 const books = [book1, book2, book3, book1, book2, book3, book1, book2, book3];
 
-const Book = () => {
+const Banner1 = () => {
   const [scrollPosition, setScrollPosition] = useState(0);
   const scrollRef = useRef(null);
 
@@ -110,7 +110,7 @@ const Book = () => {
               >
                 <img
                   src={book}
-                  alt={`GainCards's Book ${index + 1}`}
+                  alt={`GainCards's Banner1 ${index + 1}`}
                   className="w-full rotate-z-30  h-full object-contain"
                 />
               </div>
@@ -122,4 +122,4 @@ const Book = () => {
   );
 };
 
-export default Book;
+export default Banner1;

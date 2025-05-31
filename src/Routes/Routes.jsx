@@ -69,6 +69,10 @@ export const router = createBrowserRouter([
         path: "/pokemon",
         element: <Pokaemon />,
       },
+        {
+        path: "/donate",
+        element: <Donate />,
+      },
       {
         path: "/donateCardReceiver",
         element: <DonateCardReceiver />,
@@ -78,10 +82,7 @@ export const router = createBrowserRouter([
         element: <PokaemonCardDetails />,
       },
 
-      {
-        path: "/pokemonCardUpload",
-        element: <PokemonCardUpload />,
-      },
+      
       {
         path: "/pokemonCardUpdate/:id",
         element: <PokaemonCardUpdate />,
@@ -110,14 +111,8 @@ export const router = createBrowserRouter([
         path: "/myOrders",
         element: <MyOrders />,
       },
-      {
-        path: "/myCards",
-        element: <MyCards />,
-      },
-      {
-        path: "/donate",
-        element: <Donate />,
-      },
+      
+    
       { path: "*", element: <UnderConstruction /> },
     ],
   },
@@ -166,9 +161,9 @@ export const router = createBrowserRouter([
   {
     path: "/vendor",
     element: (
-     <VendorRoutes>
+    //  <VendorRoutes>
         <VendorLayout />
-   </VendorRoutes>
+  //  </VendorRoutes>
     ),
     children: [
       {
@@ -203,6 +198,9 @@ export const router = createBrowserRouter([
         path: "/vendor/vendorSubsCription",
         element: <VendorSubscription />,
       },
+
+
+      
     ],
   },
 ])

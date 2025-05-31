@@ -10,7 +10,7 @@ import { useShop } from "../../../Context/ShopContext"
 
 const PokemonCard = ({ pokemon, isFavorite }) => {
   const [isFlipped, setIsFlipped] = useState(false)
-  const { cartItems, setCartItems } = useShop()
+  const { addItem, isInCart } = useShop() // Use the new functions
   const navigate = useNavigate()
   
   const {
@@ -93,7 +93,7 @@ const PokemonCard = ({ pokemon, isFavorite }) => {
     }
   }
 
-  const isInCart = cartItems.some((item) => item.id === pokemon.id)
+  const itemInCart = isInCart(pokemon.id) // Use the new function
 
   const handleAddToCart = () => {
     if (isDonation) {
@@ -106,8 +106,8 @@ const PokemonCard = ({ pokemon, isFavorite }) => {
       return
     }
 
-    if (!isInCart) {
-      setCartItems([...cartItems, pokemon])
+    if (!itemInCart) {
+      addItem(pokemon) // Use the new addItem function
       Swal.fire({
         icon: 'success',
         title: 'Added to Cart!',
@@ -273,11 +273,11 @@ const PokemonCard = ({ pokemon, isFavorite }) => {
             <div className="space-y-2">
               <button
                 onClick={isDonation ? handleDonationClick : handleAddToCart}
-                disabled={!isDonation && isInCart}
+                disabled={!isDonation && itemInCart}
                 className={`w-full py-2 font-medium rounded-md transition-all flex items-center justify-center ${
                   isDonation 
                     ? 'bg-pink-500 text-white hover:bg-pink-600 hover:shadow-md' 
-                    : isInCart
+                    : itemInCart
                     ? 'bg-gray-400 text-white cursor-not-allowed'
                     : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md'
                 }`}
@@ -290,7 +290,7 @@ const PokemonCard = ({ pokemon, isFavorite }) => {
                 ) : (
                   <>
                     <ShoppingCart className="w-4 h-4 mr-2" />
-                    {isInCart ? 'In Cart' : 'Add to Cart'}
+                    {itemInCart ? 'In Cart' : 'Add to Cart'}
                   </>
                 )}
               </button>

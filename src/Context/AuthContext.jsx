@@ -10,40 +10,60 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const fetchUserData = async () => {
-    setLoading(true);
     try {
       const userData = await myProfile();
       setUser(userData);
-      console.log(userData);
+      console.log("User data fetched:", userData);
       return userData;
     } catch (error) {
       console.error("Error fetching user data:", error);
       setUser(null);
-    } finally {
-      setLoading(false);
+      return null;
     }
   };
 
+  // Only check auth status on initial load
   useEffect(() => {
-    // Check auth status when component mounts
-    fetchUserData();
-  }, []);
+    const initializeAuth = async () => {
+      if (isInitialized) return;
+      
+      setLoading(true);
+      try {
+        await fetchUserData();
+      } catch (error) {
+        console.error("Failed to initialize auth:", error);
+      } finally {
+        setLoading(false);
+        setIsInitialized(true);
+      }
+    };
+
+    initializeAuth();
+  }, [isInitialized]);
 
   const signIn = async (formData) => {
     setLoading(true);
-
     try {
-      console.log(formData);
-      const data = await login(formData);
-      await fetchUserData(); // fetch user from profile endpoint
+      console.log("Attempting login with:", formData);
+      const loginResponse = await login(formData);
+      
+      // If login returns user data, use it directly
+      if (loginResponse.user) {
+        setUser(loginResponse.user);
+      } else {
+        // Otherwise fetch user data
+        await fetchUserData();
+      }
+      
       return { success: true };
     } catch (error) {
+      console.error("Login error:", error);
       return {
         success: false,
-        error:
-          error.response?.data?.message || error.message || "Failed to sign in",
+        error: error.response?.data?.message || error.message || "Failed to sign in",
       };
     } finally {
       setLoading(false);
@@ -53,16 +73,22 @@ export const AuthProvider = ({ children }) => {
   const signUp = async (userData) => {
     setLoading(true);
     try {
-      const data = await register(userData);
-      await fetchUserData(); // fetch user from profile endpoint
+      const registerResponse = await register(userData);
+      
+      // If registration returns user data, use it directly
+      if (registerResponse.user) {
+        setUser(registerResponse.user);
+      } else {
+        // Otherwise fetch user data
+        await fetchUserData();
+      }
+      
       return { success: true };
     } catch (error) {
+      console.error("Registration error:", error);
       return {
         success: false,
-        error:
-          error.response?.data?.message ||
-          error.message ||
-          "Failed to create account",
+        error: error.response?.data?.message || error.message || "Failed to create account",
       };
     } finally {
       setLoading(false);
@@ -71,16 +97,15 @@ export const AuthProvider = ({ children }) => {
 
   const signOut = async () => {
     try {
+      // Clear user state immediately for better UX
+      setUser(null);
+      
       // Try to logout through the API
       await logout();
-      // Even if the API call fails, we should still clear the user state
-      setUser(null);
       return { success: true };
     } catch (error) {
       console.error("Error during logout:", error);
-      // Even if server logout fails, we should still log out locally
-      setUser(null);
-      // Return success true because the user was still logged out locally
+      // User is already logged out locally
       return { success: true, localOnly: true };
     }
   };
@@ -88,9 +113,12 @@ export const AuthProvider = ({ children }) => {
   const refreshToken = async () => {
     try {
       await refresh();
+      // Optionally refetch user data after refresh
+      await fetchUserData();
       return true;
     } catch (error) {
       console.error("Error refreshing token:", error);
+      setUser(null); // Clear user on refresh failure
       return false;
     }
   };
