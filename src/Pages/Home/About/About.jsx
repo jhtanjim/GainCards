@@ -64,8 +64,8 @@ const About = () => {
           })}
         </div>
 
-        {/* Community Stats */}
-        <div className="bg-gray-50 rounded-2xl p-8 border border-gray-200 mb-16">
+        {/* Community Stats */}  {/* CTA Section */}
+        {/* <div className="bg-gray-50 rounded-2xl p-8 border border-gray-200 mb-16">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
               <div className="text-4xl font-bold text-blue-600 mb-2">50K+</div>
@@ -86,7 +86,7 @@ const About = () => {
           </div>
         </div>
 
-        {/* CTA Section */}
+      
         <div className="text-center">
           <h3 className="text-3xl font-bold mb-6 text-gray-900">Ready to Start Your Journey?</h3>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -100,7 +100,7 @@ const About = () => {
               Learn More
             </button>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   )

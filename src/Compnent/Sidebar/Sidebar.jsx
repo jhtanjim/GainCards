@@ -15,8 +15,13 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import logo from "../../assets/logo/logo.jpg";
 import { useAuth } from "../../Context/AuthContext";
-
+import logoImg from "../../assets/logo/logoBG.png"
+import useUserRole from "../../Hooks/useUserRole";
 function SidebarLink({ expanded, isMobile, link, name, icon }) {
+
+
+ 
+
   return (
     <li>
       <Link
@@ -54,6 +59,7 @@ const PokemonBall = ({ size = 24, ...props }) => (
 );
 
 const Sidebar = () => {
+     const { isAdmin, isVendor, isLoading } = useUserRole()
   const {user}=useAuth()
   const [expanded, setExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -113,14 +119,10 @@ const Sidebar = () => {
           expanded && !isMobile ? "gap-2" : "justify-center"
         }`}
       >
-        <div className="bg-[#1a2639] p-2 rounded-lg flex-shrink-0 w-10 h-10 flex items-center justify-center overflow-hidden">
-          <img
-            src={logo || "/placeholder.svg"}
-            alt="PLAY Logo"
-            className="w-full h-full object-cover"
-          />
+        <div className=" p-2 rounded-lg flex-shrink-0 w-20 h-12 flex items-center justify-center overflow-hidden">
+         
         </div>
-        {expanded && !isMobile && <h1 className="text-2xl font-bold">PLAY</h1>}
+        
       </div>
 
       {/* Navigation */}
@@ -202,22 +204,28 @@ const Sidebar = () => {
           )}
 
         
-          <SidebarLink
-            expanded={expanded}
-            isMobile={isMobile}
-            link={"/admin"}
-            name={" Admin dashboards"}
-            icon={  <User size={20} />
-          }
-          />
-          <SidebarLink
-            expanded={expanded}
-            isMobile={isMobile}
-            link={"/vendor"}
-            name={" vendor dashboards"}
-            icon={  <User size={20} />
-          }
-          />
+ <>
+      {isAdmin && (
+        <SidebarLink
+          expanded={expanded}
+          isMobile={isMobile}
+          link="/admin"
+          name="Admin Dashboard"
+          icon={<User size={20} />}
+        />
+      )}
+
+      {isVendor && (
+        <SidebarLink
+          expanded={expanded}
+          isMobile={isMobile}
+          link="/vendor"
+          name="Vendor Dashboard"
+          icon={<User size={20} />}
+        />
+      )}
+    </>
+
           {/* <SidebarLink
             expanded={expanded}
             isMobile={isMobile}
