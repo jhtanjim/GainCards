@@ -182,12 +182,7 @@ export default function Header() {
           </Link>
 
           {/* Mobile Search Button */}
-          <button
-            className="p-3 rounded-xl bg-gradient-to-r from-gray-800/50 to-purple-900/30 hover:from-gray-700/50 hover:to-purple-800/40 transition-all duration-300 lg:hidden border border-purple-500/20 hover:border-purple-400/40 backdrop-blur-sm"
-            onClick={() => setSearchOpen(true)}
-          >
-            <Search size={20} className="text-purple-300" />
-          </button>
+        
 
         
 
