@@ -12,20 +12,36 @@ import {
   User,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo/logo.jpg";
 import { useAuth } from "../../Context/AuthContext";
 import logoImg from "../../assets/logo/logoBG.png"
 import useUserRole from "../../Hooks/useUserRole";
-function SidebarLink({ expanded, isMobile, link, name, icon }) {
+import Swal from "sweetalert2";
 
+function SidebarLink({ expanded, isMobile, link, name, icon, requiresAuth = false, user, navigate }) {
+  const handleClick = (e) => {
+    if (requiresAuth && !user) {
+      e.preventDefault();
 
- 
+      Swal.fire({
+        title: 'Login Required',
+        text: 'Please login to access this page.',
+        icon: 'warning',
+        confirmButtonText: 'Login',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate('/signin'); // Adjust this path to match your login route
+        }
+      });
+    }
+  };
 
   return (
     <li>
       <Link
         to={link}
+        onClick={handleClick}
         className={`flex items-center ${
           expanded && !isMobile ? "justify-start gap-3 px-4" : "justify-center"
         } py-3 rounded-lg hover:bg-[#1a2639] transition-colors`}
@@ -59,8 +75,9 @@ const PokemonBall = ({ size = 24, ...props }) => (
 );
 
 const Sidebar = () => {
-     const { isAdmin, isVendor, isLoading } = useUserRole()
-  const {user}=useAuth()
+  const { isAdmin, isVendor, isLoading } = useUserRole()
+  const { user } = useAuth()
+  const navigate = useNavigate()
   const [expanded, setExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [mobileVisible, setMobileVisible] = useState(false);
@@ -134,38 +151,35 @@ const Sidebar = () => {
             link={"/"}
             name={"Home"}
             icon={<Home size={20} />}
+            user={user}
+            navigate={navigate}
           />
-          {/* <SidebarLink
-            expanded={expanded}
-            isMobile={isMobile}
-            link={"/"}
-            name={"categories"}
-            icon={<Grid size={20} />
-          }
-          /> */}
           <SidebarLink
             expanded={expanded}
             isMobile={isMobile}
             link={"/pokemon"}
             name={"Pokemon Cards"}
-            icon={<PokemonBall size={20} />
-          }
+            icon={<PokemonBall size={20} />}
+            user={user}
+            navigate={navigate}
           />
           <SidebarLink
             expanded={expanded}
             isMobile={isMobile}
             link={"/myLibrary"}
             name={"My Library"}
-            icon={<Heart size={20} />
-          }
+            icon={<Heart size={20} />}
+            user={user}
+            navigate={navigate}
           />
           <SidebarLink
             expanded={expanded}
             isMobile={isMobile}
             link={"/myBag"}
             name={"My Bag"}
-            icon={<ShoppingBag size={20} />  
-          }
+            icon={<ShoppingBag size={20} />}
+            user={user}
+            navigate={navigate}
           />
 
           <SidebarLink
@@ -173,67 +187,60 @@ const Sidebar = () => {
             isMobile={isMobile}
             link={"/donate"}
             name={" Donate"}
-            icon={   <Gift  size={20} />
-          }
+            icon={<Gift size={20} />}
+            requiresAuth={true}
+            user={user}
+            navigate={navigate}
           />
           <SidebarLink
             expanded={expanded}
             isMobile={isMobile}
             link={"/donateCardReceiver"}
             name={" DonateCardReceiver"}
-            icon={   <Gift  size={20} />
-          }
+            icon={<Gift size={20} />}
+            requiresAuth={true}
+            user={user}
+            navigate={navigate}
           />
-         {/* Conditional rendering for Pokemon Card Upload link */}
-         {/* {user && (
-            <SidebarLink
-              expanded={expanded}
-              isMobile={isMobile}
-              link={"/pokemonCardUpload"}
-              name={"Pokemon Card Upload"}
-              icon={<Upload size={20} />}
-            />
-          )} */}
+
          {user && (
              <SidebarLink
              expanded={expanded}
              isMobile={isMobile}
              link={"/myOrders"}
              name={" My Orders"}
-             icon={<Package size={20} />}/>
+             icon={<Package size={20} />}
+             user={user}
+             navigate={navigate}
+             />
           )}
 
         
- <>
-      {isAdmin && (
-        <SidebarLink
-          expanded={expanded}
-          isMobile={isMobile}
-          link="/admin"
-          name="Admin Dashboard"
-          icon={<User size={20} />}
-        />
-      )}
+        <>
+          {isAdmin && (
+            <SidebarLink
+              expanded={expanded}
+              isMobile={isMobile}
+              link="/admin"
+              name="Admin Dashboard"
+              icon={<User size={20} />}
+              user={user}
+              navigate={navigate}
+            />
+          )}
 
-      {isVendor && (
-        <SidebarLink
-          expanded={expanded}
-          isMobile={isMobile}
-          link="/vendor"
-          name="Vendor Dashboard"
-          icon={<User size={20} />}
-        />
-      )}
-    </>
-
-          {/* <SidebarLink
-            expanded={expanded}
-            isMobile={isMobile}
-            link={"/myCards"}
-            name={" My Cards"}
-            icon={   <CreditCard size={20} />
-          }
-          /> */}
+          {isVendor && (
+            <SidebarLink
+              expanded={expanded}
+              isMobile={isMobile}
+              link="/vendor"
+              name="Vendor Dashboard"
+              icon={<User size={20} />}
+              user={user}
+              navigate={navigate}
+            />
+          )}
+        </>
           
         </ul>
       </nav>

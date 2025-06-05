@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { UserPlus, ListChecks, Repeat2, Sparkles, Heart, Gift } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const DonateSection = () => {
   const [hoveredCard, setHoveredCard] = useState(null);
@@ -86,10 +87,12 @@ const DonateSection = () => {
                 </p>
 
                 <button className="group/btn relative px-8 py-4 bg-gradient-to-r from-orange-500 to-pink-600 rounded-2xl text-white font-semibold text-lg hover:shadow-2xl hover:shadow-pink-500/25 transition-all duration-300 hover:scale-105 overflow-hidden">
+                <Link to="/donate">
                   <span className="relative z-10 flex items-center gap-2">
                     <Heart size={20} />
                     Donate Card
                   </span>
+                  </Link>
                   <div className="absolute inset-0 bg-gradient-to-r from-pink-600 to-orange-500 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
                 </button>
               </div>
@@ -117,6 +120,7 @@ const DonateSection = () => {
                     <Gift size={28} className="text-white" />
                   </div>
                   <div>
+
                     <h3 className="text-2xl font-bold text-white mb-1">Request a Card</h3>
                     <div className="w-8 h-1 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full group-hover:w-16 transition-all duration-500"></div>
                   </div>
@@ -127,10 +131,13 @@ const DonateSection = () => {
                 </p>
 
                 <button className="group/btn relative px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl text-white font-semibold text-lg hover:shadow-2xl hover:shadow-emerald-500/25 transition-all duration-300 hover:scale-105 overflow-hidden">
+                                    <Link to="/donateCardReceiver">
                   <span className="relative z-10 flex items-center gap-2">
+
                     <Sparkles size={20} />
                     Request Card
                   </span>
+                  </Link>
                   <div className="absolute inset-0 bg-gradient-to-r from-teal-600 to-emerald-500 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
                 </button>
               </div>
