@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { getAllPlan } from "../../../api/subscription"
+import { getAllActivePlan } from "../../../api/subscription"
 import { useState } from "react"
 import { Crown, Rocket, Diamond, Star, Check, Zap, Heart } from "lucide-react"
 import { Link } from "react-router-dom"
@@ -8,16 +8,15 @@ const Subscription = () => {
   const [hoveredCard, setHoveredCard] = useState(null)
   
   const {
-    data: plans = [],
+    data: activePlans = [],
     isLoading,
     isError,
   } = useQuery({
     queryKey: ["subscription-plans"],
-    queryFn: getAllPlan,
+    queryFn: getAllActivePlan,
   })
 
   // Filter only active plans
-  const activePlans = plans.filter(plan => plan.isActive === true)
 
   // Clean mapping function using only actual API data
   const getEnhancedPlans = (apiPlans) => {

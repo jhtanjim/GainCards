@@ -1,8 +1,12 @@
 import api from "../Hooks/axios";
 
-// Get all subscription plans
+// Get all subscription plans admin
 export const getAllPlan = async () => {
   const response = await api.get("/subscription");
+  return response.data;
+};
+export const getAllActivePlan = async () => {
+  const response = await api.get("/subscription/active");
   return response.data;
 };
 
