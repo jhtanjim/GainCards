@@ -7,6 +7,7 @@ import {
   Search,
   X,
   LogIn,
+  LogOut,
   Zap,
   Menu,
 } from "lucide-react"
@@ -14,7 +15,7 @@ import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../../Context/AuthContext"
 import { useShop } from "../../Context/ShopContext"
-import logoImg from "../../assets/logo/logoBG.png"
+import logoImg from "../../assets/logo/white.png"
 
 export default function Header() {
   const { cartItems } = useShop()
@@ -76,16 +77,17 @@ export default function Header() {
 
     if (user) {
       return (
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
           {/* Logout Button */}
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className={`px-2 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold rounded-lg sm:rounded-xl transition-all duration-300 ${
+            className={`flex items-center justify-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold rounded-lg sm:rounded-xl transition-all duration-300 ${
               isLoggingOut
                 ? "bg-gray-600/50 cursor-not-allowed text-gray-400 border border-gray-600/30"
                 : "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg hover:shadow-red-500/25 border border-red-400/30 hover:scale-105"
             }`}
+            title={isMobile ? "Logout" : undefined}
           >
             {isLoggingOut ? (
               <div className="flex items-center gap-1 sm:gap-2">
@@ -93,11 +95,18 @@ export default function Header() {
                 <span className="hidden sm:inline">Logging out...</span>
               </div>
             ) : (
-              "Logout"
+              <>
+                <LogOut size={isMobile ? 16 : 18} />
+                <span className="hidden sm:inline">Logout</span>
+              </>
             )}
           </button>
 
           {/* Profile Section */}
+            <Link
+                to="/myProfile"
+                className="text-purple-300 hover:text-purple-200 transition-colors text-xs font-medium hover:underline"
+              >
           <div className="flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-gray-800/50 to-purple-900/30 rounded-lg sm:rounded-xl p-1.5 sm:p-2 border border-purple-500/20 backdrop-blur-sm">
             <div className="relative">
               <img
@@ -122,6 +131,8 @@ export default function Header() {
               </Link>
             </div>
           </div>
+          
+        </Link>
         </div>
       )
     }
@@ -169,8 +180,6 @@ export default function Header() {
           </Link>
         </div>
 
-       
-
         {/* Right Section */}
         <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
           {/* Become a Vendor - Hidden on mobile */}
@@ -181,8 +190,6 @@ export default function Header() {
               <span className="lg:hidden">Vendor</span>
             </button>
           </Link>
-
-      
 
           {/* Favorites */}
           <Link to="/mylibrary">
