@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Users, Shield, Gift, Truck, TrendingUp } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const WhyChooseUs = () => {
   const [hoveredFeature, setHoveredFeature] = useState(null);
@@ -133,13 +134,15 @@ const WhyChooseUs = () => {
                     <div className="w-2 h-0.5 bg-blue-600 rounded"></div>
                   </div>
                 </button>
-
+                <Link to={"/pokemon"}>
                 <button className="group bg-transparent border-2 border-white text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white hover:text-blue-600 transition-all duration-300 hover:scale-105 hover:shadow-xl">
                   View your Collections
+
                   <div className="w-0 group-hover:w-2 transition-all duration-300 overflow-hidden inline-block ml-0 group-hover:ml-2">
                     <div className="w-2 h-0.5 bg-current rounded"></div>
                   </div>
                 </button>
+                </Link>
               </div>
             </div>
           </div>
