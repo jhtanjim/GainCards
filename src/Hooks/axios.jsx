@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://gaincards.com/",
+  baseURL: "https://gaincards.com/api",
   withCredentials: true,
   timeout: 10000, // Add timeout
 });
