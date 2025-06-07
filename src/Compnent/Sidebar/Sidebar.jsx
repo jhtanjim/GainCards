@@ -246,7 +246,7 @@ const Sidebar = () => {
       </nav>
 
       {/* Social Media Links */}
-      {expanded && !isMobile ? (
+      {/* {expanded && !isMobile ? (
         <div className="px-6 py-4 flex items-center gap-4">
           <Link to="#" className="text-gray-400 hover:text-white">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -277,7 +277,7 @@ const Sidebar = () => {
             </svg>
           </Link>
         </div>
-      )}
+      )} */}
     </div>
   );
 };

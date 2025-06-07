@@ -83,7 +83,7 @@ const DonateSection = () => {
                 </div>
 
                 <p className="text-white/70 mb-8 text-lg leading-relaxed">
-                  Have extra cards? Share the joy of collecting — donate your cards and make another collector's day sparkle with excitement.
+                  Have extra cards? Share the joy of collecting — donate your cards and make another collector's day.
                 </p>
 
                 <button className="group/btn relative px-8 py-4 bg-gradient-to-r from-orange-500 to-pink-600 rounded-2xl text-white font-semibold text-lg hover:shadow-2xl hover:shadow-pink-500/25 transition-all duration-300 hover:scale-105 overflow-hidden">
@@ -127,7 +127,7 @@ const DonateSection = () => {
                 </div>
 
                 <p className="text-white/70 mb-8 text-lg leading-relaxed">
-                  Looking for a card? Browse donated cards — just pay shipping and start building your dream deck with amazing finds.
+                  Looking for a card? Browse donated cards — just pay shipping and start building your dream deck .
                 </p>
 
                 <button className="group/btn relative px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl text-white font-semibold text-lg hover:shadow-2xl hover:shadow-emerald-500/25 transition-all duration-300 hover:scale-105 overflow-hidden">

@@ -25,7 +25,7 @@ const WhyChooseUs = () => {
     {
       id: 3,
       icon: Gift,
-      title: "Donation + new collectors born",
+      title: "Donation = new collectors born",
       description: "Give back while growing the community",
       color: "from-orange-500 to-red-600",
       bgColor: "bg-orange-50"

@@ -1,8 +1,8 @@
-import { useQuery } from "@tanstack/react-query"
-import Marquee from "react-fast-marquee"
-import { getAllPokemonData } from "../../../api/pokemondata"
-import PokemonCard from "../../Shared/Pokaemon/PokaemonCard"
-import { Link } from "react-router-dom"
+import { useQuery } from "@tanstack/react-query";
+import Marquee from "react-fast-marquee";
+import { getAllPokemonData } from "../../../api/pokemondata";
+import PokemonCard from "../../Shared/Pokaemon/PokaemonCard";
+import { Link } from "react-router-dom";
 
 const PokemonCardsCollection = () => {
   const {
@@ -12,29 +12,33 @@ const PokemonCardsCollection = () => {
   } = useQuery({
     queryKey: ["pokemons"],
     queryFn: getAllPokemonData,
-  })
+  });
 
   if (isLoading) {
     return (
       <div className="py-20 bg-black">
         <div className="container mx-auto px-6 text-center">
-          <div className="text-white text-xl mb-4">Loading amazing cards...</div>
+          <div className="text-white text-xl mb-4">
+            Loading amazing cards...
+          </div>
           <div className="flex justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (isError) {
     return (
       <div className="py-20 bg-black">
         <div className="container mx-auto px-6 text-center">
-          <div className="text-red-400 text-xl">Error loading cards. Please try again.</div>
+          <div className="text-red-400 text-xl">
+            Error loading cards. Please try again.
+          </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -46,14 +50,20 @@ const PokemonCardsCollection = () => {
             Explore the Pokemon Cards Collection
           </h2>
           <p className="text-lg md:text-xl  max-w-2xl mx-auto">
-            Discover rare and legendary cards from every generation. Each card is authenticated and graded for quality.
+            Browse the latest listings from top sellers — from rare holos to
+            classic base sets.
           </p>
         </div>
 
         {/* Marquee Scrolling Cards - Using API data */}
         <div className="relative">
           <div className="overflow-hidden">
-            <Marquee gradient={true} gradientColor={[0, 0, 0]} speed={40} pauseOnHover>
+            <Marquee
+              gradient={true}
+              gradientColor={[0, 0, 0]}
+              speed={40}
+              pauseOnHover
+            >
               {pokemons.map((pokemon, index) => (
                 <div
                   key={`${pokemon.id}-${index}`}
@@ -69,10 +79,9 @@ const PokemonCardsCollection = () => {
         {/* View All Button */}
         <div className="text-center mt-16">
           <Link to={"/pokemon"}>
-          
-          <button className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-            View All Cards
-          </button>
+            <button className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+              View All Cards
+            </button>
           </Link>
         </div>
 
@@ -93,7 +102,7 @@ const PokemonCardsCollection = () => {
         </div> */}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default PokemonCardsCollection
+export default PokemonCardsCollection;

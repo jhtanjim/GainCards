@@ -137,11 +137,13 @@ const Subscription = () => {
           </div>
           
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent mb-6">
-            Choose Your Plan
+             Start Selling Your Collection
+
           </h1>
           
           <p className="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed px-4">
-            Unlock unlimited potential with our premium subscription plans designed for modern creators
+            Flexible plans for every type of collector — whether you're just starting or a seasoned vendor.
+
           </p>
         </div>
 
