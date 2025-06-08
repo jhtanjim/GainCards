@@ -46,7 +46,9 @@ const VendorRegistration = () => {
   // Effect to check authentication
   useEffect(() => {
     if (!user) {
-      navigate("/signin", { replace: true });
+      navigate(`/signin?redirect=${encodeURIComponent("/vendorSignup")}`, {
+        replace: true,
+      });
     }
   }, [user, navigate]);
 
