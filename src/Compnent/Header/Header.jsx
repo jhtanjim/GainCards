@@ -53,7 +53,7 @@ export default function Header() {
   };
 
   const renderAuthSection = () => {
-    if (loading) {
+    if (loading && isLoggingOut) {
       return (
         <div className="flex items-center gap-2 sm:gap-4">
           <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-r from-red-500/20 to-purple-500/20 rounded-full animate-pulse border border-red-500/30"></div>

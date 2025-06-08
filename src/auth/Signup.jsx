@@ -7,7 +7,9 @@ import Swal from "sweetalert2";
 import { useAuth } from "../Context/AuthContext";
 
 const fetchCountries = async () => {
-  const res = await fetch("https://restcountries.com/v3.1/all");
+  const res = await fetch(
+    "https://restcountries.com/v3.1/all?fields=name,cca2"
+  );
   const data = await res.json();
 
   // map to { name, code } and sort by name
