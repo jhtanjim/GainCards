@@ -1,4 +1,3 @@
-import { data } from "autoprefixer";
 import api from "../Hooks/axios";
 
 export const myProfile = async () => {

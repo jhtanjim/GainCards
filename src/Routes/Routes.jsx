@@ -5,13 +5,20 @@ import UnderConstruction from "../Compnent/UnderConstruction";
 import VendorRegistration from "../Compnent/Vendor/VendorRegistration";
 import AdminLayout from "../Layout/AdminLayout";
 import Main from "../Layout/Main";
+import VendorLayout from "../Layout/VendorLayout";
 import AdminDashBoard from "../Pages/DashBoard/AdminDashBoard/AdminDashBoard";
+import OrderList from "../Pages/DashBoard/AdminDashBoard/OrderList/OrderList";
 import PaymentList from "../Pages/DashBoard/AdminDashBoard/paymentList";
+import AllUsers from "../Pages/DashBoard/AdminDashBoard/UserList/AllUsers";
+import NormalUsers from "../Pages/DashBoard/AdminDashBoard/UserList/NormalUsers";
+import VendorUsers from "../Pages/DashBoard/AdminDashBoard/UserList/VendorUsers";
+import VendorDashBoard from "../Pages/DashBoard/VendorDashBoard/VendorDashBoard";
+import VendorOrders from "../Pages/DashBoard/VendorDashBoard/VendorOrders";
+import VendorProducts from "../Pages/DashBoard/VendorDashBoard/VendorProducts";
 import Categories from "../Pages/Home/Categories/Categories";
 import Home from "../Pages/Home/Home/Home";
 import CheckoutPage from "../Pages/Shared/Checkout/Checkout";
 import CartPage from "../Pages/Shared/MyBag/MyBag";
-import MyCards from "../Pages/Shared/MyCards/MyCards";
 import MyLibrary from "../Pages/Shared/MyLibrary/MyLibrary";
 import MyOrders from "../Pages/Shared/MyOrders/MyOrders";
 import MyProfile from "../Pages/Shared/MyProfile/MyProfile";
@@ -19,22 +26,14 @@ import Pokaemon from "../Pages/Shared/Pokaemon/Pokaemon";
 import PokaemonCardDetails from "../Pages/Shared/Pokaemon/PokaemonCardDetails";
 import PokaemonCardUpdate from "../Pages/Shared/PokemonCardCrud/PokaemonCardUpdate";
 import PokemonCardUpload from "../Pages/Shared/PokemonCardCrud/PokemonCardUpload";
-import NormalUsers from "../Pages/DashBoard/AdminDashBoard/UserList/NormalUsers";
-import VendorUsers from "../Pages/DashBoard/AdminDashBoard/UserList/VendorUsers";
-import AllUsers from "../Pages/DashBoard/AdminDashBoard/UserList/AllUsers";
-import OrderList from "../Pages/DashBoard/AdminDashBoard/OrderList/OrderList";
 import AdminRoutes from "./AdminRoutes";
 import VendorRoutes from "./VendorRoutes";
-import VendorLayout from "../Layout/VendorLayout";
-import VendorDashBoard from "../Pages/DashBoard/VendorDashBoard/VendorDashBoard";
-import VendorProducts from "../Pages/DashBoard/VendorDashBoard/VendorProducts";
-import VendorOrders from "../Pages/DashBoard/VendorDashBoard/VendorOrders";
 // import VendorAnalytics from "../Pages/DashBoard/VendorDashBoard/VendorAnalytics";
+import ManageSubscription from "../Pages/DashBoard/AdminDashBoard/ManageSubscription.jsx/ManageSubscription";
 import VendorEarnings from "../Pages/DashBoard/VendorDashBoard/VendorEarnings";
 import VendorSettings from "../Pages/DashBoard/VendorDashBoard/VendorSettings";
-import Donate from "../Pages/Shared/Donate/Donate";
-import ManageSubscription from "../Pages/DashBoard/AdminDashBoard/ManageSubscription.jsx/ManageSubscription";
 import VendorSubscription from "../Pages/DashBoard/VendorDashBoard/VendorSubscription";
+import Donate from "../Pages/Shared/Donate/Donate";
 import DonateCardReceiver from "../Pages/Shared/Donate/DonateCardReciever/DonateCardReciever";
 export const router = createBrowserRouter([
   {
@@ -69,7 +68,7 @@ export const router = createBrowserRouter([
         path: "/pokemon",
         element: <Pokaemon />,
       },
-        {
+      {
         path: "/donate",
         element: <Donate />,
       },
@@ -82,7 +81,6 @@ export const router = createBrowserRouter([
         element: <PokaemonCardDetails />,
       },
 
-      
       {
         path: "/pokemonCardUpdate/:id",
         element: <PokaemonCardUpdate />,
@@ -111,18 +109,18 @@ export const router = createBrowserRouter([
         path: "/myOrders",
         element: <MyOrders />,
       },
-      
-    
+
       { path: "*", element: <UnderConstruction /> },
     ],
   },
   // Admin Routes
   {
     path: "/admin",
-    element:
-    <AdminRoutes>
-      <AdminLayout />,
-     </AdminRoutes>,
+    element: (
+      <AdminRoutes>
+        <AdminLayout />,
+      </AdminRoutes>
+    ),
     children: [
       {
         path: "/admin",
@@ -142,7 +140,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "/admin/users",
-        element: <AllUsers  />,
+        element: <AllUsers />,
       },
       {
         path: "/admin/users/vendors",
@@ -150,20 +148,18 @@ export const router = createBrowserRouter([
       },
       {
         path: "/admin/users/normal",
-        element: <NormalUsers  />,
+        element: <NormalUsers />,
       },
     ],
   },
 
-
-
-   // Vendor Routes
+  // Vendor Routes
   {
     path: "/vendor",
     element: (
-     <VendorRoutes>
+      <VendorRoutes>
         <VendorLayout />
-   </VendorRoutes>
+      </VendorRoutes>
     ),
     children: [
       {
@@ -198,11 +194,6 @@ export const router = createBrowserRouter([
         path: "/vendor/vendorSubsCription",
         element: <VendorSubscription />,
       },
-
-
-      
     ],
   },
-])
-
-;
+]);

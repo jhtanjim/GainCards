@@ -1,37 +1,34 @@
 "use client";
 
-import {
-  CreditCard,
-  Gift,
-  Grid,
-  Heart,
-  Home,
-  Package,
-  ShoppingBag,
-  Upload,
-  User,
-} from "lucide-react";
+import { Gift, Heart, Home, Package, ShoppingBag, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import logo from "../../assets/logo/logo.jpg";
-import { useAuth } from "../../Context/AuthContext";
-import logoImg from "../../assets/logo/logoBG.png"
-import useUserRole from "../../Hooks/useUserRole";
 import Swal from "sweetalert2";
+import { useAuth } from "../../Context/AuthContext";
+import useUserRole from "../../Hooks/useUserRole";
 
-function SidebarLink({ expanded, isMobile, link, name, icon, requiresAuth = false, user, navigate }) {
+function SidebarLink({
+  expanded,
+  isMobile,
+  link,
+  name,
+  icon,
+  requiresAuth = false,
+  user,
+  navigate,
+}) {
   const handleClick = (e) => {
     if (requiresAuth && !user) {
       e.preventDefault();
 
       Swal.fire({
-        title: 'Login Required',
-        text: 'Please login to access this page.',
-        icon: 'warning',
-        confirmButtonText: 'Login',
+        title: "Login Required",
+        text: "Please login to access this page.",
+        icon: "warning",
+        confirmButtonText: "Login",
       }).then((result) => {
         if (result.isConfirmed) {
-          navigate('/signin'); // Adjust this path to match your login route
+          navigate(`signin?redirect=/${link}`); // Adjust this path to match your login route
         }
       });
     }
@@ -75,9 +72,9 @@ const PokemonBall = ({ size = 24, ...props }) => (
 );
 
 const Sidebar = () => {
-  const { isAdmin, isVendor, isLoading } = useUserRole()
-  const { user } = useAuth()
-  const navigate = useNavigate()
+  const { isAdmin, isVendor, isLoading } = useUserRole();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [mobileVisible, setMobileVisible] = useState(false);
@@ -136,10 +133,7 @@ const Sidebar = () => {
           expanded && !isMobile ? "gap-2" : "justify-center"
         }`}
       >
-        <div className=" p-2 rounded-lg flex-shrink-0 w-20 h-12 flex items-center justify-center overflow-hidden">
-         
-        </div>
-        
+        <div className=" p-2 rounded-lg flex-shrink-0 w-20 h-12 flex items-center justify-center overflow-hidden"></div>
       </div>
 
       {/* Navigation */}
@@ -203,45 +197,43 @@ const Sidebar = () => {
             navigate={navigate}
           />
 
-         {user && (
-             <SidebarLink
-             expanded={expanded}
-             isMobile={isMobile}
-             link={"/myOrders"}
-             name={" My Orders"}
-             icon={<Package size={20} />}
-             user={user}
-             navigate={navigate}
-             />
-          )}
-
-        
-        <>
-          {isAdmin && (
+          {user && (
             <SidebarLink
               expanded={expanded}
               isMobile={isMobile}
-              link="/admin"
-              name="Admin Dashboard"
-              icon={<User size={20} />}
+              link={"/myOrders"}
+              name={" My Orders"}
+              icon={<Package size={20} />}
               user={user}
               navigate={navigate}
             />
           )}
 
-          {isVendor && (
-            <SidebarLink
-              expanded={expanded}
-              isMobile={isMobile}
-              link="/vendor"
-              name="Vendor Dashboard"
-              icon={<User size={20} />}
-              user={user}
-              navigate={navigate}
-            />
-          )}
-        </>
-          
+          <>
+            {isAdmin && (
+              <SidebarLink
+                expanded={expanded}
+                isMobile={isMobile}
+                link="/admin"
+                name="Admin Dashboard"
+                icon={<User size={20} />}
+                user={user}
+                navigate={navigate}
+              />
+            )}
+
+            {isVendor && (
+              <SidebarLink
+                expanded={expanded}
+                isMobile={isMobile}
+                link="/vendor"
+                name="Vendor Dashboard"
+                icon={<User size={20} />}
+                user={user}
+                navigate={navigate}
+              />
+            )}
+          </>
         </ul>
       </nav>
 

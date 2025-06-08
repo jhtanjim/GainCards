@@ -1,70 +1,56 @@
-"use client"
+"use client";
 
-import {
-  Settings,
-  Heart,
-  ShoppingBag,
-  Search,
-  X,
-  LogIn,
-  LogOut,
-  Zap,
-  Menu,
-} from "lucide-react"
-import { useEffect, useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { useAuth } from "../../Context/AuthContext"
-import { useShop } from "../../Context/ShopContext"
-import logoImg from "../../assets/logo/white.png"
+import { Heart, LogIn, LogOut, Settings, ShoppingBag, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../Context/AuthContext";
+import { useShop } from "../../Context/ShopContext";
+import logoImg from "../../assets/logo/white.png";
 
 export default function Header() {
-  const { cartItems } = useShop()
-  const navigate = useNavigate()
-  const { user, signOut, loading } = useAuth()
-  const [searchOpen, setSearchOpen] = useState(false)
-  const [isLoggingOut, setIsLoggingOut] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
+  const { cartItems } = useShop();
+  const navigate = useNavigate();
+  const { user, signOut, loading, isLoggingOut } = useAuth();
+
+  const [isMobile, setIsMobile] = useState(false);
 
   // Responsive breakpoint detection
   useEffect(() => {
     const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    
-    checkScreenSize()
-    window.addEventListener('resize', checkScreenSize)
-    return () => window.removeEventListener('resize', checkScreenSize)
-  }, [])
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
 
   const handleToggleSidebar = () => {
     if (window.toggleSidebar) {
-      window.toggleSidebar()
+      window.toggleSidebar();
     }
-  }
+  };
 
   const handleLogout = async () => {
-    if (isLoggingOut) return
+    if (isLoggingOut) return;
 
     try {
-      setIsLoggingOut(true)
-      const result = await signOut()
+      const result = await signOut();
 
       if (result.success) {
-        navigate("/signIn", { replace: true })
+        navigate("/signIn", { replace: true });
 
         if (result.localOnly) {
-          console.warn("Logged out locally only")
+          console.warn("Logged out locally only");
         }
       } else {
-        navigate("/signIn", { replace: true })
+        navigate("/signIn", { replace: true });
       }
     } catch (error) {
-      console.error("Logout error:", error)
-      navigate("/signIn", { replace: true })
-    } finally {
-      setIsLoggingOut(false)
+      console.error("Logout error:", error);
+      navigate("/signIn", { replace: true });
     }
-  }
+  };
 
   const renderAuthSection = () => {
     if (loading) {
@@ -72,7 +58,7 @@ export default function Header() {
         <div className="flex items-center gap-2 sm:gap-4">
           <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-r from-red-500/20 to-purple-500/20 rounded-full animate-pulse border border-red-500/30"></div>
         </div>
-      )
+      );
     }
 
     if (user) {
@@ -103,38 +89,34 @@ export default function Header() {
           </button>
 
           {/* Profile Section */}
-            <Link
-                to="/myProfile"
-                className="text-purple-300 hover:text-purple-200 transition-colors text-xs font-medium hover:underline"
-              >
-          <div className="flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-gray-800/50 to-purple-900/30 rounded-lg sm:rounded-xl p-1.5 sm:p-2 border border-purple-500/20 backdrop-blur-sm">
-            <div className="relative">
-              <img
-                src={user?.profilePicture || "/default-profile.png"}
-                alt={user?.username || "User"}
-                className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl border-2 border-purple-400 object-cover shadow-lg"
-                onError={(e) => {
-                  e.currentTarget.src = "/default-profile.png"
-                }}
-              />
-              <div className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-r from-green-400 to-green-500 rounded-full border-2 border-gray-900 shadow-sm"></div>
+          <Link
+            to="/myProfile"
+            className="text-purple-300 hover:text-purple-200 transition-colors text-xs font-medium hover:underline"
+          >
+            <div className="flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-gray-800/50 to-purple-900/30 rounded-lg sm:rounded-xl p-1.5 sm:p-2 border border-purple-500/20 backdrop-blur-sm">
+              <div className="relative">
+                <img
+                  src={user?.profilePicture || "/default-profile.png"}
+                  alt={user?.username || "User"}
+                  className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl border-2 border-purple-400 object-cover shadow-lg"
+                  onError={(e) => {
+                    e.currentTarget.src = "/default-profile.png";
+                  }}
+                />
+                <div className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-r from-green-400 to-green-500 rounded-full border-2 border-gray-900 shadow-sm"></div>
+              </div>
+              <div className="text-xs sm:text-sm hidden md:block">
+                <p className="font-bold text-white mb-0.5 truncate max-w-20 lg:max-w-none">
+                  {user?.username || "User"}
+                </p>
+                <div className="text-purple-300 hover:text-purple-200 transition-colors text-xs font-medium hover:underline">
+                  View Profile
+                </div>
+              </div>
             </div>
-            <div className="text-xs sm:text-sm hidden md:block">
-              <p className="font-bold text-white mb-0.5 truncate max-w-20 lg:max-w-none">
-                {user?.username || "User"}
-              </p>
-              <Link
-                to="/myProfile"
-                className="text-purple-300 hover:text-purple-200 transition-colors text-xs font-medium hover:underline"
-              >
-                View Profile
-              </Link>
-            </div>
-          </div>
-          
-        </Link>
+          </Link>
         </div>
-      )
+      );
     }
 
     return (
@@ -144,8 +126,8 @@ export default function Header() {
           <span className="hidden xs:inline">Sign In</span>
         </button>
       </Link>
-    )
-  }
+    );
+  };
 
   return (
     <header className="sticky top-0 z-50 h-16 sm:h-20 w-full bg-[#131E2C] shadow-2xl">
@@ -163,7 +145,10 @@ export default function Header() {
           </button>
 
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 sm:gap-4 group min-w-0 flex-shrink-0">
+          <Link
+            to="/"
+            className="flex items-center gap-2 sm:gap-4 group min-w-0 flex-shrink-0"
+          >
             <div className="relative">
               <div className="h-10 sm:h-14 w-auto overflow-hidden transition-all duration-300 shadow-lg">
                 <img
@@ -171,7 +156,7 @@ export default function Header() {
                   alt="Gain Cards Logo"
                   className="object-contain w-full h-full group-hover:scale-110 transition-transform duration-300"
                   onError={(e) => {
-                    e.currentTarget.style.display = "none"
+                    e.currentTarget.style.display = "none";
                   }}
                 />
               </div>
@@ -194,7 +179,10 @@ export default function Header() {
           {/* Favorites */}
           <Link to="/mylibrary">
             <button className="relative p-2 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-gray-800/50 to-purple-900/30 hover:from-gray-700/50 hover:to-purple-800/40 transition-all duration-300 border border-purple-500/20 hover:border-purple-400/40 backdrop-blur-sm group">
-              <Heart size={isMobile ? 18 : 20} className="text-purple-300 group-hover:text-purple-200 transition-colors" />
+              <Heart
+                size={isMobile ? 18 : 20}
+                className="text-purple-300 group-hover:text-purple-200 transition-colors"
+              />
               <div className="absolute inset-0 rounded-lg sm:rounded-xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity blur-sm -z-10"></div>
             </button>
           </Link>
@@ -202,10 +190,13 @@ export default function Header() {
           {/* Shopping Cart */}
           <Link to="/mybag">
             <button className="relative p-2 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-gray-800/50 to-purple-900/30 hover:from-gray-700/50 hover:to-purple-800/40 transition-all duration-300 border border-purple-500/20 hover:border-purple-400/40 backdrop-blur-sm group">
-              <ShoppingBag size={isMobile ? 18 : 20} className="text-purple-300 group-hover:text-purple-200 transition-colors" />
+              <ShoppingBag
+                size={isMobile ? 18 : 20}
+                className="text-purple-300 group-hover:text-purple-200 transition-colors"
+              />
               {cartItems.length > 0 && (
                 <span className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-red-600 text-xs text-white font-bold flex items-center justify-center rounded-full shadow-md">
-                  {cartItems.length > 99 ? '99+' : cartItems.length}
+                  {cartItems.length > 99 ? "99+" : cartItems.length}
                 </span>
               )}
             </button>
@@ -216,5 +207,5 @@ export default function Header() {
         </div>
       </div>
     </header>
-  )
+  );
 }

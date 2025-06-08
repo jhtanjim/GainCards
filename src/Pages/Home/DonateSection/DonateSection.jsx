@@ -1,5 +1,12 @@
-import React, { useState } from "react";
-import { UserPlus, ListChecks, Repeat2, Sparkles, Heart, Gift } from "lucide-react";
+import {
+  Gift,
+  Heart,
+  ListChecks,
+  Repeat2,
+  Sparkles,
+  UserPlus,
+} from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
 const DonateSection = () => {
@@ -33,8 +40,16 @@ const DonateSection = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
           {[
             { icon: UserPlus, title: "Create Account", step: "01" },
-            { icon: ListChecks, title: "Choose a Plan / Start Buying Cards", step: "02" },
-            { icon: Repeat2, title: "List, Ship, Trade, or Donate", step: "03" }
+            {
+              icon: ListChecks,
+              title: "Choose a Plan / Start Buying Cards",
+              step: "02",
+            },
+            {
+              icon: Repeat2,
+              title: "List, Ship, Trade, or Donate",
+              step: "03",
+            },
           ].map((item, index) => (
             <div key={index} className="group relative">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
@@ -47,7 +62,9 @@ const DonateSection = () => {
                     <item.icon size={40} className="text-white" />
                   </div>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3">{item.title}</h3>
+                <h3 className="text-xl font-bold text-white mb-3">
+                  {item.title}
+                </h3>
                 <div className="w-12 h-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mx-auto group-hover:w-20 transition-all duration-500"></div>
               </div>
             </div>
@@ -77,21 +94,24 @@ const DonateSection = () => {
                     <Heart size={28} className="text-white" />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-white mb-1">Donate a Card</h3>
+                    <h3 className="text-2xl font-bold text-white mb-1">
+                      Donate a Card
+                    </h3>
                     <div className="w-8 h-1 bg-gradient-to-r from-orange-500 to-pink-600 rounded-full group-hover:w-16 transition-all duration-500"></div>
                   </div>
                 </div>
 
                 <p className="text-white/70 mb-8 text-lg leading-relaxed">
-                  Have extra cards? Share the joy of collecting — donate your cards and make another collector's day.
+                  Have extra cards? Share the joy of collecting — donate your
+                  cards and make another collector's day.
                 </p>
 
                 <button className="group/btn relative px-8 py-4 bg-gradient-to-r from-orange-500 to-pink-600 rounded-2xl text-white font-semibold text-lg hover:shadow-2xl hover:shadow-pink-500/25 transition-all duration-300 hover:scale-105 overflow-hidden">
-                <Link to="/donate">
-                  <span className="relative z-10 flex items-center gap-2">
-                    <Heart size={20} />
-                    Donate Card
-                  </span>
+                  <Link to="/donate">
+                    <span className="relative z-10 flex items-center gap-2">
+                      <Heart size={20} />
+                      Donate Card
+                    </span>
                   </Link>
                   <div className="absolute inset-0 bg-gradient-to-r from-pink-600 to-orange-500 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
                 </button>
@@ -120,23 +140,24 @@ const DonateSection = () => {
                     <Gift size={28} className="text-white" />
                   </div>
                   <div>
-
-                    <h3 className="text-2xl font-bold text-white mb-1">Request a Card</h3>
+                    <h3 className="text-2xl font-bold text-white mb-1">
+                      Request a Card
+                    </h3>
                     <div className="w-8 h-1 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full group-hover:w-16 transition-all duration-500"></div>
                   </div>
                 </div>
 
                 <p className="text-white/70 mb-8 text-lg leading-relaxed">
-                  Looking for a card? Browse donated cards — just pay shipping and start building your dream deck .
+                  Looking for a card? Browse donated cards — just pay shipping
+                  and start building your dream deck .
                 </p>
 
                 <button className="group/btn relative px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl text-white font-semibold text-lg hover:shadow-2xl hover:shadow-emerald-500/25 transition-all duration-300 hover:scale-105 overflow-hidden">
-                                    <Link to="/donateCardReceiver">
-                  <span className="relative z-10 flex items-center gap-2">
-
-                    <Sparkles size={20} />
-                    Request Card
-                  </span>
+                  <Link to="/donateCardReceiver">
+                    <span className="relative z-10 flex items-center gap-2">
+                      <Sparkles size={20} />
+                      Request Card
+                    </span>
                   </Link>
                   <div className="absolute inset-0 bg-gradient-to-r from-teal-600 to-emerald-500 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
                 </button>
@@ -155,7 +176,7 @@ const DonateSection = () => {
       </div>
 
       {/* Custom Keyframe Styles */}
-      <style jsx>{`
+      <style>{`
         @keyframes fade-in {
           from {
             opacity: 0;
