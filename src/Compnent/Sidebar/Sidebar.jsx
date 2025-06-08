@@ -28,7 +28,7 @@ function SidebarLink({
         confirmButtonText: "Login",
       }).then((result) => {
         if (result.isConfirmed) {
-          navigate(`signin?redirect=/${link}`); // Adjust this path to match your login route
+          navigate(`signin?redirect=${link}`); // Adjust this path to match your login route
         }
       });
     }
