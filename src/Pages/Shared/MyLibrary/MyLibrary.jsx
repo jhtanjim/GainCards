@@ -5,7 +5,7 @@ import { getAllFavoritePokemon } from "../../../api/pokemondata";
 
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../Context/AuthContext";
-import PokemonCard from "../Pokaemon/PokaemonCard";
+import PokemonCard from "../Pokemon/PokemonCard";
 
 const MyLibrary = () => {
   const { user } = useAuth();
@@ -245,15 +245,15 @@ const MyLibrary = () => {
                 personal collection!
               </p>
 
-              <motion.a
-                href="/pokemon"
+              <motion.button
+                onClick={() => navigate("/pokemon")}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 inline-flex items-center gap-2"
               >
                 <Search className="w-5 h-5" />
                 Browse Pokémon
-              </motion.a>
+              </motion.button>
             </div>
           </motion.div>
         )}

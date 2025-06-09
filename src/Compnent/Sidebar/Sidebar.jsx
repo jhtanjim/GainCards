@@ -186,16 +186,6 @@ const Sidebar = () => {
             user={user}
             navigate={navigate}
           />
-          <SidebarLink
-            expanded={expanded}
-            isMobile={isMobile}
-            link={"/donateCardReceiver"}
-            name={" DonateCardReceiver"}
-            icon={<Gift size={20} />}
-            requiresAuth={true}
-            user={user}
-            navigate={navigate}
-          />
 
           {user && (
             <SidebarLink

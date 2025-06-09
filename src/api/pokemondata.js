@@ -65,7 +65,7 @@ export const deletePokemon = async (id) => {
   }
 };
 // Add a Pokémon to favorites
-export const addFavoritePokemon = async (productId) => {
+export const toggleFavoritePokemon = async (productId) => {
   try {
     const response = await api.post(`/users/favorite/${productId}`);
     return response.data;
@@ -86,17 +86,6 @@ export const getAllFavoritePokemon = async () => {
   }
 };
 
-// Remove a Pokémon from favorites
-export const removeFavoritePokemon = async (productId) => {
-  try {
-    const response = await api.delete(`/users/favorite/${productId}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error removing favorite for product ${productId}:`, error);
-    throw error;
-  }
-};
-
 // Export all functions as default object
 const productService = {
   getAllPokemonData,
@@ -104,9 +93,8 @@ const productService = {
   createPokemon,
   updatePokemon,
   deletePokemon,
-  addFavoritePokemon,
+  toggleFavoritePokemon,
   getAllFavoritePokemon,
-  removeFavoritePokemon,
 };
 
 export default productService;

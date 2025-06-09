@@ -22,9 +22,6 @@ import CartPage from "../Pages/Shared/MyBag/MyBag";
 import MyLibrary from "../Pages/Shared/MyLibrary/MyLibrary";
 import MyOrders from "../Pages/Shared/MyOrders/MyOrders";
 import MyProfile from "../Pages/Shared/MyProfile/MyProfile";
-import Pokaemon from "../Pages/Shared/Pokaemon/Pokaemon";
-import PokaemonCardDetails from "../Pages/Shared/Pokaemon/PokaemonCardDetails";
-import PokaemonCardUpdate from "../Pages/Shared/PokemonCardCrud/PokaemonCardUpdate";
 import PokemonCardUpload from "../Pages/Shared/PokemonCardCrud/PokemonCardUpload";
 import AdminRoutes from "./AdminRoutes";
 import VendorRoutes from "./VendorRoutes";
@@ -35,6 +32,9 @@ import VendorSettings from "../Pages/DashBoard/VendorDashBoard/VendorSettings";
 import VendorSubscription from "../Pages/DashBoard/VendorDashBoard/VendorSubscription";
 import Donate from "../Pages/Shared/Donate/Donate";
 import DonateCardReceiver from "../Pages/Shared/Donate/DonateCardReciever/DonateCardReciever";
+import Pokemon from "../Pages/Shared/Pokemon/Pokemon";
+import PokemonCardDetails from "../Pages/Shared/Pokemon/PokemonCardDetails";
+import PokemonCardUpdate from "../Pages/Shared/PokemonCardCrud/PokemonCardUpdate";
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -66,7 +66,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "/pokemon",
-        element: <Pokaemon />,
+        element: <Pokemon />,
       },
       {
         path: "/donate",
@@ -78,12 +78,12 @@ export const router = createBrowserRouter([
       },
       {
         path: "/pokemon/:id",
-        element: <PokaemonCardDetails />,
+        element: <PokemonCardDetails />,
       },
 
       {
         path: "/pokemonCardUpdate/:id",
-        element: <PokaemonCardUpdate />,
+        element: <PokemonCardUpdate />,
       },
       {
         path: "/myProfile",

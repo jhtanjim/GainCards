@@ -1,139 +1,189 @@
-import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Heart, Edit, Trash2 } from 'lucide-react';
-import { Link } from "react-router-dom";
-import { addFavoritePokemon, removeFavoritePokemon } from '../../../api/pokemondata';
-import { useShop } from '../../../Context/ShopContext';
-import Swal from 'sweetalert2';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Edit, Heart, ShoppingCart, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import {
+  getAllFavoritePokemon,
+  toggleFavoritePokemon,
+} from "../../../api/pokemondata";
+import { useAuth } from "../../../Context/AuthContext"; // Add this import
+import { useShop } from "../../../Context/ShopContext";
 
-const SingleCard = ({ pokemon, handleDelete, onFavoriteUpdate, initialFavorite = false }) => {
+const SingleCard = ({ pokemon, handleDelete }) => {
   const [isFlipped, setIsFlipped] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(initialFavorite);
-  const [isUpdatingFavorite, setIsUpdatingFavorite] = useState(false);
   const { cartItems, setCartItems } = useShop();
-  
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
   // Destructure all pokemon card properties
   const {
-    id, title, description, price, frontImageUrl, backImageUrl,
-    certificationNumber, labelType, hasReverseBarcode, year, brand,
-    sport, cardNumber, player, varietyPedigree, grade, population,
-    vendorId, createdAt, updatedAt
+    id,
+    title,
+    description,
+    price,
+    frontImageUrl,
+    backImageUrl,
+    labelType,
+    year,
+    brand,
+    sport,
+    cardNumber,
+    player,
+    varietyPedigree,
+    updatedAt,
   } = pokemon;
-  
-  // Initialize isFavorite from props and update when it changes
+
+  // Fetch favorites
+  const { data: favorites = [] } = useQuery({
+    queryKey: ["favorites"],
+    queryFn: getAllFavoritePokemon,
+    enabled: !!user,
+  });
+
+  // Check if current pokemon is in favorites
+  const isFavorite = favorites.some((fav) => fav.id === id);
+  const [optimisticFavorite, setOptimisticFavorite] = useState(isFavorite);
+
+  // Update optimistic state when favorites data changes
   useEffect(() => {
-    setIsFavorite(initialFavorite);
-  }, [initialFavorite]);
-  
-  // Set background color based on card label type
-  const getBackgroundClass = () => {
-    if (!labelType) return 'bg-gray-50';
-    
-    switch(labelType?.toLowerCase()) {
-      case 'premium': return 'bg-blue-50';
-      case 'rare': return 'bg-purple-50';
-      case 'limited': return 'bg-yellow-50';
-      default: return 'bg-gray-50';
-    }
-  };
-  
-  const backgroundClass = getBackgroundClass();
-  
-  // Event handlers
-  const handleToggleFavorite = async () => {
-    if (isUpdatingFavorite) return; // Prevent multiple clicks
-    
-    setIsUpdatingFavorite(true);
-    try {
-      if (isFavorite) {
-        await removeFavoritePokemon(id);
+    setOptimisticFavorite(isFavorite);
+  }, [isFavorite]);
+
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: () => toggleFavoritePokemon(id),
+    onMutate: async () => {
+      // Optimistically update UI
+      setOptimisticFavorite(!optimisticFavorite);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["favorites"]);
+
+      // Show appropriate message based on the action
+      if (!optimisticFavorite) {
+        // Note: this is the OLD state before toggle
         Swal.fire({
-          icon: 'success',
-          title: 'Removed from favorites',
-          text: `${title} has been removed from your favorites`,
-          timer: 2000,
-          showConfirmButton: false
-        });
-      } else {
-        await addFavoritePokemon(id);
-        Swal.fire({
-          icon: 'success',
-          title: 'Added to favorites',
+          icon: "success",
+          title: "Added to Favorites!",
           text: `${title} has been added to your favorites`,
           timer: 2000,
-          showConfirmButton: false
+          showConfirmButton: false,
+        });
+      } else {
+        Swal.fire({
+          icon: "success",
+          title: "Removed from Favorites",
+          text: `${title} has been removed from your favorites`,
+          timer: 2000,
+          showConfirmButton: false,
         });
       }
-      
-      const newFavoriteStatus = !isFavorite;
-      setIsFavorite(newFavoriteStatus);
-      
-      // If parent component provided a callback, call it
-      if (onFavoriteUpdate) {
-        onFavoriteUpdate(id, newFavoriteStatus);
-      }
-    } catch (error) {
-      console.error("Error updating favorite:", error);
+    },
+    onError: () => {
+      // Revert optimistic update on error
+      setOptimisticFavorite(!optimisticFavorite);
       Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: 'Could not update favorites. Please try again later.',
+        icon: "error",
+        title: "Error",
+        text: `Could not ${
+          optimisticFavorite ? "remove from" : "add to"
+        } favorites`,
+        confirmButtonColor: "#ef4444",
       });
-    } finally {
-      setIsUpdatingFavorite(false);
+    },
+  });
+
+  // Set background color based on card label type
+  const getBackgroundClass = () => {
+    if (!labelType) return "bg-gray-50";
+
+    switch (labelType?.toLowerCase()) {
+      case "premium":
+        return "bg-blue-50";
+      case "rare":
+        return "bg-purple-50";
+      case "limited":
+        return "bg-yellow-50";
+      default:
+        return "bg-gray-50";
     }
   };
-  
+
+  const backgroundClass = getBackgroundClass();
+
+  // Event handlers
+  const handleToggleFavorite = () => {
+    // Check if user is logged in
+    if (!user) {
+      Swal.fire({
+        icon: "warning",
+        title: "Login Required",
+        text: "Please log in to add items to your favorites",
+        showCancelButton: true,
+        confirmButtonText: "Go to Login",
+        confirmButtonColor: "#3b82f6",
+        cancelButtonText: "Cancel",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate("/signin?redirect=/pokemon", { replace: true });
+        }
+      });
+      return;
+    }
+
+    toggleFavoriteMutation.mutate();
+  };
+
   const handleAddToCart = () => {
     // Check if item is already in cart
-    const isInCart = cartItems.some(item => item.id === pokemon.id);
-    
+    const isInCart = cartItems.some((item) => item.id === pokemon.id);
+
     if (!isInCart) {
       setCartItems([...cartItems, pokemon]);
       Swal.fire({
-        icon: 'success',
-        title: 'Added to cart!',
+        icon: "success",
+        title: "Added to cart!",
         text: `${title} has been added to your cart`,
         timer: 2000,
-        showConfirmButton: false
+        showConfirmButton: false,
       });
     } else {
       Swal.fire({
-        icon: 'info',
-        title: 'Already in cart',
+        icon: "info",
+        title: "Already in cart",
         text: `${title} is already in your cart`,
         timer: 2000,
-        showConfirmButton: false
+        showConfirmButton: false,
       });
     }
   };
-  
+
   // Handle delete with confirmation
   const confirmAndDelete = () => {
     Swal.fire({
-      title: 'Are you sure?',
+      title: "Are you sure?",
       text: `Do you want to delete "${title}"?`,
-      icon: 'warning',
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!'
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
     }).then((result) => {
       if (result.isConfirmed) {
         handleDelete.mutate(id);
-        Swal.fire(
-          'Deleted!',
-          `${title} has been deleted.`,
-          'success'
-        );
+        Swal.fire("Deleted!", `${title} has been deleted.`, "success");
       }
     });
   };
 
   // Format price with commas for thousands
-  const formattedPrice = price ? price.toLocaleString() : 'N/A';
-  
+  const formattedPrice = price ? price.toLocaleString() : "N/A";
+
   // Format update date
-  const formattedDate = updatedAt ? new Date(updatedAt).toLocaleDateString() : 'N/A';
+  const formattedDate = updatedAt
+    ? new Date(updatedAt).toLocaleDateString()
+    : "N/A";
 
   // Is the card currently being deleted?
   const isDeleting = handleDelete?.isLoading && handleDelete?.variables === id;
@@ -144,19 +194,22 @@ const SingleCard = ({ pokemon, handleDelete, onFavoriteUpdate, initialFavorite =
         className={`rounded-xl shadow-md overflow-hidden transition-transform duration-300 hover:shadow-lg hover:-translate-y-1 ${backgroundClass} h-full flex flex-col`}
       >
         {/* Card image section with flip effect */}
-        <div 
+        <div
           className="relative p-4 flex justify-center"
           onMouseEnter={() => setIsFlipped(true)}
           onMouseLeave={() => setIsFlipped(false)}
         >
           {/* Card image container with 3D flip effect */}
-          <div className="relative h-60 w-full max-w-[240px] transition-all duration-500" style={{ transformStyle: 'preserve-3d' }}>
+          <div
+            className="relative h-60 w-full max-w-[240px] transition-all duration-500"
+            style={{ transformStyle: "preserve-3d" }}
+          >
             {/* Front image */}
-            <div 
+            <div
               className="absolute w-full h-full backface-hidden transition-all duration-500"
-              style={{ 
-                backfaceVisibility: 'hidden',
-                transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
+              style={{
+                backfaceVisibility: "hidden",
+                transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
               }}
             >
               <img
@@ -165,13 +218,13 @@ const SingleCard = ({ pokemon, handleDelete, onFavoriteUpdate, initialFavorite =
                 className="object-contain h-full w-full"
               />
             </div>
-            
+
             {/* Back image */}
-            <div 
+            <div
               className="absolute w-full h-full backface-hidden transition-all duration-500"
-              style={{ 
-                backfaceVisibility: 'hidden',
-                transform: isFlipped ? 'rotateY(0deg)' : 'rotateY(-180deg)'
+              style={{
+                backfaceVisibility: "hidden",
+                transform: isFlipped ? "rotateY(0deg)" : "rotateY(-180deg)",
               }}
             >
               <img
@@ -181,14 +234,14 @@ const SingleCard = ({ pokemon, handleDelete, onFavoriteUpdate, initialFavorite =
               />
             </div>
           </div>
-          
+
           {/* Background decoration */}
           <div className="absolute opacity-10 right-0 bottom-0">
             <svg viewBox="0 0 20 20" className="h-32 w-32 fill-current">
               <path d="M10 20a10 10 0 1 1 0-20 10 10 0 0 1 0 20zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM11 7a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 4a1 1 0 0 0-1 1v4a1 1 0 0 0 2 0v-4a1 1 0 0 0-1-1z" />
             </svg>
           </div>
-          
+
           {/* Edit and Delete buttons */}
           <div className="absolute top-2 left-2 flex space-x-2 z-10">
             <Link to={`/pokemonCardUpdate/${id}`} state={{ pokemon }}>
@@ -198,20 +251,26 @@ const SingleCard = ({ pokemon, handleDelete, onFavoriteUpdate, initialFavorite =
             </Link>
 
             {handleDelete && (
-              <button 
-                onClick={confirmAndDelete} 
+              <button
+                onClick={confirmAndDelete}
                 disabled={isDeleting}
-                className={`bg-white p-2 rounded-full shadow-md ${isDeleting ? 'bg-gray-200' : 'hover:bg-red-50'} transition-colors`}
+                className={`bg-white p-2 rounded-full shadow-md ${
+                  isDeleting ? "bg-gray-200" : "hover:bg-red-50"
+                } transition-colors`}
                 aria-label="Delete card"
               >
-                <Trash2 className={`w-4 h-4 ${isDeleting ? 'text-gray-400' : 'text-red-600'}`} />
+                <Trash2
+                  className={`w-4 h-4 ${
+                    isDeleting ? "text-gray-400" : "text-red-600"
+                  }`}
+                />
               </button>
             )}
           </div>
-          
+
           {/* Flip indicator text */}
           <div className="absolute bottom-0 text-xs text-center w-full text-gray-500">
-            {isFlipped ? 'Back of card' : 'Hover to see back'}
+            {isFlipped ? "Back of card" : "Hover to see back"}
           </div>
         </div>
 
@@ -219,14 +278,28 @@ const SingleCard = ({ pokemon, handleDelete, onFavoriteUpdate, initialFavorite =
         <div className="bg-white/50 p-4 rounded-t-2xl relative -mt-4 flex-grow flex flex-col">
           {/* Title and Grade Section */}
           <div className="flex justify-between items-center mb-2">
-            <h2 className="text-lg font-bold text-gray-800 capitalize truncate">{title}</h2>
-            <button 
-              onClick={handleToggleFavorite} 
-              disabled={isUpdatingFavorite}
-              className={`focus:outline-none ${isUpdatingFavorite ? 'opacity-50' : ''}`} 
-              aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            <h2 className="text-lg font-bold text-gray-800 capitalize truncate">
+              {title}
+            </h2>
+            <button
+              onClick={handleToggleFavorite}
+              disabled={toggleFavoriteMutation.isLoading}
+              className={`focus:outline-none ${
+                toggleFavoriteMutation.isLoading ? "opacity-50" : ""
+              }`}
+              aria-label={
+                optimisticFavorite
+                  ? "Remove from favorites"
+                  : "Add to favorites"
+              }
             >
-              <Heart className={`w-6 h-6 ${isFavorite ? "text-red-500 fill-red-500" : "text-gray-400"}`} />
+              <Heart
+                className={`w-6 h-6 ${
+                  optimisticFavorite
+                    ? "text-red-500 fill-red-500"
+                    : "text-gray-400"
+                }`}
+              />
             </button>
           </div>
 
@@ -236,24 +309,26 @@ const SingleCard = ({ pokemon, handleDelete, onFavoriteUpdate, initialFavorite =
           </p>
 
           {/* Card Description */}
-          <p className="text-sm text-gray-700 mb-4 line-clamp-2">{description}</p>
+          <p className="text-sm text-gray-700 mb-4 line-clamp-2">
+            {description}
+          </p>
 
           {/* Card Details Grid */}
           <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
             <div>
-              <span className="text-gray-600">Card #:</span> 
+              <span className="text-gray-600">Card #:</span>
               <span className="font-medium ml-1">{cardNumber}</span>
             </div>
             <div>
-              <span className="text-gray-600">Year:</span> 
+              <span className="text-gray-600">Year:</span>
               <span className="font-medium ml-1">{year}</span>
             </div>
             <div>
-              <span className="text-gray-600">Brand:</span> 
+              <span className="text-gray-600">Brand:</span>
               <span className="font-medium ml-1">{brand}</span>
             </div>
             <div>
-              <span className="text-gray-600">Sport:</span> 
+              <span className="text-gray-600">Sport:</span>
               <span className="font-medium ml-1">{sport}</span>
             </div>
           </div>
@@ -261,7 +336,9 @@ const SingleCard = ({ pokemon, handleDelete, onFavoriteUpdate, initialFavorite =
           {/* Price Section */}
           <div className="mt-auto">
             <div className="flex justify-between items-center mb-2">
-              <div className="font-bold text-xl text-green-700">${formattedPrice}</div>
+              <div className="font-bold text-xl text-green-700">
+                ${formattedPrice}
+              </div>
               <div className="text-xs text-gray-500">
                 Updated: {formattedDate}
               </div>
@@ -275,7 +352,7 @@ const SingleCard = ({ pokemon, handleDelete, onFavoriteUpdate, initialFavorite =
               <ShoppingCart className="w-4 h-4 mr-2" />
               Add to Cart
             </button>
-            
+
             {/* View Details Button */}
             <Link to={`/pokemon/${id}`} state={{ pokemon }} className="block">
               <button className="mt-2 w-full py-2 bg-white text-blue-600 border border-blue-600 font-medium rounded-md hover:bg-blue-50 transition-colors">

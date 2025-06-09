@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import Marquee from "react-fast-marquee";
-import { getAllPokemonData } from "../../../api/pokemondata";
-import PokemonCard from "../../Shared/Pokaemon/PokaemonCard";
 import { Link } from "react-router-dom";
+import { getAllPokemonData } from "../../../api/pokemondata";
+import PokemonCard from "../../Shared/Pokemon/PokemonCard";
 
 const PokemonCardsCollection = () => {
   const {
