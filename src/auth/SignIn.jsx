@@ -10,11 +10,12 @@ const SignIn = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get redirect URL from query params or state
   const getRedirectUrl = () => {
     const searchParams = new URLSearchParams(location.search);
     const redirectFromQuery = searchParams.get("redirect");
-    const redirectFromState = location.state?.from?.pathname;
+    const redirectFromState = location.state?.from; // Changed this line
+    console.log("Redirect from state:", redirectFromState);
+    console.log("Full location state:", location.state);
 
     return redirectFromQuery || redirectFromState || "/";
   };
