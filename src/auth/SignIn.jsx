@@ -13,9 +13,7 @@ const SignIn = () => {
   const getRedirectUrl = () => {
     const searchParams = new URLSearchParams(location.search);
     const redirectFromQuery = searchParams.get("redirect");
-    const redirectFromState = location.state?.from; // Changed this line
-    console.log("Redirect from state:", redirectFromState);
-    console.log("Full location state:", location.state);
+    const redirectFromState = location.state?.from;
 
     return redirectFromQuery || redirectFromState || "/";
   };

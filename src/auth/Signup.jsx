@@ -2,7 +2,7 @@
 "use client";
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { useAuth } from "../Context/AuthContext";
 
@@ -35,6 +35,18 @@ const SignUp = () => {
   });
   const [profilePicture, setProfilePicture] = useState(null);
 
+  const location = useLocation();
+
+  const getRedirectUrl = () => {
+    const searchParams = new URLSearchParams(location.search);
+    const redirectFromQuery = searchParams.get("redirect");
+    const redirectFromState = location.state?.from;
+
+    return redirectFromQuery || redirectFromState || "/";
+  };
+
+  const redirectUrl = getRedirectUrl();
+
   useEffect(() => {
     fetchCountries()
       .then(setCountries)
@@ -56,7 +68,7 @@ const SignUp = () => {
         title: "Account Created!",
         text: "Your GainCards account has been created successfully!",
         confirmButtonColor: "#ca8a04",
-      }).then(() => navigate("/"));
+      }).then(() => navigate(redirectUrl, { replace: true }));
     },
     onError: (err) => {
       const errorMessage = err.message || "Registration failed. Try again.";
