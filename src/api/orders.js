@@ -1,6 +1,5 @@
 import api from "../Hooks/axios";
 
-// Add a Pokémon to favorites
 // Payment API function
 export const placeOrder = async (orderData) => {
   try {
@@ -23,7 +22,6 @@ export const getMyOrders = async () => {
 };
 
 // get all orders for admin pannel
-
 
 export const getAllOrders = async () => {
   try {

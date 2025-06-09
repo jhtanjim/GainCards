@@ -43,7 +43,12 @@ const SignUp = () => {
 
   const mutation = useMutation({
     mutationFn: async (submitData) => {
-      return await signUp(submitData);
+      const result = await signUp(submitData);
+      // Check if signup was successful
+      if (!result.success) {
+        throw new Error(result.error || "Registration failed");
+      }
+      return result;
     },
     onSuccess: () => {
       Swal.fire({
@@ -54,8 +59,7 @@ const SignUp = () => {
       }).then(() => navigate("/"));
     },
     onError: (err) => {
-      const errorMessage =
-        err.response?.data?.message || "Registration failed. Try again.";
+      const errorMessage = err.message || "Registration failed. Try again.";
       Swal.fire({ icon: "error", title: "Error", text: errorMessage });
     },
     onSettled: () => {
@@ -170,7 +174,7 @@ const SignUp = () => {
             >
               <option value="">Select a country</option>
               {countries.map((country) => (
-                <option key={country.code} value={country.cca2}>
+                <option key={country.code} value={country.code}>
                   {country.name}
                 </option>
               ))}
@@ -189,7 +193,6 @@ const SignUp = () => {
               name="profilePicture"
               type="file"
               accept="image/*"
-              required
               onChange={handleFileChange}
               className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
             />

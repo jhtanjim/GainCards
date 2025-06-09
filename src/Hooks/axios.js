@@ -1,9 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://gaincards.com/api",
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
-  timeout: 10000, // Add timeout
 });
 
 // api.interceptors.response.use(
