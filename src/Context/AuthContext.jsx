@@ -10,6 +10,7 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [isInitialized, setIsInitialized] = useState(false);
+  const [shouldFetchProfile, setShouldFetchProfile] = useState(false);
   const queryClient = useQueryClient();
 
   // Query for user profile data
@@ -21,14 +22,15 @@ export const AuthProvider = ({ children }) => {
   } = useQuery({
     queryKey: ["user", "profile"],
     queryFn: myProfile,
-    enabled: isInitialized,
+    enabled: isInitialized && shouldFetchProfile,
     retry: false,
     staleTime: 5 * 60 * 1000,
     onError: (error) => {
       console.error("Error fetching user data:", error);
-      // If unauthorized, clear user data
+      // If unauthorized, stop trying to fetch profile
       if (error?.response?.status === 401) {
         queryClient.setQueryData(["user", "profile"], null);
+        setShouldFetchProfile(false);
       }
     },
     onSuccess: (userData) => {
@@ -41,6 +43,9 @@ export const AuthProvider = ({ children }) => {
     mutationFn: login,
     onSuccess: async (loginResponse) => {
       console.log("Login successful:", loginResponse);
+
+      // Enable profile fetching after successful login
+      setShouldFetchProfile(true);
 
       if (loginResponse.user) {
         queryClient.setQueryData(["user", "profile"], loginResponse.user);
@@ -59,6 +64,9 @@ export const AuthProvider = ({ children }) => {
     onSuccess: async (registerResponse) => {
       console.log("Registration successful:", registerResponse);
 
+      // Enable profile fetching after successful registration
+      setShouldFetchProfile(true);
+
       if (registerResponse.user) {
         queryClient.setQueryData(["user", "profile"], registerResponse.user);
       } else {
@@ -70,11 +78,13 @@ export const AuthProvider = ({ children }) => {
     },
   });
 
-  // Logout mutation - FIXED
+  // Logout mutation
   const logoutMutation = useMutation({
     mutationFn: logout,
     onSuccess: () => {
       console.log("Logout successful");
+      // Disable profile fetching after logout
+      setShouldFetchProfile(false);
       // Clear all user-related data
       queryClient.setQueryData(["user", "profile"], null);
       queryClient.removeQueries({ queryKey: ["user"] });
@@ -85,6 +95,8 @@ export const AuthProvider = ({ children }) => {
     },
     onError: (error) => {
       console.error("Error during logout:", error);
+      // Disable profile fetching even if logout fails
+      setShouldFetchProfile(false);
       // Clear user data locally even if API call fails
       queryClient.setQueryData(["user", "profile"], null);
       queryClient.removeQueries({ queryKey: ["user"] });
@@ -93,7 +105,7 @@ export const AuthProvider = ({ children }) => {
     },
   });
 
-  // Refresh token mutation - FIXED
+  // Refresh token mutation
   const refreshMutation = useMutation({
     mutationFn: refresh,
     onSuccess: async () => {
@@ -112,6 +124,8 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (!isInitialized) {
       setIsInitialized(true);
+      // Don't fetch profile on initialization
+      // Only fetch after explicit login/registration
     }
   }, [isInitialized]);
 
@@ -119,9 +133,10 @@ export const AuthProvider = ({ children }) => {
   const signIn = async (formData) => {
     try {
       console.log("Attempting login with:", formData);
-      await loginMutation.mutateAsync(formData);
-      return { success: true };
+      const result = await loginMutation.mutateAsync(formData);
+      return { success: true, data: result };
     } catch (error) {
+      console.error("SignIn error:", error);
       return {
         success: false,
         error:
@@ -132,9 +147,11 @@ export const AuthProvider = ({ children }) => {
 
   const signUp = async (userData) => {
     try {
-      await registerMutation.mutateAsync(userData);
-      return { success: true };
+      console.log("Attempting registration with:", userData);
+      const result = await registerMutation.mutateAsync(userData);
+      return { success: true, data: result };
     } catch (error) {
+      console.error("SignUp error:", error);
       return {
         success: false,
         error:
@@ -145,7 +162,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // FIXED signOut method
   const signOut = async () => {
     try {
       await logoutMutation.mutateAsync();
