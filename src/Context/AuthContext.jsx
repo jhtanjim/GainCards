@@ -1,7 +1,13 @@
 "use client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState } from "react";
-import { login, logout, refresh, register } from "../api/auth.js";
+import {
+  checkAuthStatus,
+  login,
+  logout,
+  refresh,
+  register,
+} from "../api/auth.js";
 import { myProfile } from "../api/profile";
 
 const AuthContext = createContext();
@@ -12,6 +18,39 @@ export const AuthProvider = ({ children }) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [shouldFetchProfile, setShouldFetchProfile] = useState(false);
   const queryClient = useQueryClient();
+
+  // Check auth status on initialization
+  const {
+    data: authStatus,
+    isLoading: authStatusLoading,
+    error: authStatusError,
+  } = useQuery({
+    queryKey: ["auth", "status"],
+    queryFn: checkAuthStatus,
+    enabled: isInitialized && !shouldFetchProfile,
+    retry: false,
+    refetchOnWindowFocus: false,
+    onSuccess: (data) => {
+      console.log("Auth status check successful:", data);
+      if (data.authenticated) {
+        setShouldFetchProfile(true);
+        // If we got user data from the auth check, set it
+        if (data.user) {
+          const userData = {
+            id: data.user.userId,
+            email: data.user.email,
+            // Add other user fields as needed
+          };
+          queryClient.setQueryData(["user", "profile"], userData);
+        }
+      }
+    },
+    onError: (error) => {
+      console.log("Auth status check failed:", error);
+      setShouldFetchProfile(false);
+      queryClient.setQueryData(["user", "profile"], null);
+    },
+  });
 
   // Query for user profile data
   const {
@@ -38,21 +77,6 @@ export const AuthProvider = ({ children }) => {
     },
   });
 
-  // Function to check if user has auth cookies
-  const checkAuthCookies = () => {
-    if (typeof document === "undefined") return false;
-
-    const cookies = document.cookie.split(";");
-    const hasAccessToken = cookies.some((cookie) =>
-      cookie.trim().startsWith("access_token=")
-    );
-    const hasRefreshToken = cookies.some((cookie) =>
-      cookie.trim().startsWith("refresh_token=")
-    );
-
-    return hasAccessToken || hasRefreshToken;
-  };
-
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: login,
@@ -67,6 +91,9 @@ export const AuthProvider = ({ children }) => {
       } else {
         await refetchUser();
       }
+
+      // Invalidate auth status to refresh it
+      queryClient.invalidateQueries(["auth", "status"]);
     },
     onError: (error) => {
       console.error("Login error:", error);
@@ -87,6 +114,9 @@ export const AuthProvider = ({ children }) => {
       } else {
         await refetchUser();
       }
+
+      // Invalidate auth status to refresh it
+      queryClient.invalidateQueries(["auth", "status"]);
     },
     onError: (error) => {
       console.error("Registration error:", error);
@@ -102,7 +132,9 @@ export const AuthProvider = ({ children }) => {
       setShouldFetchProfile(false);
       // Clear all user-related data
       queryClient.setQueryData(["user", "profile"], null);
+      queryClient.setQueryData(["auth", "status"], null);
       queryClient.removeQueries({ queryKey: ["user"] });
+      queryClient.removeQueries({ queryKey: ["auth"] });
       // Invalidate all queries to prevent stale data
       queryClient.invalidateQueries();
       // Clear the entire query cache for a clean slate
@@ -114,7 +146,9 @@ export const AuthProvider = ({ children }) => {
       setShouldFetchProfile(false);
       // Clear user data locally even if API call fails
       queryClient.setQueryData(["user", "profile"], null);
+      queryClient.setQueryData(["auth", "status"], null);
       queryClient.removeQueries({ queryKey: ["user"] });
+      queryClient.removeQueries({ queryKey: ["auth"] });
       queryClient.invalidateQueries();
       queryClient.clear();
     },
@@ -126,12 +160,16 @@ export const AuthProvider = ({ children }) => {
     onSuccess: async () => {
       console.log("Token refreshed successfully");
       await refetchUser();
+      // Invalidate auth status to refresh it
+      queryClient.invalidateQueries(["auth", "status"]);
     },
     onError: (error) => {
       console.error("Error refreshing token:", error);
       // If refresh fails, user should be logged out
       queryClient.setQueryData(["user", "profile"], null);
+      queryClient.setQueryData(["auth", "status"], null);
       queryClient.removeQueries({ queryKey: ["user"] });
+      queryClient.removeQueries({ queryKey: ["auth"] });
       setShouldFetchProfile(false);
     },
   });
@@ -140,17 +178,8 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (!isInitialized) {
       console.log("Initializing auth...");
-
-      // Check if user has auth cookies
-      const hasAuthCookies = checkAuthCookies();
-      console.log("Has auth cookies:", hasAuthCookies);
-
-      if (hasAuthCookies) {
-        // If cookies exist, enable profile fetching
-        setShouldFetchProfile(true);
-      }
-
       setIsInitialized(true);
+      // The auth status query will run automatically once isInitialized is true
     }
   }, [isInitialized]);
 
@@ -205,6 +234,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       // If refresh fails, clear user data
       queryClient.setQueryData(["user", "profile"], null);
+      queryClient.setQueryData(["auth", "status"], null);
       setShouldFetchProfile(false);
       return false;
     }
@@ -219,6 +249,7 @@ export const AuthProvider = ({ children }) => {
       // If fetch fails due to auth, clear user data
       if (error?.response?.status === 401) {
         queryClient.setQueryData(["user", "profile"], null);
+        queryClient.setQueryData(["auth", "status"], null);
         setShouldFetchProfile(false);
       }
       return null;
@@ -228,6 +259,7 @@ export const AuthProvider = ({ children }) => {
   // Combine loading states
   const loading =
     !isInitialized ||
+    authStatusLoading ||
     userLoading ||
     loginMutation.isLoading ||
     registerMutation.isLoading ||
@@ -251,6 +283,7 @@ export const AuthProvider = ({ children }) => {
     registerError: registerMutation.error,
     logoutError: logoutMutation.error,
     refreshError: refreshMutation.error,
+    authStatusError,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

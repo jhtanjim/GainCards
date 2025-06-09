@@ -20,3 +20,14 @@ export const logout = async () => {
   const res = await api.post("/auth/logout");
   return res.data;
 };
+
+// Add this new API function
+export const checkAuthStatus = async () => {
+  const response = await api.get("/auth/status");
+
+  if (!response.ok) {
+    throw new Error("Not authenticated");
+  }
+
+  return response.data;
+};
