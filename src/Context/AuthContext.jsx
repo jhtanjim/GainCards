@@ -38,6 +38,21 @@ export const AuthProvider = ({ children }) => {
     },
   });
 
+  // Function to check if user has auth cookies
+  const checkAuthCookies = () => {
+    if (typeof document === "undefined") return false;
+
+    const cookies = document.cookie.split(";");
+    const hasAccessToken = cookies.some((cookie) =>
+      cookie.trim().startsWith("access_token=")
+    );
+    const hasRefreshToken = cookies.some((cookie) =>
+      cookie.trim().startsWith("refresh_token=")
+    );
+
+    return hasAccessToken || hasRefreshToken;
+  };
+
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: login,
@@ -117,15 +132,25 @@ export const AuthProvider = ({ children }) => {
       // If refresh fails, user should be logged out
       queryClient.setQueryData(["user", "profile"], null);
       queryClient.removeQueries({ queryKey: ["user"] });
+      setShouldFetchProfile(false);
     },
   });
 
   // Initialize auth on mount
   useEffect(() => {
     if (!isInitialized) {
+      console.log("Initializing auth...");
+
+      // Check if user has auth cookies
+      const hasAuthCookies = checkAuthCookies();
+      console.log("Has auth cookies:", hasAuthCookies);
+
+      if (hasAuthCookies) {
+        // If cookies exist, enable profile fetching
+        setShouldFetchProfile(true);
+      }
+
       setIsInitialized(true);
-      // Don't fetch profile on initialization
-      // Only fetch after explicit login/registration
     }
   }, [isInitialized]);
 
@@ -180,6 +205,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       // If refresh fails, clear user data
       queryClient.setQueryData(["user", "profile"], null);
+      setShouldFetchProfile(false);
       return false;
     }
   };
@@ -193,6 +219,7 @@ export const AuthProvider = ({ children }) => {
       // If fetch fails due to auth, clear user data
       if (error?.response?.status === 401) {
         queryClient.setQueryData(["user", "profile"], null);
+        setShouldFetchProfile(false);
       }
       return null;
     }
