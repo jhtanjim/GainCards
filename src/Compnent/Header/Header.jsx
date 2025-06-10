@@ -10,7 +10,7 @@ import logoImg from "../../assets/logo/white.png";
 export default function Header() {
   const { cartItems } = useShop();
   const navigate = useNavigate();
-  const { user, signOut, loading, isLoggingOut } = useAuth();
+  const { user, signOut, loading, isLoggingOut, isAuthenticated } = useAuth();
 
   const [isMobile, setIsMobile] = useState(false);
 
@@ -61,7 +61,7 @@ export default function Header() {
       );
     }
 
-    if (user) {
+    if (isAuthenticated) {
       return (
         <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
           {/* Logout Button */}

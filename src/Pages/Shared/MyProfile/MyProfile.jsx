@@ -1,27 +1,26 @@
-import React from "react"
-import Swal from 'sweetalert2'
-import { useAuth } from "../../../Context/AuthContext"
+import Swal from "sweetalert2";
+import { useAuth } from "../../../Context/AuthContext";
 
 const MyProfile = () => {
-  const { user } = useAuth()
+  const { user, isAuthenticated } = useAuth();
 
-  if (!user) {
+  if (!isAuthenticated) {
     return (
       <div className="flex justify-center items-center h-screen text-purple-300 text-xl">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
         <span className="ml-4">Loading your profile...</span>
       </div>
-    )
+    );
   }
 
   const handleEditProfile = () => {
     Swal.fire({
-      icon: 'info',
-      title: 'Edit Profile',
-      text: 'Profile editing feature coming soon!',
-      confirmButtonColor: '#8b5cf6'
-    })
-  }
+      icon: "info",
+      title: "Edit Profile",
+      text: "Profile editing feature coming soon!",
+      confirmButtonColor: "#8b5cf6",
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-purple-950 flex items-center justify-center px-4 py-12">
@@ -34,13 +33,19 @@ const MyProfile = () => {
           />
           <h2 className="text-2xl font-bold mb-1">{user.username}</h2>
           <p className="text-purple-400">{user.email}</p>
-          <p className="text-sm mt-1 text-purple-500">Country: {user.country}</p>
+          <p className="text-sm mt-1 text-purple-500">
+            Country: {user.country}
+          </p>
           <div className="mt-4">
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-              user.role === 'ADMIN' ? 'bg-red-500 text-white' :
-              user.role === 'VENDOR' ? 'bg-purple-500 text-white' :
-              'bg-blue-500 text-white'
-            }`}>
+            <span
+              className={`px-3 py-1 rounded-full text-sm font-medium ${
+                user.role === "ADMIN"
+                  ? "bg-red-500 text-white"
+                  : user.role === "VENDOR"
+                  ? "bg-purple-500 text-white"
+                  : "bg-blue-500 text-white"
+              }`}
+            >
               {user.role}
             </span>
           </div>
@@ -48,7 +53,9 @@ const MyProfile = () => {
 
         <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <h3 className="text-lg font-semibold mb-4 text-purple-300">Account Details</h3>
+            <h3 className="text-lg font-semibold mb-4 text-purple-300">
+              Account Details
+            </h3>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-400">User ID:</span>
@@ -71,15 +78,37 @@ const MyProfile = () => {
 
           {user.address && (
             <div>
-              <h3 className="text-lg font-semibold mb-4 text-purple-300">Address Information</h3>
+              <h3 className="text-lg font-semibold mb-4 text-purple-300">
+                Address Information
+              </h3>
               <div className="space-y-2 text-sm">
-                <p><span className="text-gray-400">Name:</span> {user.address.name}</p>
-                <p><span className="text-gray-400">Address:</span> {user.address.line1}</p>
-                {user.address.line2 && <p className="ml-16">{user.address.line2}</p>}
-                <p><span className="text-gray-400">City:</span> {user.address.city}, {user.address.state}</p>
-                <p><span className="text-gray-400">Postal:</span> {user.address.postalCode}</p>
-                <p><span className="text-gray-400">Country:</span> {user.address.country}</p>
-                <p><span className="text-gray-400">Phone:</span> {user.address.phone}</p>
+                <p>
+                  <span className="text-gray-400">Name:</span>{" "}
+                  {user.address.name}
+                </p>
+                <p>
+                  <span className="text-gray-400">Address:</span>{" "}
+                  {user.address.line1}
+                </p>
+                {user.address.line2 && (
+                  <p className="ml-16">{user.address.line2}</p>
+                )}
+                <p>
+                  <span className="text-gray-400">City:</span>{" "}
+                  {user.address.city}, {user.address.state}
+                </p>
+                <p>
+                  <span className="text-gray-400">Postal:</span>{" "}
+                  {user.address.postalCode}
+                </p>
+                <p>
+                  <span className="text-gray-400">Country:</span>{" "}
+                  {user.address.country}
+                </p>
+                <p>
+                  <span className="text-gray-400">Phone:</span>{" "}
+                  {user.address.phone}
+                </p>
               </div>
             </div>
           )}
@@ -95,7 +124,7 @@ const MyProfile = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default MyProfile
+export default MyProfile;

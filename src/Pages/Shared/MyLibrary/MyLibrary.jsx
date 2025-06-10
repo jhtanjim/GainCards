@@ -8,7 +8,7 @@ import { useAuth } from "../../../Context/AuthContext";
 import PokemonCard from "../Pokemon/PokemonCard";
 
 const MyLibrary = () => {
-  const { user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   // Fetch favorite Pokemon data only if user is logged in
@@ -19,7 +19,7 @@ const MyLibrary = () => {
   } = useQuery({
     queryKey: ["favorites"],
     queryFn: getAllFavoritePokemon,
-    enabled: !!user,
+    enabled: !!isAuthenticated,
   });
 
   // Animation variants
@@ -47,7 +47,7 @@ const MyLibrary = () => {
   };
 
   // Not logged in state
-  if (!user) {
+  if (!isAuthenticated) {
     return (
       <motion.div
         initial={{ opacity: 0 }}

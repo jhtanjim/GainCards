@@ -13,7 +13,7 @@ import { useShop } from "../../../Context/ShopContext";
 const SingleCard = ({ pokemon, handleDelete }) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const { cartItems, setCartItems } = useShop();
-  const { user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -39,7 +39,7 @@ const SingleCard = ({ pokemon, handleDelete }) => {
   const { data: favorites = [] } = useQuery({
     queryKey: ["favorites"],
     queryFn: getAllFavoritePokemon,
-    enabled: !!user,
+    enabled: !!isAuthenticated,
   });
 
   // Check if current pokemon is in favorites
@@ -115,7 +115,7 @@ const SingleCard = ({ pokemon, handleDelete }) => {
   // Event handlers
   const handleToggleFavorite = () => {
     // Check if user is logged in
-    if (!user) {
+    if (!isAuthenticated) {
       Swal.fire({
         icon: "warning",
         title: "Login Required",

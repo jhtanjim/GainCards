@@ -29,15 +29,15 @@ const VendorRegistration = () => {
   const [loadingPayment, setLoadingPayment] = useState(false);
 
   // Get user from authentication context
-  const { user } = useAuth();
-  const userId = user?.id;
+  const { isAuthenticated } = useAuth();
+
   const navigate = useNavigate();
 
   // Query to get all subscription plans
   const { data: plans, isLoading } = useQuery({
     queryKey: ["subscription"],
     queryFn: getAllPlan,
-    enabled: !!userId, // Only run the query if userId exists
+    enabled: !!isAuthenticated, // Only run the query if userId exists
   });
 
   // Only sort plans when the data exists
@@ -45,12 +45,12 @@ const VendorRegistration = () => {
 
   // Effect to check authentication
   useEffect(() => {
-    if (!user) {
+    if (!isAuthenticated) {
       navigate(`/signin?redirect=${encodeURIComponent("/vendorSignup")}`, {
         replace: true,
       });
     }
-  }, [user, navigate]);
+  }, [isAuthenticated, navigate]);
 
   // Define the vendor registration mutation
   const registerVendorMutation = useMutation({

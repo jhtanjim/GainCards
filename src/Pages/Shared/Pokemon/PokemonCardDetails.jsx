@@ -27,7 +27,7 @@ const PokemonCardDetails = () => {
   const navigate = useNavigate();
   const [activeImage, setActiveImage] = useState("front");
   const { cartItems, setCartItems } = useShop();
-  const { user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
 
   const {
@@ -56,7 +56,7 @@ const PokemonCardDetails = () => {
   const { data: favorites = [] } = useQuery({
     queryKey: ["favorites"],
     queryFn: getAllFavoritePokemon,
-    enabled: !!user,
+    enabled: !!isAuthenticated,
   });
 
   // Check if current pokemon is in favorites
@@ -168,7 +168,7 @@ const PokemonCardDetails = () => {
 
   const handleAddToFavorites = () => {
     // Check if user is logged in
-    if (!user) {
+    if (!isAuthenticated) {
       Swal.fire({
         icon: "warning",
         title: "Login Required",

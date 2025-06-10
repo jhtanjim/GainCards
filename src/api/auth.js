@@ -25,7 +25,7 @@ export const logout = async () => {
 export const checkAuthStatus = async () => {
   const response = await api.get("/auth/status");
 
-  if (!response.ok) {
+  if (!response.ok && response.status !== 200) {
     throw new Error("Not authenticated");
   }
 

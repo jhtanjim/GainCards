@@ -14,7 +14,7 @@ import { useShop } from "../../../Context/ShopContext";
 const PokemonCard = ({ pokemon }) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const { addItem, isInCart } = useShop();
-  const { user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const {
@@ -42,7 +42,7 @@ const PokemonCard = ({ pokemon }) => {
   const { data: favorites = [] } = useQuery({
     queryKey: ["favorites"],
     queryFn: getAllFavoritePokemon,
-    enabled: !!user,
+    enabled: !!isAuthenticated,
   });
 
   // Check if current pokemon is in favorites
@@ -136,7 +136,7 @@ const PokemonCard = ({ pokemon }) => {
 
   const handleToggleFavorite = () => {
     // Check if user is logged in
-    if (!user) {
+    if (!isAuthenticated) {
       Swal.fire({
         icon: "warning",
         title: "Login Required",
@@ -294,7 +294,7 @@ const PokemonCard = ({ pokemon }) => {
                   : "Add to favorites"
               }
               title={
-                !user
+                !isAuthenticated
                   ? "Login to add favorites"
                   : optimisticFavorite
                   ? "Remove from favorites"
@@ -303,7 +303,7 @@ const PokemonCard = ({ pokemon }) => {
             >
               <Heart
                 className={`w-6 h-6 transition-colors ${
-                  optimisticFavorite && user
+                  optimisticFavorite && isAuthenticated
                     ? "text-red-500 fill-red-500"
                     : "text-gray-400 hover:text-red-300"
                 } ${toggleFavoriteMutation.isLoading ? "animate-pulse" : ""}`}

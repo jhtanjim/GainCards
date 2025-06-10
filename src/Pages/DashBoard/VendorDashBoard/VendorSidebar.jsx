@@ -1,51 +1,76 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Link, useLocation } from "react-router-dom"
-import { Home, Package, Upload, BarChart2, DollarSign, Settings, LogOut, HomeIcon, SubscriptIcon } from "lucide-react"
-import logo from "../../../assets/logo/logo.jpg"
-import { useAuth } from "../../../Context/AuthContext"
+import {
+  DollarSign,
+  Home,
+  HomeIcon,
+  LogOut,
+  Package,
+  Settings,
+  SubscriptIcon,
+  Upload,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import logo from "../../../assets/logo/logo.jpg";
+import { useAuth } from "../../../Context/AuthContext";
 
 const VendorSidebar = () => {
-  const { user } = useAuth()
-  const [expanded, setExpanded] = useState(true)
-  const [isMobile, setIsMobile] = useState(false)
-  const location = useLocation()
+  const { user } = useAuth();
+  const [expanded, setExpanded] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const location = useLocation();
 
   // Check if device is mobile
   useEffect(() => {
     const checkIfMobile = () => {
-      const mobile = window.innerWidth < 768
-      setIsMobile(mobile)
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
       if (mobile) {
-        setExpanded(false)
+        setExpanded(false);
       }
-    }
+    };
 
     // Initial check
-    checkIfMobile()
+    checkIfMobile();
 
     // Add event listener for window resize
-    window.addEventListener("resize", checkIfMobile)
+    window.addEventListener("resize", checkIfMobile);
 
     // Cleanup
-    return () => window.removeEventListener("resize", checkIfMobile)
-  }, [])
+    return () => window.removeEventListener("resize", checkIfMobile);
+  }, []);
 
   const toggleSidebar = () => {
-    setExpanded(!expanded)
-  }
+    setExpanded(!expanded);
+  };
 
   const navItems = [
     { name: "Dashboard", icon: <Home size={20} />, path: "/vendor" },
-    { name: "My Products", icon: <Package size={20} />, path: "/vendor/products" },
+    {
+      name: "My Products",
+      icon: <Package size={20} />,
+      path: "/vendor/products",
+    },
     { name: "Upload Card", icon: <Upload size={20} />, path: "/vendor/upload" },
     { name: "Orders", icon: <Package size={20} />, path: "/vendor/orders" },
     // { name: "Analytics", icon: <BarChart2 size={20} />, path: "/vendor/analytics" },
-    { name: "Earnings", icon: <DollarSign size={20} />, path: "/vendor/earnings" },
-    { name: "Settings", icon: <Settings size={20} />, path: "/vendor/settings" },
-    { name: "Subscription", icon: <SubscriptIcon size={20} />, path: "/vendor/vendorSubsCription" },
-  ]
+    {
+      name: "Earnings",
+      icon: <DollarSign size={20} />,
+      path: "/vendor/earnings",
+    },
+    {
+      name: "Settings",
+      icon: <Settings size={20} />,
+      path: "/vendor/settings",
+    },
+    {
+      name: "Subscription",
+      icon: <SubscriptIcon size={20} />,
+      path: "/vendor/vendorSubsCription",
+    },
+  ];
 
   return (
     <div
@@ -55,17 +80,30 @@ const VendorSidebar = () => {
     >
       {/* Toggle button for mobile */}
       {isMobile && (
-        <button onClick={toggleSidebar} className="absolute -right-3 top-5 bg-[#1a2639] rounded-full p-1 text-white">
+        <button
+          onClick={toggleSidebar}
+          className="absolute -right-3 top-5 bg-[#1a2639] rounded-full p-1 text-white"
+        >
           {expanded ? "←" : "→"}
         </button>
       )}
 
       {/* Logo */}
-      <div className={`p-6 flex items-center ${expanded ? "gap-2" : "justify-center"}`}>
+      <div
+        className={`p-6 flex items-center ${
+          expanded ? "gap-2" : "justify-center"
+        }`}
+      >
         <div className="bg-[#1a2639] p-2 rounded-lg flex-shrink-0 w-10 h-10 flex items-center justify-center overflow-hidden">
-          <img src={logo || "/placeholder.svg"} alt="PLAY Logo" className="w-full h-full object-cover" />
+          <img
+            src={logo || "/placeholder.svg"}
+            alt="PLAY Logo"
+            className="w-full h-full object-cover"
+          />
         </div>
-        {expanded && <h1 className="text-2xl font-bold">Vendor</h1>}
+        {expanded && (
+          <h1 className="text-2xl font-bold">Vendor {user.username}</h1>
+        )}
       </div>
 
       {/* Navigation */}
@@ -78,7 +116,9 @@ const VendorSidebar = () => {
                 className={`flex items-center ${
                   expanded ? "justify-start gap-3 px-4" : "justify-center"
                 } py-3 rounded-lg hover:bg-[#1a2639] transition-colors ${
-                  location.pathname === item.path ? "bg-[#1a2639] font-medium" : ""
+                  location.pathname === item.path
+                    ? "bg-[#1a2639] font-medium"
+                    : ""
                 }`}
               >
                 {item.icon}
@@ -98,7 +138,7 @@ const VendorSidebar = () => {
           } py-3 rounded-lg hover:bg-[#1a2639] transition-colors text-blue-400`}
         >
           <HomeIcon size={20} />
-       Back to Home
+          Back to Home
         </Link>
       </div>
       <div className="px-4 py-4 border-t border-[#1a2639]">
@@ -113,7 +153,7 @@ const VendorSidebar = () => {
         </Link>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default VendorSidebar
+export default VendorSidebar;

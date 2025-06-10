@@ -14,11 +14,11 @@ function SidebarLink({
   name,
   icon,
   requiresAuth = false,
-  user,
+  isAuthenticated,
   navigate,
 }) {
   const handleClick = (e) => {
-    if (requiresAuth && !user) {
+    if (requiresAuth && !isAuthenticated) {
       e.preventDefault();
 
       Swal.fire({
@@ -72,8 +72,8 @@ const PokemonBall = ({ size = 24, ...props }) => (
 );
 
 const Sidebar = () => {
-  const { isAdmin, isVendor, isLoading } = useUserRole();
-  const { user } = useAuth();
+  const { isAdmin, isVendor } = useUserRole();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -145,7 +145,7 @@ const Sidebar = () => {
             link={"/"}
             name={"Home"}
             icon={<Home size={20} />}
-            user={user}
+            isAuthenticated={isAuthenticated}
             navigate={navigate}
           />
           <SidebarLink
@@ -154,7 +154,7 @@ const Sidebar = () => {
             link={"/pokemon"}
             name={"Pokemon Cards"}
             icon={<PokemonBall size={20} />}
-            user={user}
+            isAuthenticated={isAuthenticated}
             navigate={navigate}
           />
           <SidebarLink
@@ -163,7 +163,7 @@ const Sidebar = () => {
             link={"/myLibrary"}
             name={"My Library"}
             icon={<Heart size={20} />}
-            user={user}
+            isAuthenticated={isAuthenticated}
             navigate={navigate}
           />
           <SidebarLink
@@ -172,7 +172,7 @@ const Sidebar = () => {
             link={"/myBag"}
             name={"My Bag"}
             icon={<ShoppingBag size={20} />}
-            user={user}
+            isAuthenticated={isAuthenticated}
             navigate={navigate}
           />
 
@@ -183,18 +183,18 @@ const Sidebar = () => {
             name={" Donate"}
             icon={<Gift size={20} />}
             requiresAuth={true}
-            user={user}
+            isAuthenticated={isAuthenticated}
             navigate={navigate}
           />
 
-          {user && (
+          {isAuthenticated && (
             <SidebarLink
               expanded={expanded}
               isMobile={isMobile}
               link={"/myOrders"}
               name={" My Orders"}
               icon={<Package size={20} />}
-              user={user}
+              isAuthenticated={isAuthenticated}
               navigate={navigate}
             />
           )}
@@ -207,7 +207,7 @@ const Sidebar = () => {
                 link="/admin"
                 name="Admin Dashboard"
                 icon={<User size={20} />}
-                user={user}
+                isAuthenticated={isAuthenticated}
                 navigate={navigate}
               />
             )}
@@ -219,7 +219,7 @@ const Sidebar = () => {
                 link="/vendor"
                 name="Vendor Dashboard"
                 icon={<User size={20} />}
-                user={user}
+                isAuthenticated={isAuthenticated}
                 navigate={navigate}
               />
             )}

@@ -17,7 +17,7 @@ import { placeOrder } from "../../../api/orders";
 
 const CartPage = () => {
   const { cartItems: shopCart, removeItem } = useShop();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
@@ -65,7 +65,7 @@ const CartPage = () => {
 
   // Handle checkout process
   const handleCheckout = async () => {
-    if (!user) {
+    if (!isAuthenticated) {
       // Redirect to login if not logged in
       navigate("/signin?redirect=/myBag");
       return;
@@ -121,7 +121,7 @@ const CartPage = () => {
 
   // Show address form if user is not logged in or doesn't have an address
   useEffect(() => {
-    if (user && !user.address) {
+    if (isAuthenticated && !user.address) {
       setShowAddressForm(true);
     }
   }, [user]);
@@ -217,7 +217,7 @@ const CartPage = () => {
               </div>
 
               {/* Shipping options for this vendor */}
-              {user && user.address && !showAddressForm && (
+              {isAuthenticated && user.address && !showAddressForm && (
                 <div className="p-4 bg-gray-50 border-t border-gray-200">
                   <div className="flex items-center mb-2">
                     <Truck size={18} className="text-gray-600 mr-2" />
@@ -367,7 +367,7 @@ const CartPage = () => {
                 </div>
               </div>
 
-              {user ? (
+              {isAuthenticated ? (
                 <div>
                   {user.address && (
                     <div className="mb-4 p-3 bg-gray-50 rounded-md border border-gray-200">

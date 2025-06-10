@@ -1,42 +1,41 @@
 import {
   CreditCard,
   Gift,
-  Loader2,
   Heart,
-  User,
+  Loader2,
   MapPin,
   MessageSquare,
   Truck,
+  User,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
 import { ErrorBoundary } from "../../../../../error-boundary";
+import { placeOrder } from "../../../../api/orders";
+import AddressForm from "../../../../Compnent/Vendor/AddressForm";
 import { useAuth } from "../../../../Context/AuthContext";
 import useAddressForm from "../../../../Hooks/useAddressForm";
 import useShippingRates from "../../../../Hooks/useShippingRates";
-import { placeOrder } from "../../../../api/orders";
-import AddressForm from "../../../../Compnent/Vendor/AddressForm";
-
 
 const DonateCardReceiver = () => {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [donationCard, setDonationCard] = useState(null);
   const [donationForm, setDonationForm] = useState({
-    username: '',
-    reason: ''
+    username: "",
+    reason: "",
   });
 
   // Get donation card from sessionStorage
   useEffect(() => {
-    const storedCard = sessionStorage.getItem('donationCard');
+    const storedCard = sessionStorage.getItem("donationCard");
     if (storedCard) {
       setDonationCard(JSON.parse(storedCard));
     } else {
       // Redirect back if no donation card found
-      navigate('/');
+      navigate("/");
     }
   }, [navigate]);
 
@@ -52,7 +51,7 @@ const DonateCardReceiver = () => {
 
   // Get shipping rates for donation card
   const productIds = donationCard ? [donationCard.id] : [];
-  
+
   const {
     shippingRates,
     selectedRates,
@@ -69,22 +68,24 @@ const DonateCardReceiver = () => {
 
   // Handle form input changes
   const handleFormChange = (field, value) => {
-    setDonationForm(prev => ({
+    setDonationForm((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   // Validate form
   const isFormValid = () => {
-    return donationForm.username.trim() !== '' && 
-           donationForm.reason.trim() !== '' &&
-           donationForm.reason.trim().length >= 20;
+    return (
+      donationForm.username.trim() !== "" &&
+      donationForm.reason.trim() !== "" &&
+      donationForm.reason.trim().length >= 20
+    );
   };
 
   // Handle donation request checkout
   const handleDonationCheckout = async () => {
-    if (!user) {
+    if (!isAuthenticated) {
       navigate("/signin?redirect=/donateCardReceiver");
       return;
     }
@@ -96,20 +97,20 @@ const DonateCardReceiver = () => {
 
     if (!isFormValid()) {
       Swal.fire({
-        icon: 'warning',
-        title: 'Incomplete Form',
-        text: 'Please fill in all required fields. Reason must be at least 20 characters.',
-        confirmButtonColor: '#ef4444'
+        icon: "warning",
+        title: "Incomplete Form",
+        text: "Please fill in all required fields. Reason must be at least 20 characters.",
+        confirmButtonColor: "#ef4444",
       });
       return;
     }
 
     if (!donationCard) {
       Swal.fire({
-        icon: 'error',
-        title: 'No Card Selected',
-        text: 'No donation card found. Please select a card first.',
-        confirmButtonColor: '#ef4444'
+        icon: "error",
+        title: "No Card Selected",
+        text: "No donation card found. Please select a card first.",
+        confirmButtonColor: "#ef4444",
       });
       return;
     }
@@ -123,48 +124,52 @@ const DonateCardReceiver = () => {
 
       if (!shippingRate) {
         Swal.fire({
-          icon: 'warning',
-          title: 'Select Shipping',
-          text: 'Please select a shipping option.',
-          confirmButtonColor: '#ef4444'
+          icon: "warning",
+          title: "Select Shipping",
+          text: "Please select a shipping option.",
+          confirmButtonColor: "#ef4444",
         });
         return;
       }
 
       // Prepare donation order data
-      const orderData = [{
-        vendorId: donationCard.vendorId,
-        items: [donationCard.id],
-        isDonation: true,
-        donationDetails: {
-          username: donationForm.username.trim(),
-          reason: donationForm.reason.trim(),
-          requestedAt: new Date().toISOString()
+      const orderData = [
+        {
+          vendorId: donationCard.vendorId,
+          items: [donationCard.id],
+          isDonation: true,
+          donationDetails: {
+            username: donationForm.username.trim(),
+            reason: donationForm.reason.trim(),
+            requestedAt: new Date().toISOString(),
+          },
+          shipping: {
+            rateId: shippingRate.objectId,
+            amount: parseFloat(shippingRate.amount),
+            provider: shippingRate.provider,
+            service: shippingRate.servicelevel?.name || "Standard",
+            estimatedDays: shippingRate.estimatedDays || null,
+          },
         },
-        shipping: {
-          rateId: shippingRate.objectId,
-          amount: parseFloat(shippingRate.amount),
-          provider: shippingRate.provider,
-          service: shippingRate.servicelevel?.name || "Standard",
-          estimatedDays: shippingRate.estimatedDays || null,
-        }
-      }];
+      ];
 
       const data = await placeOrder(orderData);
       const { paymentIntent } = data;
 
       // Clear the donation card from session storage
-      sessionStorage.removeItem('donationCard');
+      sessionStorage.removeItem("donationCard");
 
       // Navigate to payment (user only pays for shipping)
-      navigate(`/checkout?client_secret=${paymentIntent.clientSecret}&donation=true`);
+      navigate(
+        `/checkout?client_secret=${paymentIntent.clientSecret}&donation=true`
+      );
     } catch (error) {
       console.error("Error creating donation request:", error);
       Swal.fire({
-        icon: 'error',
-        title: 'Request Failed',
-        text: 'Something went wrong. Please try again.',
-        confirmButtonColor: '#ef4444'
+        icon: "error",
+        title: "Request Failed",
+        text: "Something went wrong. Please try again.",
+        confirmButtonColor: "#ef4444",
       });
     } finally {
       setIsProcessingPayment(false);
@@ -173,7 +178,7 @@ const DonateCardReceiver = () => {
 
   // Show address form if user is not logged in or doesn't have an address
   useEffect(() => {
-    if (user && !user.address) {
+    if (isAuthenticated && !user.address) {
       setShowAddressForm(true);
     }
   }, [user]);
@@ -203,7 +208,7 @@ const DonateCardReceiver = () => {
   return (
     <div className="mx-auto max-w-6xl p-4 mt-8">
       <h1 className="text-3xl font-bold text-gray-900 mb-8 flex items-center">
-        <Gift className="mr-2 text-pink-500" size={28} /> 
+        <Gift className="mr-2 text-pink-500" size={28} />
         Request Donation Card
       </h1>
 
@@ -239,10 +244,11 @@ const DonateCardReceiver = () => {
                   {donationCard.player} - {donationCard.brand}
                 </h4>
                 <p className="text-sm text-gray-600">
-                  Card #{donationCard.cardNumber} • {donationCard.grade || 'Ungraded'}
+                  Card #{donationCard.cardNumber} •{" "}
+                  {donationCard.grade || "Ungraded"}
                 </p>
                 <p className="text-sm text-gray-500 mt-1">
-                  {donationCard.certificationNumber || 'No certification'}
+                  {donationCard.certificationNumber || "No certification"}
                 </p>
                 <div className="mt-2">
                   <span className="bg-pink-100 text-pink-800 px-2 py-1 rounded text-xs font-medium">
@@ -258,7 +264,7 @@ const DonateCardReceiver = () => {
             </div>
 
             {/* Shipping options */}
-            {user && user.address && !showAddressForm && (
+            {isAuthenticated && user.address && !showAddressForm && (
               <div className="p-4 bg-gray-50 border-t border-gray-200">
                 <div className="flex items-center mb-2">
                   <Truck size={18} className="text-gray-600 mr-2" />
@@ -302,14 +308,16 @@ const DonateCardReceiver = () => {
                               ? "border-pink-500 bg-pink-50"
                               : "border-gray-200 hover:bg-gray-100"
                           }`}
-                          onClick={() => handleSelectRate(donationCard.vendorId, rate)}
+                          onClick={() =>
+                            handleSelectRate(donationCard.vendorId, rate)
+                          }
                         >
                           <div className="flex items-center">
                             <input
                               type="radio"
                               checked={
-                                selectedRates[donationCard.vendorId]?.objectId ===
-                                rate.objectId
+                                selectedRates[donationCard.vendorId]
+                                  ?.objectId === rate.objectId
                               }
                               onChange={() =>
                                 handleSelectRate(donationCard.vendorId, rate)
@@ -358,7 +366,10 @@ const DonateCardReceiver = () => {
 
             <div className="space-y-4">
               <div>
-                <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="username"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   <User size={16} className="inline mr-1" />
                   Your Name/Username *
                 </label>
@@ -366,7 +377,7 @@ const DonateCardReceiver = () => {
                   type="text"
                   id="username"
                   value={donationForm.username}
-                  onChange={(e) => handleFormChange('username', e.target.value)}
+                  onChange={(e) => handleFormChange("username", e.target.value)}
                   placeholder="Enter your name or username"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                   required
@@ -374,14 +385,17 @@ const DonateCardReceiver = () => {
               </div>
 
               <div>
-                <label htmlFor="reason" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="reason"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   <MessageSquare size={16} className="inline mr-1" />
                   Why do you need this card? *
                 </label>
                 <textarea
                   id="reason"
                   value={donationForm.reason}
-                  onChange={(e) => handleFormChange('reason', e.target.value)}
+                  onChange={(e) => handleFormChange("reason", e.target.value)}
                   placeholder="Please explain why you would like to receive this donation card. Tell us about your collection, your passion for the sport/player, or any special reason. (Minimum 20 characters)"
                   rows={4}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
@@ -454,11 +468,12 @@ const DonateCardReceiver = () => {
               <div className="mb-4 p-3 bg-pink-50 rounded-md border border-pink-200">
                 <p className="text-sm text-pink-700">
                   <Gift size={14} className="inline mr-1" />
-                  You're receiving this card as a donation! You only pay for shipping.
+                  You're receiving this card as a donation! You only pay for
+                  shipping.
                 </p>
               </div>
 
-              {user ? (
+              {isAuthenticated ? (
                 <div>
                   {user.address && (
                     <div className="mb-4 p-3 bg-gray-50 rounded-md border border-gray-200">
@@ -538,7 +553,9 @@ const DonateCardReceiver = () => {
                 </div>
               ) : (
                 <button
-                  onClick={() => navigate("/signin?redirect=/donateCardReceiver")}
+                  onClick={() =>
+                    navigate("/signin?redirect=/donateCardReceiver")
+                  }
                   className="w-full bg-pink-500 hover:bg-pink-600 text-white font-medium py-3 px-4 rounded-md transition-colors"
                 >
                   Sign In to Request

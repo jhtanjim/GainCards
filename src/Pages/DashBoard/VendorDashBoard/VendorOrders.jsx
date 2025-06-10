@@ -1,39 +1,40 @@
-"use client"
+"use client";
 
-import { useState, useContext } from "react"
-import { useQuery } from "@tanstack/react-query"
-import { Search, Filter, Eye, Package } from "lucide-react"
-import { getAllOrders } from "../../../api/orders"
-import { useAuth } from "../../../Context/AuthContext"
+import { useQuery } from "@tanstack/react-query";
+import { Eye, Filter, Package, Search } from "lucide-react";
+import { useState } from "react";
+import { getAllOrders } from "../../../api/orders";
+import { useAuth } from "../../../Context/AuthContext";
 
 // Example: Replace with your actual context/hook for getting logged-in user
 
 const VendorOrders = () => {
-  const { user } = useAuth()
-  const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("All")
+  const { user } = useAuth();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
 
   const { data: allOrders = [], isLoading } = useQuery({
     queryKey: ["orders"],
     queryFn: getAllOrders,
-  })
-console.log(allOrders)
+  });
 
-  const orders = allOrders.filter(order => order.vendorProfileId === user?.profileId)
+  const orders = allOrders.filter(
+    (order) => order.vendorProfileId === user?.profileId
+  );
 
   const filteredOrders = orders.filter((order) => {
-    const search = searchTerm.toLowerCase()
+    const search = searchTerm.toLowerCase();
     return (
       (order.id.toLowerCase().includes(search) ||
         order.paymentIntentId?.toLowerCase().includes(search)) &&
       (statusFilter === "All" || order.status === statusFilter)
-    )
-  })
+    );
+  });
 
   const updateOrderStatus = (id, newStatus) => {
-    console.log(`Update order ${id} to ${newStatus}`)
+    console.log(`Update order ${id} to ${newStatus}`);
     // Add mutation logic here
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -50,7 +51,10 @@ console.log(allOrders)
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+            <Search
+              className="absolute left-3 top-2.5 text-gray-400"
+              size={18}
+            />
           </div>
           <div className="flex items-center gap-2">
             <Filter size={18} className="text-gray-400" />
@@ -76,19 +80,35 @@ console.log(allOrders)
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Intent</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Order ID
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Payment Intent
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Created At
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Amount
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredOrders.map((order) => (
                 <tr key={order.id}>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{order.id}</td>
-                  <td className="px-6 py-4 text-sm text-gray-500">{order.paymentIntentId || "N/A"}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                    {order.id}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    {order.paymentIntentId || "N/A"}
+                  </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
                     {new Date(order.createdAt).toLocaleDateString()}
                   </td>
@@ -108,10 +128,15 @@ console.log(allOrders)
                       {order.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">${(order.totalAmount / 100).toFixed(2)}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    ${(order.totalAmount / 100).toFixed(2)}
+                  </td>
                   <td className="px-6 py-4 text-sm font-medium">
                     <div className="flex space-x-2">
-                      <button className="text-indigo-600 hover:text-indigo-900" title="View Details">
+                      <button
+                        className="text-indigo-600 hover:text-indigo-900"
+                        title="View Details"
+                      >
                         <Eye size={18} />
                       </button>
                       {order.status === "PROCESSING" && (
@@ -135,7 +160,7 @@ console.log(allOrders)
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default VendorOrders
+export default VendorOrders;

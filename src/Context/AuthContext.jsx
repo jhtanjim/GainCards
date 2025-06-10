@@ -16,43 +16,36 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [isInitialized, setIsInitialized] = useState(false);
-  const [shouldFetchProfile, setShouldFetchProfile] = useState(false);
   const queryClient = useQueryClient();
 
-  // Check auth status on initialization
+  // Check auth status on initialization - this should run first
   const {
     data: authStatus,
     isLoading: authStatusLoading,
     error: authStatusError,
+    isSuccess: authStatusSuccess,
+    isError: authStatusIsError,
   } = useQuery({
     queryKey: ["auth", "status"],
-    queryFn: checkAuthStatus,
-    enabled: isInitialized && !shouldFetchProfile,
-    retry: false,
-    refetchOnWindowFocus: false,
-    onSuccess: (data) => {
-      console.log("Auth status check successful:", data);
-      if (data.authenticated) {
-        setShouldFetchProfile(true);
-        // If we got user data from the auth check, set it
-        if (data.user) {
-          const userData = {
-            id: data.user.userId,
-            email: data.user.email,
-            // Add other user fields as needed
-          };
-          queryClient.setQueryData(["user", "profile"], userData);
-        }
+    queryFn: async () => {
+      try {
+        const result = await checkAuthStatus();
+        return result;
+      } catch (error) {
+        // Return a default object instead of throwing
+        return { authenticated: false, user: null };
       }
     },
-    onError: (error) => {
-      console.log("Auth status check failed:", error);
-      setShouldFetchProfile(false);
-      queryClient.setQueryData(["user", "profile"], null);
-    },
+    enabled: isInitialized, // Only run after initialization
+    retry: false, // Don't retry on auth failures
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+    staleTime: 0, // Always check on mount
+    // Provide a default value
+    placeholderData: { authenticated: false, user: null },
   });
 
-  // Query for user profile data
+  // Query for user profile data - only run if authenticated
   const {
     data: user,
     isLoading: userLoading,
@@ -60,20 +53,28 @@ export const AuthProvider = ({ children }) => {
     refetch: refetchUser,
   } = useQuery({
     queryKey: ["user", "profile"],
-    queryFn: myProfile,
-    enabled: isInitialized && shouldFetchProfile,
-    retry: false,
+    queryFn: async () => {
+      try {
+        const result = await myProfile();
+        return result;
+      } catch (error) {
+        throw error;
+      }
+    },
+    enabled: isInitialized && authStatus?.authenticated === true,
+    retry: (failureCount, error) => {
+      // Don't retry if it's a 401 (unauthorized)
+      if (error?.response?.status === 401) return false;
+      return failureCount < 1;
+    },
     staleTime: 5 * 60 * 1000,
     onError: (error) => {
       console.error("Error fetching user data:", error);
-      // If unauthorized, stop trying to fetch profile
+      // If unauthorized, clear the auth status
       if (error?.response?.status === 401) {
+        queryClient.setQueryData(["auth", "status"], { authenticated: false });
         queryClient.setQueryData(["user", "profile"], null);
-        setShouldFetchProfile(false);
       }
-    },
-    onSuccess: (userData) => {
-      console.log("User data fetched:", userData);
     },
   });
 
@@ -81,19 +82,18 @@ export const AuthProvider = ({ children }) => {
   const loginMutation = useMutation({
     mutationFn: login,
     onSuccess: async (loginResponse) => {
-      console.log("Login successful:", loginResponse);
-
-      // Enable profile fetching after successful login
-      setShouldFetchProfile(true);
+      // Update auth status immediately
+      queryClient.setQueryData(["auth", "status"], {
+        authenticated: true,
+        user: loginResponse.user,
+      });
 
       if (loginResponse.user) {
         queryClient.setQueryData(["user", "profile"], loginResponse.user);
       } else {
-        await refetchUser();
+        // Refetch user profile
+        queryClient.invalidateQueries(["user", "profile"]);
       }
-
-      // Invalidate auth status to refresh it
-      queryClient.invalidateQueries(["auth", "status"]);
     },
     onError: (error) => {
       console.error("Login error:", error);
@@ -104,19 +104,18 @@ export const AuthProvider = ({ children }) => {
   const registerMutation = useMutation({
     mutationFn: register,
     onSuccess: async (registerResponse) => {
-      console.log("Registration successful:", registerResponse);
-
-      // Enable profile fetching after successful registration
-      setShouldFetchProfile(true);
+      // Update auth status immediately
+      queryClient.setQueryData(["auth", "status"], {
+        authenticated: true,
+        user: registerResponse.user,
+      });
 
       if (registerResponse.user) {
         queryClient.setQueryData(["user", "profile"], registerResponse.user);
       } else {
-        await refetchUser();
+        // Refetch user profile
+        queryClient.invalidateQueries(["user", "profile"]);
       }
-
-      // Invalidate auth status to refresh it
-      queryClient.invalidateQueries(["auth", "status"]);
     },
     onError: (error) => {
       console.error("Registration error:", error);
@@ -127,30 +126,19 @@ export const AuthProvider = ({ children }) => {
   const logoutMutation = useMutation({
     mutationFn: logout,
     onSuccess: () => {
-      console.log("Logout successful");
-      // Disable profile fetching after logout
-      setShouldFetchProfile(false);
-      // Clear all user-related data
+      // Clear all auth-related data
+      queryClient.setQueryData(["auth", "status"], { authenticated: false });
       queryClient.setQueryData(["user", "profile"], null);
-      queryClient.setQueryData(["auth", "status"], null);
       queryClient.removeQueries({ queryKey: ["user"] });
-      queryClient.removeQueries({ queryKey: ["auth"] });
-      // Invalidate all queries to prevent stale data
-      queryClient.invalidateQueries();
-      // Clear the entire query cache for a clean slate
-      queryClient.clear();
+      // Don't clear all queries, just invalidate auth-related ones
+      queryClient.invalidateQueries({ queryKey: ["auth"] });
     },
     onError: (error) => {
       console.error("Error during logout:", error);
-      // Disable profile fetching even if logout fails
-      setShouldFetchProfile(false);
-      // Clear user data locally even if API call fails
+      // Clear local data even if logout API fails
+      queryClient.setQueryData(["auth", "status"], { authenticated: false });
       queryClient.setQueryData(["user", "profile"], null);
-      queryClient.setQueryData(["auth", "status"], null);
       queryClient.removeQueries({ queryKey: ["user"] });
-      queryClient.removeQueries({ queryKey: ["auth"] });
-      queryClient.invalidateQueries();
-      queryClient.clear();
     },
   });
 
@@ -158,35 +146,28 @@ export const AuthProvider = ({ children }) => {
   const refreshMutation = useMutation({
     mutationFn: refresh,
     onSuccess: async () => {
-      console.log("Token refreshed successfully");
-      await refetchUser();
-      // Invalidate auth status to refresh it
+      // Invalidate queries to refetch with new token
       queryClient.invalidateQueries(["auth", "status"]);
+      queryClient.invalidateQueries(["user", "profile"]);
     },
     onError: (error) => {
       console.error("Error refreshing token:", error);
       // If refresh fails, user should be logged out
+      queryClient.setQueryData(["auth", "status"], { authenticated: false });
       queryClient.setQueryData(["user", "profile"], null);
-      queryClient.setQueryData(["auth", "status"], null);
-      queryClient.removeQueries({ queryKey: ["user"] });
-      queryClient.removeQueries({ queryKey: ["auth"] });
-      setShouldFetchProfile(false);
     },
   });
 
   // Initialize auth on mount
   useEffect(() => {
     if (!isInitialized) {
-      console.log("Initializing auth...");
       setIsInitialized(true);
-      // The auth status query will run automatically once isInitialized is true
     }
-  }, [isInitialized]);
+  }, []);
 
   // Auth methods
   const signIn = async (formData) => {
     try {
-      console.log("Attempting login with:", formData);
       const result = await loginMutation.mutateAsync(formData);
       return { success: true, data: result };
     } catch (error) {
@@ -201,7 +182,6 @@ export const AuthProvider = ({ children }) => {
 
   const signUp = async (userData) => {
     try {
-      console.log("Attempting registration with:", userData);
       const result = await registerMutation.mutateAsync(userData);
       return { success: true, data: result };
     } catch (error) {
@@ -222,7 +202,6 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error("Logout API failed, but clearing local data:", error);
-      // Still clear local data even if API fails
       return { success: true, localOnly: true };
     }
   };
@@ -232,10 +211,8 @@ export const AuthProvider = ({ children }) => {
       await refreshMutation.mutateAsync();
       return true;
     } catch (error) {
-      // If refresh fails, clear user data
+      queryClient.setQueryData(["auth", "status"], { authenticated: false });
       queryClient.setQueryData(["user", "profile"], null);
-      queryClient.setQueryData(["auth", "status"], null);
-      setShouldFetchProfile(false);
       return false;
     }
   };
@@ -246,21 +223,22 @@ export const AuthProvider = ({ children }) => {
       return userData.data;
     } catch (error) {
       console.error("Error fetching user data:", error);
-      // If fetch fails due to auth, clear user data
       if (error?.response?.status === 401) {
+        queryClient.setQueryData(["auth", "status"], { authenticated: false });
         queryClient.setQueryData(["user", "profile"], null);
-        queryClient.setQueryData(["auth", "status"], null);
-        setShouldFetchProfile(false);
       }
       return null;
     }
   };
 
-  // Combine loading states
+  // Determine authentication state
+  const isAuthenticated = authStatus?.authenticated === true && !!user;
+
+  // Combine loading states - show loading until we have a definitive auth status
   const loading =
     !isInitialized ||
     authStatusLoading ||
-    userLoading ||
+    (authStatus?.authenticated === true && userLoading) ||
     loginMutation.isLoading ||
     registerMutation.isLoading ||
     refreshMutation.isLoading;
@@ -272,7 +250,7 @@ export const AuthProvider = ({ children }) => {
     signUp,
     signOut,
     refreshToken,
-    isAuthenticated: !!user,
+    isAuthenticated,
     fetchUserData,
     isLoggingIn: loginMutation.isLoading,
     isRegistering: registerMutation.isLoading,
@@ -284,6 +262,19 @@ export const AuthProvider = ({ children }) => {
     logoutError: logoutMutation.error,
     refreshError: refreshMutation.error,
     authStatusError,
+    // Add these for debugging
+    authStatus,
+    _debug: {
+      isInitialized,
+      authStatusLoading,
+      authStatusSuccess,
+      authStatusIsError,
+      authStatusError,
+      userLoading,
+      authStatus,
+      user,
+      userError,
+    },
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
