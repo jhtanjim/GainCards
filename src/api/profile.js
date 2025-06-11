@@ -6,6 +6,10 @@ export const myProfile = async () => {
 };
 
 export const createAddress = async (addressFormData) => {
-  const response = await api.post("/users/address/create", addressFormData);
+  const response = await api.post("/users/address", addressFormData);
+  return response.data;
+};
+export const updateAddress = async (addressFormData) => {
+  const response = await api.patch("/users/address", addressFormData);
   return response.data;
 };

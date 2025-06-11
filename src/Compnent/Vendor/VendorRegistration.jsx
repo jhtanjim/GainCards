@@ -4,8 +4,9 @@ import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { createAddress, updateAddress } from "../../api/profile";
 import { stripePromise } from "../../api/stripe";
-import { getAllPlan } from "../../api/subscription";
+import { getAllActivePlan } from "../../api/subscription";
 import { registerVendor } from "../../api/vendor";
 import { useAuth } from "../../Context/AuthContext";
 import AddressForm from "./AddressForm";
@@ -29,28 +30,76 @@ const VendorRegistration = () => {
   const [loadingPayment, setLoadingPayment] = useState(false);
 
   // Get user from authentication context
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   const navigate = useNavigate();
 
   // Query to get all subscription plans
   const { data: plans, isLoading } = useQuery({
-    queryKey: ["subscription"],
-    queryFn: getAllPlan,
+    queryKey: ["subscription-plans"],
+    queryFn: getAllActivePlan,
     enabled: !!isAuthenticated, // Only run the query if userId exists
   });
 
   // Only sort plans when the data exists
   const sortedPlans = plans ? [...plans].sort((a, b) => a.price - b.price) : [];
 
-  // Effect to check authentication
+  // Effect to check authentication and populate address if exists
   useEffect(() => {
     if (!isAuthenticated) {
       navigate(`/signin?redirect=${encodeURIComponent("/vendorSignup")}`, {
         replace: true,
       });
+    } else if (user?.address) {
+      // Pre-populate address form with existing address data
+      setAddressData({
+        name: user.address.name || "",
+        line1: user.address.line1 || "",
+        line2: user.address.line2 || "",
+        city: user.address.city || "",
+        state: user.address.state || "",
+        country: user.address.country || "",
+        postalCode: user.address.postalCode || "",
+        phone: user.address.phone || "",
+      });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, user]);
+
+  // Create address mutation
+  const createAddressMutation = useMutation({
+    mutationFn: createAddress,
+    onSuccess: (response) => {
+      console.log("Address created successfully:", response);
+      toast.success("Address saved successfully");
+      // Continue with vendor registration
+      proceedWithVendorRegistration();
+    },
+    onError: (error) => {
+      console.error("Error creating address:", error);
+      const errorMessage =
+        error.response?.data?.message || "Failed to save address";
+      toast.error(errorMessage);
+      setLoadingPayment(false);
+    },
+  });
+
+  // Update address mutation
+  const updateAddressMutation = useMutation({
+    mutationFn: (addressData) => updateAddress(addressData),
+    onSuccess: (response) => {
+      console.log("Address updated successfully:", response);
+      toast.success("Address updated successfully");
+      // Continue with vendor registration
+      proceedWithVendorRegistration();
+    },
+    onError: (error) => {
+      console.error("Error updating address:", error);
+      const errorMessage =
+        error.response?.data?.message || "Failed to update address";
+      toast.error(errorMessage);
+      setLoadingPayment(false);
+    },
+  });
 
   // Define the vendor registration mutation
   const registerVendorMutation = useMutation({
@@ -134,6 +183,17 @@ const VendorRegistration = () => {
     setCurrentStep("address");
   };
 
+  // Function to proceed with vendor registration after address is handled
+  const proceedWithVendorRegistration = () => {
+    console.log("Starting vendor registration with plan:", selectedPlan);
+
+    // Use the mutation with the selected plan
+    registerVendorMutation.mutate({
+      planId: selectedPlan.id,
+      address: addressData,
+    });
+  };
+
   const handleContinueToPayment = async () => {
     // Validate form
     const requiredFields = [
@@ -155,13 +215,21 @@ const VendorRegistration = () => {
     }
 
     setLoadingPayment(true);
-    console.log("Starting payment process with plan:", selectedPlan);
+    console.log("Processing address with data:", addressData);
 
-    // Use the mutation
-    registerVendorMutation.mutate({
-      planId: selectedPlan.id,
-      address: addressData,
-    });
+    // Check if user already has an address
+    if (user?.address) {
+      // Update existing address
+      console.log("Updating existing address with ID:", user.address.id);
+      updateAddressMutation.mutate({
+        addressId: user.address.id,
+        addressData: addressData,
+      });
+    } else {
+      // Create new address
+      console.log("Creating new address");
+      createAddressMutation.mutate(addressData);
+    }
   };
 
   const handleBackToPlans = () => {
@@ -291,6 +359,17 @@ const VendorRegistration = () => {
 
       {currentStep === "address" && (
         <div className="mx-auto max-w-2xl">
+          <div className="mb-4">
+            <h2 className="text-2xl font-semibold text-gray-800">
+              {user?.address ? "Update Your Address" : "Add Your Address"}
+            </h2>
+            <p className="text-gray-600">
+              {user?.address
+                ? "Update your existing address information"
+                : "Please provide your address information"}
+            </p>
+          </div>
+
           <AddressForm
             formData={addressData}
             setFormData={setAddressData}
@@ -300,11 +379,23 @@ const VendorRegistration = () => {
           <div className="mt-6 flex justify-end">
             <button
               onClick={handleContinueToPayment}
-              disabled={loadingPayment}
+              disabled={
+                loadingPayment ||
+                createAddressMutation.isPending ||
+                updateAddressMutation.isPending
+              }
               className="flex items-center rounded-md bg-purple-600 px-6 py-3 text-white transition-colors hover:bg-purple-700 disabled:bg-gray-400"
             >
-              {loadingPayment ? "Processing..." : "Continue to Payment"}
-              {!loadingPayment && <ArrowRight className="ml-2" size={16} />}
+              {loadingPayment ||
+              createAddressMutation.isPending ||
+              updateAddressMutation.isPending
+                ? "Processing..."
+                : "Continue to Payment"}
+              {!(
+                loadingPayment ||
+                createAddressMutation.isPending ||
+                updateAddressMutation.isPending
+              ) && <ArrowRight className="ml-2" size={16} />}
             </button>
           </div>
         </div>
