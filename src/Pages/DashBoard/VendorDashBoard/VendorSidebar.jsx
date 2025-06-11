@@ -143,7 +143,7 @@ const VendorSidebar = () => {
           Back to Home
         </Link>
       </div>
-      <div className="px-4 py-4 border-t border-[#1a2639]">
+      {/* <div className="px-4 py-4 border-t border-[#1a2639]">
         <Link
           to="/signin"
           className={`flex items-center ${
@@ -153,7 +153,7 @@ const VendorSidebar = () => {
           <LogOut size={20} />
           {expanded && <span>Logout</span>}
         </Link>
-      </div>
+      </div> */}
     </div>
   );
 };
