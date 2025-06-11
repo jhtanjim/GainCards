@@ -16,7 +16,7 @@ const VendorHeader = () => {
 
         <div className="flex items-center gap-6">
           {/* Search */}
-          <div className="relative hidden md:block">
+          {/* <div className="relative hidden md:block">
             <input
               type="text"
               placeholder="Search..."
@@ -26,15 +26,10 @@ const VendorHeader = () => {
               className="absolute left-3 top-2.5 text-gray-400"
               size={18}
             />
-          </div>
+          </div> */}
 
           {/* Notifications */}
-          <button className="relative p-2 rounded-full hover:bg-gray-100">
-            <Bell size={20} className="text-gray-600" />
-            <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-              3
-            </span>
-          </button>
+       
 
           {/* User */}
           <div className="flex items-center gap-2">

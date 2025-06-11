@@ -9,6 +9,7 @@ import {
   Settings,
   SubscriptIcon,
   Upload,
+  User,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -54,17 +55,18 @@ const VendorSidebar = () => {
     },
     { name: "Upload Card", icon: <Upload size={20} />, path: "/vendor/upload" },
     { name: "Orders", icon: <Package size={20} />, path: "/vendor/orders" },
+    { name: "Profile", icon: <User size={20} />, path: "/vendor/profile" },
     // { name: "Analytics", icon: <BarChart2 size={20} />, path: "/vendor/analytics" },
     {
       name: "Earnings",
       icon: <DollarSign size={20} />,
       path: "/vendor/earnings",
     },
-    {
-      name: "Settings",
-      icon: <Settings size={20} />,
-      path: "/vendor/settings",
-    },
+    // {
+    //   name: "Settings",
+    //   icon: <Settings size={20} />,
+    //   path: "/vendor/settings",
+    // },
     {
       name: "Subscription",
       icon: <SubscriptIcon size={20} />,

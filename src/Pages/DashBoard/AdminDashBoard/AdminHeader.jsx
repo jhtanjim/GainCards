@@ -1,7 +1,12 @@
 import React from 'react'
 import { Menu, Bell, User } from 'lucide-react'
+import { useAuth } from '../../../Context/AuthContext';
 
 const AdminHeader = ({ setSidebarOpen }) => {
+    const { user, isAuthenticated } = useAuth();
+    if (!isAuthenticated) {
+        return null; // or redirect to login page
+    } 
   return (
     <header className="bg-white shadow-sm z-10">
       <div className="px-4 sm:px-6 lg:px-8">
@@ -18,16 +23,14 @@ const AdminHeader = ({ setSidebarOpen }) => {
           </div>
           
           <div className="flex items-center gap-4">
-            <button className="p-1 rounded-full text-gray-400 hover:text-gray-500">
-              <Bell className="h-6 w-6" />
-            </button>
+           
             
             <div className="relative">
               <button className="flex items-center gap-2 text-sm focus:outline-none">
                 <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                  <User className="h-5 w-5 text-gray-500" />
+                  <img src={user.profilePicture} alt={user.username} className="h-5 w-5 text-gray-500" /> 
                 </div>
-                <span className="hidden md:block font-medium text-gray-700">Admin User</span>
+                <span className="hidden md:block font-medium text-gray-700">{user.username}</span>
               </button>
             </div>
           </div>

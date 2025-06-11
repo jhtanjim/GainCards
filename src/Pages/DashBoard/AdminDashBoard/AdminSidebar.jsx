@@ -1,27 +1,29 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, ShoppingCart, CreditCard, Users, Store, User, X, Menu, Home, ArrowBigLeft, Subscript } from 'lucide-react'
+import { LayoutDashboard, ShoppingCart, CreditCard, Users, Store, User, X, Menu, Home, ArrowBigLeft, Subscript, Upload } from 'lucide-react'
 
 const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const location = useLocation()
   
-  const navigation = [
-    { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-    { name: 'Order List', href: '/admin/orders', icon: ShoppingCart },
-    { name: 'Payment List', href: '/admin/payments', icon: CreditCard },
-    { name: 'manage Sybscription', href: '/admin/manageSubscription', icon: Subscript },
-    { 
-      name: 'Users', 
-      href: '/admin/users', 
-      icon: Users,
-      children: [
-        { name: 'All Users', href: '/admin/users' },
-        { name: 'Vendors', href: '/admin/users/vendors' },
-        { name: 'Normal Users', href: '/admin/users/normal' },
-      ]
-    },
-  ]
-  
+const navigation = [
+  { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+  { name: 'Order List', href: '/admin/orders', icon: ShoppingCart },
+  { name: 'Payment List', href: '/admin/payments', icon: CreditCard },
+  { name: 'manage Sybscription', href: '/admin/manageSubscription', icon: Subscript },
+  { name: 'Upload Card', href: '/admin/upload', icon: Upload }, // Fixed: removed JSX, just use the component
+  { 
+    name: 'Users', 
+    href: '/admin/users', 
+    icon: Users,
+    children: [
+      { name: 'All Users', href: '/admin/users' },
+      { name: 'Vendors', href: '/admin/users/vendors' },
+      { name: 'Normal Users', href: '/admin/users/normal' },
+    ]
+  },
+  { name: 'Profile', href: '/admin/profile', icon: User },
+  { name: 'Home', href: '/', icon: Home }, // Added Home link
+]
   const isActive = (path) => location.pathname === path
   
   return (
@@ -129,8 +131,7 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
               </nav>
             </div>
 
-<Link to={"/"} className='pb-20 ps-8 text-lg flex hover:text-blue-900 transition' ><ArrowBigLeft className='my-auto'/> <h2 >Back To Home</h2>
-</Link>          
+        
 
 
 </div>

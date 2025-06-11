@@ -126,6 +126,11 @@ export const router = createBrowserRouter([
         path: "/admin",
         element: <AdminDashBoard />,
       },
+
+       {
+        path: "/admin/profile",
+        element: <MyProfile />,
+      },
       {
         path: "/admin/orders",
         element: <OrderList />,
@@ -141,6 +146,10 @@ export const router = createBrowserRouter([
       {
         path: "/admin/users",
         element: <AllUsers />,
+      },
+      {
+        path: "/admin/upload",
+        element: <PokemonCardUpload />,
       },
       {
         path: "/admin/users/vendors",
@@ -162,6 +171,11 @@ export const router = createBrowserRouter([
       </VendorRoutes>
     ),
     children: [
+
+      {
+        path: "/vendor/profile",
+        element: <MyProfile />,
+      },
       {
         path: "/vendor",
         element: <VendorDashBoard />,
