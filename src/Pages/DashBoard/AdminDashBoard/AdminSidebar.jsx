@@ -1,30 +1,104 @@
 import React from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, ShoppingCart, CreditCard, Users, Store, User, X, Menu, Home, ArrowBigLeft, Subscript, Upload } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { LayoutDashboard, ShoppingCart, CreditCard, Users, Store, User, X, Menu, Home, ArrowBigLeft, Subscript, Upload, LogOut } from 'lucide-react'
+import { useAuth } from '../../../Context/AuthContext'
 
 const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const location = useLocation()
+  const navigate = useNavigate()
+  const { user, signOut, loading, isLoggingOut, isAuthenticated } = useAuth();
   
-const navigation = [
-  { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-  { name: 'Order List', href: '/admin/orders', icon: ShoppingCart },
-  { name: 'Payment List', href: '/admin/payments', icon: CreditCard },
-  { name: 'manage Sybscription', href: '/admin/manageSubscription', icon: Subscript },
-  { name: 'Upload Card', href: '/admin/upload', icon: Upload }, // Fixed: removed JSX, just use the component
-  { 
-    name: 'Users', 
-    href: '/admin/users', 
-    icon: Users,
-    children: [
-      { name: 'All Users', href: '/admin/users' },
-      { name: 'Vendors', href: '/admin/users/vendors' },
-      { name: 'Normal Users', href: '/admin/users/normal' },
-    ]
-  },
-  { name: 'Profile', href: '/admin/profile', icon: User },
-  { name: 'Home', href: '/', icon: Home }, // Added Home link
-]
+  // Handle logout function
+  const handleLogout = async () => {
+    try {
+      await signOut()
+      navigate('/', { replace: true })
+      // Close sidebar on mobile after logout
+      setSidebarOpen(false)
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
+  }
+
+  const navigation = [
+    { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+    { name: 'Order List', href: '/admin/orders', icon: ShoppingCart },
+    { name: 'Payment List', href: '/admin/payments', icon: CreditCard },
+    { name: 'Manage Subscription', href: '/admin/manageSubscription', icon: Subscript },
+    { name: 'Upload Card', href: '/admin/upload', icon: Upload },
+    { 
+      name: 'Users', 
+      href: '/admin/users', 
+      icon: Users,
+      children: [
+        { name: 'All Users', href: '/admin/users' },
+        { name: 'Vendors', href: '/admin/users/vendors' },
+        { name: 'Normal Users', href: '/admin/users/normal' },
+      ]
+    },
+    { name: 'Profile', href: '/admin/profile', icon: User },
+    { name: 'Back to Home', href: '/', icon: ArrowBigLeft }
+  ]
+
   const isActive = (path) => location.pathname === path
+  
+  const renderNavItem = (item, isMobile = false) => {
+    // Handle logout separately as it's not a regular link
+    if (item.name === 'Logout') {
+      return (
+        <button
+          key={item.name}
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+          className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg text-left ${
+            isLoggingOut 
+              ? 'text-gray-500 cursor-not-allowed' 
+              : 'text-gray-300 hover:bg-[#1a2639] hover:text-white'
+          }`}
+        >
+          <item.icon className="w-5 h-5 mr-3" />
+          {isLoggingOut ? 'Logging out...' : item.name}
+        </button>
+      )
+    }
+
+    // Regular navigation items
+    return (
+      <div key={item.name}>
+        <Link
+          to={item.href}
+          onClick={() => isMobile && setSidebarOpen(false)}
+          className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg ${
+            isActive(item.href) 
+              ? 'bg-[#1a2639] text-white' 
+              : 'text-gray-300 hover:bg-[#1a2639] hover:text-white'
+          }`}
+        >
+          <item.icon className="w-5 h-5 mr-3" />
+          {item.name}
+        </Link>
+        
+        {item.children && (
+          <div className="ml-8 mt-1 space-y-1">
+            {item.children.map((child) => (
+              <Link
+                key={child.name}
+                to={child.href}
+                onClick={() => isMobile && setSidebarOpen(false)}
+                className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg ${
+                  isActive(child.href) 
+                    ? 'bg-[#1a2639] text-white' 
+                    : 'text-gray-300 hover:bg-[#1a2639] hover:text-white'
+                }`}
+              >
+                {child.name}
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
   
   return (
     <>
@@ -47,39 +121,21 @@ const navigation = [
           
           <div className="flex-1 px-4 py-4 overflow-y-auto">
             <nav className="space-y-1">
-              {navigation.map((item) => (
-                <div key={item.name}>
-                  <Link
-                    to={item.href}
-                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg ${
-                      isActive(item.href) 
-                        ? 'bg-[#1a2639] text-white' 
-                        : 'text-gray-300 hover:bg-[#1a2639] hover:text-white'
-                    }`}
-                  >
-                    <item.icon className="w-5 h-5 mr-3" />
-                    {item.name}
-                  </Link>
-                  
-                  {item.children && (
-                    <div className="ml-8 mt-1 space-y-1">
-                      {item.children.map((child) => (
-                        <Link
-                          key={child.name}
-                          to={child.href}
-                          className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg ${
-                            isActive(child.href) 
-                              ? 'bg-[#1a2639] text-white' 
-                              : 'text-gray-300 hover:bg-[#1a2639] hover:text-white'
-                          }`}
-                        >
-                          {child.name}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+              {navigation.map((item) => renderNavItem(item, true))}
+              
+              {/* Logout button */}
+              <button
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg text-left ${
+                  isLoggingOut 
+                    ? 'text-gray-500 cursor-not-allowed' 
+                    : 'text-gray-300 hover:bg-[#1a2639] hover:text-white'
+                }`}
+              >
+                <LogOut className="w-5 h-5 mr-3" />
+                {isLoggingOut ? 'Logging out...' : 'Logout'}
+              </button>
             </nav>
           </div>
         </div>
@@ -95,46 +151,24 @@ const navigation = [
             
             <div className="flex-1 px-4 py-4 overflow-y-auto">
               <nav className="space-y-1">
-                {navigation.map((item) => (
-                  <div key={item.name}>
-                    <Link
-                      to={item.href}
-                      className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg ${
-                        isActive(item.href) 
-                          ? 'bg-[#1a2639] text-white' 
-                          : 'text-gray-300 hover:bg-[#1a2639] hover:text-white'
-                      }`}
-                    >
-                      <item.icon className="w-5 h-5 mr-3" />
-                      {item.name}
-                    </Link>
-                    
-                    {item.children && (
-                      <div className="ml-8 mt-1 space-y-1">
-                        {item.children.map((child) => (
-                          <Link
-                            key={child.name}
-                            to={child.href}
-                            className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg ${
-                              isActive(child.href) 
-                                ? 'bg-[#1a2639] text-white' 
-                                : 'text-gray-300 hover:bg-[#1a2639] hover:text-white'
-                            }`}
-                          >
-                            {child.name}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                {navigation.map((item) => renderNavItem(item, false))}
+                
+                {/* Logout button */}
+                <button
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg text-left ${
+                    isLoggingOut 
+                      ? 'text-gray-500 cursor-not-allowed' 
+                      : 'text-gray-300 hover:bg-[#1a2639] hover:text-white'
+                  }`}
+                >
+                  <LogOut className="w-5 h-5 mr-3" />
+                  {isLoggingOut ? 'Logging out...' : 'Logout'}
+                </button>
               </nav>
             </div>
-
-        
-
-
-</div>
+          </div>
         </div>
       </div>
     </>

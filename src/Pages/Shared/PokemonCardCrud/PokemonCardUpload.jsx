@@ -136,7 +136,11 @@ export default function PokemonCardUpload() {
               <textarea name="description" value={formData.description} onChange={handleInputChange} rows="3" className="input" required />
             </div>
 
-            <div>
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+
+
+             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
               <input type="number" name="price" value={formData.price} onChange={handleInputChange} className="input" min="0" step="0.01" required />
             </div>
@@ -145,6 +149,7 @@ export default function PokemonCardUpload() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
               <input type="number" name="year" value={formData.year} onChange={handleInputChange} className="input" required />
             </div>
+           </div>
           </div>
         </div>
 
