@@ -6,12 +6,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../Context/AuthContext";
 import { useShop } from "../../Context/ShopContext";
 import logoImg from "../../assets/logo/white.png";
+import useUserRole from "../../Hooks/useUserRole";
 
 export default function Header() {
   const { cartItems } = useShop();
   const navigate = useNavigate();
   const { user, signOut, loading, isLoggingOut, isAuthenticated } = useAuth();
-
+  const {  isVendor,isAdmin } = useUserRole();
+    
   const [isMobile, setIsMobile] = useState(false);
 
   // Responsive breakpoint detection
@@ -168,14 +170,15 @@ export default function Header() {
         {/* Right Section */}
         <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
           {/* Become a Vendor - Hidden on mobile */}
-          <Link to="/vendorSignup" className="hidden md:block">
-            <button className="flex items-center gap-2 px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg lg:rounded-xl bg-gradient-to-r from-purple-600/20 to-red-600/20 hover:from-purple-600/30 hover:to-red-600/30 text-white font-semibold transition-all duration-300 border border-purple-500/20 hover:border-purple-400/40 backdrop-blur-sm text-xs lg:text-sm">
-              <Zap size={14} />
-              <span className="hidden lg:inline">Become a Vendor</span>
-              <span className="lg:hidden">Vendor</span>
-            </button>
-          </Link>
-
+          {!isVendor && !isAdmin && (
+            <Link to="/vendorSignup" className="hidden md:block">
+              <button className="flex items-center gap-2 px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg lg:rounded-xl bg-gradient-to-r from-purple-600/20 to-red-600/20 hover:from-purple-600/30 hover:to-red-600/30 text-white font-semibold transition-all duration-300 border border-purple-500/20 hover:border-purple-400/40 backdrop-blur-sm text-xs lg:text-sm">
+                <Zap size={14} />
+                <span className="hidden lg:inline">Become a Vendor</span>
+                <span className="lg:hidden">Vendor</span>
+              </button>
+            </Link>
+          )}
           {/* Favorites */}
           <Link to="/mylibrary">
             <button className="relative p-2 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-gray-800/50 to-purple-900/30 hover:from-gray-700/50 hover:to-purple-800/40 transition-all duration-300 border border-purple-500/20 hover:border-purple-400/40 backdrop-blur-sm group">

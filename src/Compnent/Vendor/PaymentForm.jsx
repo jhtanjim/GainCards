@@ -4,7 +4,7 @@ import {
   useStripe,
 } from "@stripe/react-stripe-js";
 import { useState } from "react";
-import toast from "react-hot-toast";
+import Swal from "sweetalert2";
 
 // eslint-disable-next-line no-unused-vars
 const PaymentForm = ({ clientSecret, onSuccess }) => {
@@ -30,10 +30,19 @@ const PaymentForm = ({ clientSecret, onSuccess }) => {
     });
 
     if (result.error) {
-      toast.error(result.error.message);
+      Swal.fire({
+        icon: "error",
+        title: "Payment Failed",
+        text: result.error.message || "Something went wrong!",
+      });
     } else {
-      toast.success("Payment successful!");
-      onSuccess();
+      Swal.fire({
+        icon: "success",
+        title: "Payment Successful!",
+        text: "Thank you for your payment.",
+      }).then(() => {
+        onSuccess(); // Call success callback after the alert is closed
+      });
     }
 
     setIsProcessing(false);

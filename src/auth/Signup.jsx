@@ -198,7 +198,7 @@ const SignUp = () => {
               htmlFor="profilePicture"
               className="block text-sm font-medium text-gray-700"
             >
-              Profile Picture (Optional)
+              Profile Picture 
             </label>
             <input
               id="profilePicture"

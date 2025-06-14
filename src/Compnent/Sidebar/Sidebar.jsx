@@ -73,6 +73,7 @@ const PokemonBall = ({ size = 24, ...props }) => (
 
 const Sidebar = () => {
   const { isAdmin, isVendor } = useUserRole();
+  
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);

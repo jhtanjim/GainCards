@@ -26,11 +26,12 @@ const VendorRegistration = () => {
     postalCode: "",
     phone: "",
   });
+
   const [clientSecret, setClientSecret] = useState("");
   const [loadingPayment, setLoadingPayment] = useState(false);
 
   // Get user from authentication context
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, fetchUserData } = useAuth();
 
   const navigate = useNavigate();
 
@@ -236,10 +237,22 @@ const VendorRegistration = () => {
     setCurrentStep("plans");
   };
 
-  const handlePaymentSuccess = () => {
+  const handlePaymentSuccess = async () => {
     toast.success("Welcome aboard! Your vendor account is now active.");
-    // Redirect or show success message
-    navigate("/", { replace: true });
+    
+    // IMPORTANT: Refresh user data to get the updated role
+    try {
+      console.log("Refreshing user data after successful vendor registration...");
+      await fetchUserData();
+      console.log("User data refreshed successfully");
+    } catch (error) {
+      console.error("Error refreshing user data:", error);
+    }
+    
+    // Small delay to ensure the user data is updated
+    setTimeout(() => {
+      navigate("/", { replace: true });
+    }, 100);
   };
 
   return (
