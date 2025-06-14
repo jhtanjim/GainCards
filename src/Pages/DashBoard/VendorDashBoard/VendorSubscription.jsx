@@ -1,3 +1,4 @@
+import { Elements } from "@stripe/react-stripe-js";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -12,6 +13,7 @@ import {
   Package,
   RefreshCw,
   TrendingUp,
+  X,
   XCircle,
 } from "lucide-react";
 import { useState } from "react";
@@ -29,10 +31,19 @@ import {
   YAxis,
 } from "recharts";
 import Swal from "sweetalert2";
+import { stripePromise } from "../../../api/stripe";
 import subscriptionApi from "../../../api/vendor";
+import PaymentForm from "../../../Compnent/Vendor/PaymentForm";
 
 const VendorSubscription = () => {
   const [activeTab, setActiveTab] = useState("overview");
+  const [paymentModal, setPaymentModal] = useState({
+    isOpen: false,
+    type: null, // 'renew' or 'upgrade'
+    clientSecret: null,
+    planDetails: null,
+  });
+
   const queryClient = useQueryClient();
 
   const { data: subscription, isLoading: subscriptionLoading } = useQuery({
@@ -49,31 +60,40 @@ const VendorSubscription = () => {
     queryFn: subscriptionApi.getAvailablePlans,
   });
 
+  console.log(analytics);
+
   const upgradeMutation = useMutation({
     mutationFn: subscriptionApi.upgradeSubscription,
-    onSuccess: () => {
-      toast.success("Subscription upgraded successfully!");
-      queryClient.invalidateQueries(["vendor-subscription"]);
-      queryClient.invalidateQueries(["vendor-analytics"]);
+    onSuccess: (data) => {
+      setPaymentModal({
+        isOpen: true,
+        type: "upgrade",
+        clientSecret: data.clientSecret,
+        planDetails: data.newPlan,
+      });
     },
     onError: (error) => {
       console.error("Upgrade error:", error);
       toast.error(
-        error.response?.data?.message || "Failed to upgrade subscription"
+        error.response?.data?.message || "Failed to initiate upgrade"
       );
     },
   });
 
   const renewMutation = useMutation({
     mutationFn: subscriptionApi.renewSubscription,
-    onSuccess: () => {
-      toast.success("Subscription renewed successfully!");
-      queryClient.invalidateQueries(["vendor-subscription"]);
+    onSuccess: (data) => {
+      setPaymentModal({
+        isOpen: true,
+        type: "renew",
+        clientSecret: data.clientSecret,
+        planDetails: data.plan,
+      });
     },
     onError: (error) => {
       console.error("Renew error:", error);
       toast.error(
-        error.response?.data?.message || "Failed to renew subscription"
+        error.response?.data?.message || "Failed to initiate renewal"
       );
     },
   });
@@ -95,12 +115,12 @@ const VendorSubscription = () => {
   const handleUpgrade = async (planId) => {
     const result = await Swal.fire({
       title: "Upgrade Subscription?",
-      text: "You will be charged for the new plan immediately.",
+      text: "You will be redirected to complete the payment for your new plan.",
       icon: "question",
       showCancelButton: true,
       confirmButtonColor: "#3b82f6",
       cancelButtonColor: "#ef4444",
-      confirmButtonText: "Yes, upgrade!",
+      confirmButtonText: "Continue to Payment",
     });
     console.log(planId);
     if (result.isConfirmed) {
@@ -111,12 +131,12 @@ const VendorSubscription = () => {
   const handleRenew = async () => {
     const result = await Swal.fire({
       title: "Renew Subscription?",
-      text: "Your subscription will be renewed for another billing period.",
+      text: "You will be redirected to complete the payment for renewal.",
       icon: "question",
       showCancelButton: true,
       confirmButtonColor: "#10b981",
       cancelButtonColor: "#ef4444",
-      confirmButtonText: "Yes, renew!",
+      confirmButtonText: "Continue to Payment",
     });
 
     if (result.isConfirmed) {
@@ -138,6 +158,35 @@ const VendorSubscription = () => {
     if (result.isConfirmed) {
       cancelMutation.mutate();
     }
+  };
+
+  const handlePaymentSuccess = () => {
+    toast.success(
+      paymentModal.type === "upgrade"
+        ? "Subscription upgraded successfully!"
+        : "Subscription renewed successfully!"
+    );
+
+    // Close modal
+    setPaymentModal({
+      isOpen: false,
+      type: null,
+      clientSecret: null,
+      planDetails: null,
+    });
+
+    // Refresh data
+    queryClient.invalidateQueries(["vendor-subscription"]);
+    queryClient.invalidateQueries(["vendor-analytics"]);
+  };
+
+  const closePaymentModal = () => {
+    setPaymentModal({
+      isOpen: false,
+      type: null,
+      clientSecret: null,
+      planDetails: null,
+    });
   };
 
   const getStatusColor = (status) => {
@@ -166,7 +215,7 @@ const VendorSubscription = () => {
     }
   };
 
-  // Mock data for charts - you can replace this with real data from your API
+  // Mock data for charts
   const usageData = [
     { month: "Jan", listings: 23 },
     { month: "Feb", listings: 34 },
@@ -317,8 +366,8 @@ const VendorSubscription = () => {
                         Cards Used
                       </p>
                       <p className="text-2xl font-bold text-gray-900">
-                        {subscription?.cardsUsedUnderPlan}/
-                        {subscription?.cardLimit}
+                        {analytics?.currentSubscription.totalCardsEverListed}/
+                        {analytics?.totalSlotsPurchased}
                       </p>
                     </div>
                     <div className="bg-green-100 p-3 rounded-xl">
@@ -351,7 +400,7 @@ const VendorSubscription = () => {
                         Remaining Cards
                       </p>
                       <p className="text-2xl font-bold text-gray-900">
-                        {subscription?.remainingCards}
+                        {analytics?.currentSubscription.remainingSlots}
                       </p>
                     </div>
                     <div className="bg-purple-100 p-3 rounded-xl">
@@ -469,7 +518,11 @@ const VendorSubscription = () => {
                         renewMutation.isPending ? "animate-spin" : ""
                       }`}
                     />
-                    <span>Renew Subscription</span>
+                    <span>
+                      {renewMutation.isPending
+                        ? "Processing..."
+                        : "Renew Subscription"}
+                    </span>
                   </button>
 
                   <button
@@ -585,7 +638,7 @@ const VendorSubscription = () => {
                             className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-medium transition-colors duration-200 disabled:opacity-50"
                           >
                             {upgradeMutation.isPending
-                              ? "Upgrading..."
+                              ? "Processing..."
                               : "Upgrade Now"}
                           </button>
                         ) : (
@@ -664,6 +717,89 @@ const VendorSubscription = () => {
                   </div>
                 )}
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Payment Modal */}
+        <AnimatePresence>
+          {paymentModal.isOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+              >
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900">
+                        {paymentModal.type === "upgrade"
+                          ? "Upgrade Plan"
+                          : "Renew Subscription"}
+                      </h3>
+                      <p className="text-gray-600 mt-1">
+                        Complete your payment to continue
+                      </p>
+                    </div>
+                    <button
+                      onClick={closePaymentModal}
+                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
+
+                  {/* Plan Details */}
+                  {paymentModal.planDetails && (
+                    <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-semibold text-gray-900">
+                            {paymentModal.planDetails.name}
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            {paymentModal.planDetails.cardLimit} Card Limit
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xl font-bold text-gray-900">
+                            ${paymentModal.planDetails.price}
+                          </p>
+                          <p className="text-sm text-gray-600">per month</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Payment Form */}
+                  {paymentModal.clientSecret && (
+                    <Elements
+                      stripe={stripePromise}
+                      options={{
+                        clientSecret: paymentModal.clientSecret,
+                        appearance: {
+                          theme: "stripe",
+                          variables: {
+                            colorPrimary: "#3b82f6",
+                          },
+                        },
+                      }}
+                    >
+                      <PaymentForm
+                        clientSecret={paymentModal.clientSecret}
+                        onSuccess={handlePaymentSuccess}
+                      />
+                    </Elements>
+                  )}
+                </div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
