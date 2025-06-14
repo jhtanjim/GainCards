@@ -39,7 +39,6 @@ const VendorSubscription = () => {
     queryKey: ["vendor-subscription"],
     queryFn: subscriptionApi.getSubscription,
   });
-
   const { data: analytics, isLoading: analyticsLoading } = useQuery({
     queryKey: ["vendor-analytics"],
     queryFn: subscriptionApi.getAnalytics,
@@ -103,7 +102,7 @@ const VendorSubscription = () => {
       cancelButtonColor: "#ef4444",
       confirmButtonText: "Yes, upgrade!",
     });
-
+    console.log(planId);
     if (result.isConfirmed) {
       upgradeMutation.mutate(planId);
     }

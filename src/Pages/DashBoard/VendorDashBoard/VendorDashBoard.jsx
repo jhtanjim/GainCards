@@ -16,7 +16,6 @@ const VendorDashBoard = () => {
     { title: "Total Products", value: "24", icon: <Package size={24} />, color: "bg-blue-500" },
     { title: "Total Orders", value: "142", icon: <ShoppingCart size={24} />, color: "bg-green-500" },
     { title: "Total Revenue", value: "$2,845", icon: <DollarSign size={24} />, color: "bg-purple-500" },
-    { title: "Growth", value: "+12.5%", icon: <TrendingUp size={24} />, color: "bg-yellow-500" },
   ]
 
   const recentOrders = [
@@ -73,21 +72,7 @@ const VendorDashBoard = () => {
         ))}
       </div>
 
-      {/* Sales Chart */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold mb-4">Sales Overview</h2>
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={salesData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="sales" fill="#4f46e5" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+     
 
       {/* Recent Orders */}
       <div className="bg-white rounded-lg shadow overflow-hidden">

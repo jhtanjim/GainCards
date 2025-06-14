@@ -9,7 +9,7 @@ export default function PokemonCardUpload() {
   const [formData, setFormData] = useState({
   title: "",
   description: "",
-  price: 0,
+  price: "",
   certificationNumber: "",
   labelType: "",
   hasReverseBarcode: false,
@@ -20,7 +20,7 @@ export default function PokemonCardUpload() {
   player: "",
   varietyPedigree: "",
   grade: "",
-  population: 0,
+  population: "",
   vendorId: "",
   length: "",
   width: "",
@@ -78,7 +78,7 @@ export default function PokemonCardUpload() {
         hasReverseBarcode: false,
         year: "",
         brand: "",
-        sport: "TCG Cards",
+        sport: "",
         cardNumber: "",
         player: "",
         varietyPedigree: "",
@@ -142,7 +142,7 @@ export default function PokemonCardUpload() {
 
              <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
-              <input type="number" name="price" value={formData.price} onChange={handleInputChange} className="input" min="0" step="0.01" required />
+              <input type="number" name="price" value={formData.price} onChange={handleInputChange} className="input"  step="1" required />
             </div>
 
             <div>
