@@ -46,7 +46,7 @@ export const subscriptionApi = {
   upgradeSubscription: async (planId) => {
     try {
       const response = await api.patch("/vendor/subscription/upgrade", {
-        planId,
+        newSubscriptionPlanId:planId,
       });
       return response.data;
     } catch (error) {
