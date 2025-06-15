@@ -191,7 +191,6 @@ const VendorRegistration = () => {
     // Use the mutation with the selected plan
     registerVendorMutation.mutate({
       planId: selectedPlan.id,
-      address: addressData,
     });
   };
 

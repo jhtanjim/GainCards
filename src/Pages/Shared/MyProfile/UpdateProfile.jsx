@@ -2,12 +2,30 @@ import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Swal from "sweetalert2";
 import { useAuth } from "../../../Context/AuthContext";
-import { createAddress,updateAddress } from "../../../api/profile";
+import { createAddress, updateAddress } from "../../../api/profile";
+
+const fetchCountries = async () => {
+  const res = await fetch(
+    "https://restcountries.com/v3.1/all?fields=name,cca2"
+  );
+  const data = await res.json();
+
+  // map to { name, code } and sort by name
+  return data
+    .map((c) => ({
+      name: c.name.common,
+      code: c.cca2, // ISO-3166 alpha-2
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+};
+
+
 
 const UpdateProfile = ({ onClose }) => {
   const { user, updateUser } = useAuth();
   const queryClient = useQueryClient();
-  
+  const [countries, setCountries] = useState([]);
+
   // Profile form state
   const [profileData, setProfileData] = useState({
     username: "",
@@ -15,6 +33,12 @@ const UpdateProfile = ({ onClose }) => {
     country: "",
     profilePicture: ""
   });
+
+  useEffect(() => {
+    fetchCountries()
+      .then(setCountries)
+      .catch((err) => console.error("Error fetching countries:", err));
+  }, []);
 
   // Address form state
   const [addressData, setAddressData] = useState({
@@ -247,15 +271,11 @@ const UpdateProfile = ({ onClose }) => {
                     required
                   >
                     <option value="">Select Country</option>
-                    <option value="US">United States</option>
-                    <option value="UK">United Kingdom</option>
-                    <option value="CA">Canada</option>
-                    <option value="AU">Australia</option>
-                    <option value="DE">Germany</option>
-                    <option value="FR">France</option>
-                    <option value="JP">Japan</option>
-                    <option value="BD">Bangladesh</option>
-                    {/* Add more countries as needed */}
+                    {countries.map((country) => (
+                      <option key={country.cca2} value={country.cca2}>
+                        {country.name.common}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -369,13 +389,19 @@ const UpdateProfile = ({ onClose }) => {
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Country *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={addressData.country}
                     onChange={(e) => setAddressData({ ...addressData, country: e.target.value })}
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                     required
-                  />
+                  >
+                    <option value="">Select Country</option>
+                     {countries.map((country) => (
+                <option key={country.code} value={country.code}>
+                  {country.name}
+                </option>
+              ))}
+                  </select>
                 </div>
 
                 <div>
