@@ -63,20 +63,12 @@ const Subscription = () => {
       // Support level based on price
       if (plan.price === 0) {
         features.push("Community Support")
-      } else if (plan.price < 50) {
-        features.push("Email Support")
-      } else if (plan.price < 100) {
-        features.push("Priority Support")
+    
       } else {
         features.push("24/7 Premium Support")
       }
       
-      // Analytics based on price
-      if (plan.price === 0) {
-        features.push("Basic Analytics")
-      } else if (plan.price < 100) {
-        features.push("Advanced Analytics")
-      } 
+    
       
       // Additional features for paid plans
   

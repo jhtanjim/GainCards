@@ -7,13 +7,24 @@ import { useAuth } from "../../Context/AuthContext";
 import { useShop } from "../../Context/ShopContext";
 import logoImg from "../../assets/logo/white.png";
 import useUserRole from "../../Hooks/useUserRole";
+import { getAllFavoritePokemon } from "../../api/pokemondata";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Header() {
   const { cartItems } = useShop();
   const navigate = useNavigate();
   const { user, signOut, loading, isLoggingOut, isAuthenticated } = useAuth();
+
   const {  isVendor,isAdmin } = useUserRole();
-    
+      const {
+    data: favorites = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["favorites"],
+    queryFn: getAllFavoritePokemon,
+    enabled: !!isAuthenticated,
+  });
   const [isMobile, setIsMobile] = useState(false);
 
   // Responsive breakpoint detection
@@ -182,10 +193,16 @@ export default function Header() {
           {/* Favorites */}
           <Link to="/mylibrary">
             <button className="relative p-2 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-gray-800/50 to-purple-900/30 hover:from-gray-700/50 hover:to-purple-800/40 transition-all duration-300 border border-purple-500/20 hover:border-purple-400/40 backdrop-blur-sm group">
+
               <Heart
                 size={isMobile ? 18 : 20}
                 className="text-purple-300 group-hover:text-purple-200 transition-colors"
               />
+              {favorites.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-red-600 text-xs text-white font-bold flex items-center justify-center rounded-full shadow-md">
+                  {favorites.length > 99 ? "99+" : favorites.length}
+                </span>
+              )}
               <div className="absolute inset-0 rounded-lg sm:rounded-xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity blur-sm -z-10"></div>
             </button>
           </Link>
@@ -202,6 +219,7 @@ export default function Header() {
                   {cartItems.length > 99 ? "99+" : cartItems.length}
                 </span>
               )}
+             
             </button>
           </Link>
 

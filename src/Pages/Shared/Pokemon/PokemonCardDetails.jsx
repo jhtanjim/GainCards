@@ -9,17 +9,18 @@ import {
   Heart,
   Shield,
   ShoppingCart,
-  Star,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import {
   getAllFavoritePokemon,
+  getAllPokemonData,
   toggleFavoritePokemon,
 } from "../../../api/pokemondata";
 import { useAuth } from "../../../Context/AuthContext";
 import { useShop } from "../../../Context/ShopContext";
+import PokemonCard from "./PokemonCard";
 
 const PokemonCardDetails = () => {
   const { id } = useParams();
@@ -43,6 +44,7 @@ const PokemonCardDetails = () => {
     brand,
     sport,
     cardNumber,
+    isDonation,
     player,
     varietyPedigree,
     grade,
@@ -50,13 +52,23 @@ const PokemonCardDetails = () => {
     vendorId,
     createdAt,
     updatedAt,
-  } = state.pokemon;
+  } = state?.pokemon || {};
+
+  // Check if item is already in cart
+  const isInCart = cartItems.some((item) => item.id === state?.pokemon?.id);
 
   // Fetch favorites
   const { data: favorites = [] } = useQuery({
     queryKey: ["favorites"],
     queryFn: getAllFavoritePokemon,
     enabled: !!isAuthenticated,
+  });
+
+  // Fetch all pokemon for similar cards
+  const { data: allPokemon = [] } = useQuery({
+    queryKey: ["allPokemon"],
+    queryFn: getAllPokemonData,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Check if current pokemon is in favorites
@@ -76,38 +88,28 @@ const PokemonCardDetails = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["favorites"]);
-
+      
       // Show appropriate message based on the action
-      if (optimisticFavorite) {
-        Swal.fire({
-          toast: true,
-          position: "bottom-left",
-          icon: "success",
-          title: "Added to Favorites!",
-          text: `${title} has been added to your favorites`,
-          timer: 2000,
-          showConfirmButton: false,
+      const message = optimisticFavorite 
+        ? "Added to Favorites!" 
+        : "Removed from Favorites";
+      const text = optimisticFavorite 
+        ? `${title} has been added to your favorites`
+        : `${title} has been removed from your favorites`;
 
-          timerProgressBar: true,
-          background: "#a855f7",
-          color: "#f8fafc",
-          iconColor: "#f8fafc",
-        });
-      } else {
-        Swal.fire({
-          toast: true,
-          position: "bottom-left",
-          icon: "success",
-          title: "Removed from Favorites",
-          text: `${title} has been removed from your favorites`,
-          showConfirmButton: false,
-          timer: 3000,
-          timerProgressBar: true,
-          background: "#a855f7",
-          color: "#f8fafc",
-          iconColor: "#f8fafc",
-        });
-      }
+      Swal.fire({
+        toast: true,
+        position: "bottom-left",
+        icon: "success",
+        title: message,
+        text: text,
+        timer: 2000,
+        showConfirmButton: false,
+        timerProgressBar: true,
+        background: "#a855f7",
+        color: "#f8fafc",
+        iconColor: "#f8fafc",
+      });
     },
     onError: () => {
       // Revert optimistic update on error
@@ -117,9 +119,7 @@ const PokemonCardDetails = () => {
         position: "bottom-left",
         icon: "error",
         title: "Error",
-        text: `Could not ${
-          optimisticFavorite ? "remove from" : "add to"
-        } favorites`,
+        text: `Could not ${optimisticFavorite ? "remove from" : "add to"} favorites`,
         timer: 3000,
         timerProgressBar: true,
         background: "#fef2f2",
@@ -142,24 +142,39 @@ const PokemonCardDetails = () => {
     });
   };
 
-  const handleAddToCart = () => {
-    // Check if item is already in cart
-    const isInCart = cartItems.some((item) => item.id === state.pokemon.id);
+  const handleDonationClick = () => {
+    if (isDonation) {
+      sessionStorage.setItem("donationCard", JSON.stringify(state.pokemon));
+      navigate("/donateCardReceiver");
+    }
+  };
 
+  const handleAddToCart = () => {
+    // Check if user is logged in
+    if (!isAuthenticated) {
+      Swal.fire({ 
+        icon: "warning",
+        title: "Login Required",
+        text: "Please log in to add items to your cart",
+        showCancelButton: true,
+        confirmButtonText: "Go to Login",
+        confirmButtonColor: "#3b82f6",
+        cancelButtonText: "Cancel",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate("/signin?redirect=/pokemon", { replace: true });
+        }
+      });
+      return;
+    }
+
+    // Check if item is already in cart
     if (!isInCart) {
       setCartItems([...cartItems, state.pokemon]);
       Swal.fire({
         icon: "success",
         title: "Added to Cart!",
         text: `${title} has been added to your cart`,
-        timer: 2000,
-        showConfirmButton: false,
-      });
-    } else {
-      Swal.fire({
-        icon: "info",
-        title: "Already in Cart",
-        text: `${title} is already in your cart`,
         timer: 2000,
         showConfirmButton: false,
       });
@@ -188,6 +203,87 @@ const PokemonCardDetails = () => {
     toggleFavoriteMutation.mutate();
   };
 
+  // Get similar cards from actual API data
+  const getSimilarCards = () => {
+    if (!allPokemon.length || !state?.pokemon) {
+      return [];
+    }
+
+    const currentCard = state.pokemon;
+    
+    // Filter similar cards based on multiple criteria
+    let similarCards = allPokemon.filter(card => {
+      // Exclude the current card
+      if (card.id === currentCard.id) return false;
+      
+      // For donation cards, show other donation cards
+      if (currentCard.isDonation) {
+        return card.isDonation;
+      }
+      
+      // For non-donation cards, match by labelType first, then other criteria
+      if (currentCard.labelType && card.labelType === currentCard.labelType) {
+        return true;
+      }
+      
+      // If no labelType match, try other similarities
+      return (
+        card.brand === currentCard.brand ||
+        card.sport === currentCard.sport ||
+        card.year === currentCard.year ||
+        card.player === currentCard.player
+      );
+    });
+
+    // Sort by relevance (prioritize labelType matches for non-donation cards)
+    similarCards.sort((a, b) => {
+      if (currentCard.isDonation) {
+        // For donations, sort by creation date (newest first)
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      }
+      
+      // For regular cards, prioritize labelType matches
+      const aLabelMatch = a.labelType === currentCard.labelType ? 1 : 0;
+      const bLabelMatch = b.labelType === currentCard.labelType ? 1 : 0;
+      
+      if (aLabelMatch !== bLabelMatch) {
+        return bLabelMatch - aLabelMatch;
+      }
+      
+      // Then sort by brand match
+      const aBrandMatch = a.brand === currentCard.brand ? 1 : 0;
+      const bBrandMatch = b.brand === currentCard.brand ? 1 : 0;
+      
+      return bBrandMatch - aBrandMatch;
+    });
+
+    // Return up to 4 similar cards
+    return similarCards.slice(0, 4);
+  };
+
+  const similarCards = getSimilarCards();
+
+  // Get the section title based on what we're showing
+  const getSectionTitle = () => {
+    if (!state?.pokemon) return "Similar Cards";
+    
+    const currentCard = state.pokemon;
+    
+    if (currentCard.isDonation) {
+      return "Other Donation Cards You May Like";
+    }
+    
+    if (currentCard.labelType) {
+      return `Similar ${currentCard.labelType} Cards You May Like`;
+    }
+    
+    if (currentCard.brand) {
+      return `More ${currentCard.brand} Cards You May Like`;
+    }
+    
+    return "Similar Cards You May Like";
+  };
+
   if (!state || !state.pokemon) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-50">
@@ -212,6 +308,7 @@ const PokemonCardDetails = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen pb-16">
+      {/* Breadcrumb */}
       <div className="bg-white shadow-sm py-3">
         <div className="container mx-auto px-4">
           <div className="text-sm text-gray-500 flex items-center">
@@ -237,8 +334,10 @@ const PokemonCardDetails = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Main Card Details */}
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
           <div className="md:flex">
+            {/* Image Section */}
             <div className="md:w-1/2 p-6">
               <div className="bg-gray-100 rounded-lg p-4 flex items-center justify-center h-96">
                 <img
@@ -284,6 +383,7 @@ const PokemonCardDetails = () => {
               </div>
             </div>
 
+            {/* Details Section */}
             <div className="md:w-1/2 p-8 bg-white">
               <div className="flex items-center mb-2">
                 <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
@@ -298,38 +398,25 @@ const PokemonCardDetails = () => {
 
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{title}</h1>
 
-              <div className="flex items-center mb-4">
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      size={18}
-                      className={
-                        i < 4
-                          ? "text-yellow-400 fill-yellow-400"
-                          : "text-gray-300"
-                      }
-                    />
-                  ))}
-                </div>
-                <span className="text-gray-500 ml-2 text-sm">
-                  4.0 (24 reviews)
-                </span>
-              </div>
-
+              {/* Price Section */}
               <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900">
-                  ${price?.toFixed(2) || "N/A"}
-                </span>
-                {price && (
-                  <span className="text-lg text-gray-500 line-through ml-2">
-                    ${(price * 1.2).toFixed(2)}
+                {isDonation ? (
+                  <span className="text-4xl font-bold text-pink-600">
+                    Donation
                   </span>
+                ) : (
+                  <>
+                    <span className="text-4xl font-bold text-gray-900">
+                      ${price?.toFixed(2) || "N/A"}
+                    </span>
+                    
+                  </>
                 )}
               </div>
 
               <p className="text-gray-600 mb-6">{description}</p>
 
+              {/* Card Information Grid */}
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="text-sm">
                   <span className="text-gray-500">Year:</span>
@@ -373,13 +460,30 @@ const PokemonCardDetails = () => {
                 )}
               </div>
 
+              {/* Action Buttons */}
               <div className="flex gap-4 mb-8">
                 <button
-                  onClick={handleAddToCart}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg flex-1 flex items-center justify-center"
+                  onClick={isDonation ? handleDonationClick : handleAddToCart}
+                  disabled={!isDonation && isInCart}
+                  className={`font-medium py-3 px-6 rounded-lg flex-1 flex items-center justify-center transition-all ${
+                    isDonation 
+                      ? "bg-pink-500 hover:bg-pink-600 text-white"
+                      : isInCart
+                      ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700 text-white"
+                  }`}
                 >
-                  <ShoppingCart size={20} className="mr-2" />
-                  Add to Cart
+                  {!isDonation && isInCart ? (
+                    <>
+                      <Check size={20} className="mr-2" />
+                      Added to Cart
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart size={20} className="mr-2" />
+                      {isDonation ? "Receive Donation" : "Add to Cart"}
+                    </>
+                  )}
                 </button>
                 <button
                   onClick={handleAddToFavorites}
@@ -399,6 +503,7 @@ const PokemonCardDetails = () => {
                 </button>
               </div>
 
+              {/* Features */}
               <div className="grid grid-cols-3 gap-4 border-t pt-6">
                 <div className="flex flex-col items-center text-center">
                   <div className="bg-blue-100 p-2 rounded-full mb-2">
@@ -425,6 +530,7 @@ const PokemonCardDetails = () => {
           </div>
         </div>
 
+        {/* Additional Details */}
         <div className="bg-white rounded-xl shadow-md mt-8 p-8">
           <h2 className="text-2xl font-bold mb-6">Additional Details</h2>
 
@@ -476,39 +582,33 @@ const PokemonCardDetails = () => {
           </div>
         </div>
 
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-6">
-            Similar Cards You May Like
-          </h2>
+        {/* Similar Cards Section - Now using real API data */}
+        {similarCards.length > 0 ? (
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold mb-6">
+              {getSectionTitle()}
+            </h2>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[1, 2, 3, 4].map((item) => (
-              <div
-                key={item}
-                className="bg-white p-4 rounded-xl shadow hover:shadow-lg transition"
-              >
-                <img
-                  src="/placeholder.svg?height=400&width=560"
-                  alt={`Similar card ${item}`}
-                  className="rounded-lg mb-3 w-full h-52 object-contain"
-                />
-                <h3 className="text-sm font-medium text-gray-800 mb-1">
-                  Sample Card #{item}
-                </h3>
-                <p className="text-gray-500 text-sm mb-2">Sample Description</p>
-                <div className="flex justify-between items-center">
-                  <span className="text-blue-600 font-semibold">$99.99</span>
-                  <button
-                    onClick={handleAddToFavorites}
-                    className="text-gray-500 hover:text-red-500"
-                  >
-                    <Heart size={18} />
-                  </button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {similarCards.map((card) => (
+                <div key={card.id} className="h-full">
+                  <PokemonCard pokemon={card} />
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="mt-12">
+            <div className="text-center p-8 bg-white rounded-lg shadow-md">
+              <h2 className="text-xl font-bold text-gray-500 mb-2">
+                No Similar Cards Available
+              </h2>
+              <p className="text-gray-400">
+                We couldn't find any similar cards to show you at this time.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -71,14 +71,7 @@ const MyProfile = () => {
                 <div className="flex justify-between">
                   <span className="text-gray-400">Cards Used:</span>
                   <span>{user.cardsUsedUnderPlan}</span>
-                </div>
-                {user.stripeAccountId && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Stripe Account:</span>
-                    <span className="text-green-400">Connected</span>
-                  </div>
-                )}
-              </div>
+                </div>            </div>
             </div>
 
             {user.address ? (

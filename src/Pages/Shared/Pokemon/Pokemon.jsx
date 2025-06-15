@@ -5,6 +5,7 @@ import { getAllPokemonData } from "../../../api/pokemondata";
 import PokemonCard from "./PokemonCard";
 
 import Swal from "sweetalert2";
+import { p } from "framer-motion/client";
 
 const Pokemon = () => {
   const queryClient = useQueryClient();
@@ -20,6 +21,20 @@ const Pokemon = () => {
     queryKey: ["pokemons"],
     queryFn: getAllPokemonData,
   });
+  console.log(pokemons);
+  if (!pokemons || pokemons.length === 0) {
+    return (
+      <div className="text-center py-16 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg max-w-lg mx-auto mt-10">
+        <div className="text-6xl mb-4">📦</div>
+        <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+          No Pokemon cards found
+        </h2>
+        <p className="text-gray-600 mb-6">
+          There are currently no Pokemon cards available in the collection.
+        </p>
+      </div>
+    );
+  }
   const processedPokemons = React.useMemo(() => {
     let filtered = [...pokemons];
 

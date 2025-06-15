@@ -23,7 +23,7 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Order List', href: '/admin/orders', icon: ShoppingCart },
-    { name: 'Payment List', href: '/admin/payments', icon: CreditCard },
+    // { name: 'Payment List', href: '/admin/payments', icon: CreditCard },
     { name: 'Manage Subscription', href: '/admin/manageSubscription', icon: Subscript },
     { name: 'Upload Card', href: '/admin/upload', icon: Upload },
     { 
