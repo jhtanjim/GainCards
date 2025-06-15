@@ -16,7 +16,6 @@ const CheckoutForm = ({ clientSecret,clearCart  }) => {
     e.preventDefault();
 
     if (!stripe || !elements) return;
-
     setIsProcessing(true);
     setMessage("");
 
