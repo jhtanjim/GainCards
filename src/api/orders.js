@@ -20,6 +20,16 @@ export const getMyOrders = async () => {
     throw error;
   }
 };
+export const getMySharedOrders = async (orderItemId) => {
+  try {
+    const response = await api.get(`/share/order-item/${orderItemId}/data`);
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    throw error;
+  }
+};
 
 // get all orders for admin pannel
 

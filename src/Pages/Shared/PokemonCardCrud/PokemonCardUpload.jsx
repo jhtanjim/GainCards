@@ -169,7 +169,6 @@ export default function PokemonCardUpload() {
             <InputField label="Variety/Pedigree" name="varietyPedigree" value={formData.varietyPedigree} onChange={handleInputChange} />
             <InputField label="Grade" name="grade" value={formData.grade} onChange={handleInputChange} />
             <InputField label="Population" name="population" type="number" value={formData.population} onChange={handleInputChange} />
-            <InputField label="Vendor ID" name="vendorId" value={formData.vendorId} onChange={handleInputChange} />
             <div className="flex items-center">
               <input type="checkbox" name="hasReverseBarcode" checked={formData.hasReverseBarcode} onChange={handleInputChange} className="h-5 w-5 text-yellow-500 border-gray-300 rounded focus:ring-yellow-500" />
               <label className="ml-2 block text-sm text-gray-700">Has Reverse Barcode</label>

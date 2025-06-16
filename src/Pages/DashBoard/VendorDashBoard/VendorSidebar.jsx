@@ -72,11 +72,11 @@ const VendorSidebar = () => {
     { name: "Upload Card", icon: <Upload size={20} />, path: "/vendor/upload" },
     { name: "Orders", icon: <Package size={20} />, path: "/vendor/orders" },
     { name: "Profile", icon: <User size={20} />, path: "/vendor/profile" },
-    {
-      name: "Earnings",
-      icon: <DollarSign size={20} />,
-      path: "/vendor/earnings",
-    },
+    // {
+    //   name: "Earnings",
+    //   icon: <DollarSign size={20} />,
+    //   path: "/vendor/earnings",
+    // },
     {
       name: "Subscription",
       icon: <SubscriptIcon size={20} />,

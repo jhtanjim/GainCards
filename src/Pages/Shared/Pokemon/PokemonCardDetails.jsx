@@ -16,6 +16,7 @@ import Swal from "sweetalert2";
 import {
   getAllFavoritePokemon,
   getAllPokemonData,
+  getPokemonDataById,
   toggleFavoritePokemon,
 } from "../../../api/pokemondata";
 import { useAuth } from "../../../Context/AuthContext";
@@ -53,9 +54,14 @@ const PokemonCardDetails = () => {
     createdAt,
     updatedAt,
   } = state?.pokemon || {};
+  const { data: pokemon = [] } = useQuery({
+    queryKey: ["pokemon", id],
+    queryFn: () => getPokemonDataById(id),
+    initialData: state?.pokemon,
+  });
 
   // Check if item is already in cart
-  const isInCart = cartItems.some((item) => item.id === state?.pokemon?.id);
+  const isInCart = cartItems.some((item) => item.id === pokemon?.id);
 
   // Fetch favorites
   const { data: favorites = [] } = useQuery({
@@ -88,12 +94,12 @@ const PokemonCardDetails = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["favorites"]);
-      
+
       // Show appropriate message based on the action
-      const message = optimisticFavorite 
-        ? "Added to Favorites!" 
+      const message = optimisticFavorite
+        ? "Added to Favorites!"
         : "Removed from Favorites";
-      const text = optimisticFavorite 
+      const text = optimisticFavorite
         ? `${title} has been added to your favorites`
         : `${title} has been removed from your favorites`;
 
@@ -119,7 +125,9 @@ const PokemonCardDetails = () => {
         position: "bottom-left",
         icon: "error",
         title: "Error",
-        text: `Could not ${optimisticFavorite ? "remove from" : "add to"} favorites`,
+        text: `Could not ${
+          optimisticFavorite ? "remove from" : "add to"
+        } favorites`,
         timer: 3000,
         timerProgressBar: true,
         background: "#fef2f2",
@@ -144,7 +152,7 @@ const PokemonCardDetails = () => {
 
   const handleDonationClick = () => {
     if (isDonation) {
-      sessionStorage.setItem("donationCard", JSON.stringify(state.pokemon));
+      sessionStorage.setItem("donationCard", JSON.stringify(pokemon));
       navigate("/donateCardReceiver");
     }
   };
@@ -152,7 +160,7 @@ const PokemonCardDetails = () => {
   const handleAddToCart = () => {
     // Check if user is logged in
     if (!isAuthenticated) {
-      Swal.fire({ 
+      Swal.fire({
         icon: "warning",
         title: "Login Required",
         text: "Please log in to add items to your cart",
@@ -170,7 +178,7 @@ const PokemonCardDetails = () => {
 
     // Check if item is already in cart
     if (!isInCart) {
-      setCartItems([...cartItems, state.pokemon]);
+      setCartItems([...cartItems, pokemon]);
       Swal.fire({
         icon: "success",
         title: "Added to Cart!",
@@ -205,27 +213,27 @@ const PokemonCardDetails = () => {
 
   // Get similar cards from actual API data
   const getSimilarCards = () => {
-    if (!allPokemon.length || !state?.pokemon) {
+    if (!allPokemon.length || !pokemon) {
       return [];
     }
 
-    const currentCard = state.pokemon;
-    
+    const currentCard = pokemon;
+
     // Filter similar cards based on multiple criteria
-    let similarCards = allPokemon.filter(card => {
+    let similarCards = allPokemon.filter((card) => {
       // Exclude the current card
       if (card.id === currentCard.id) return false;
-      
+
       // For donation cards, show other donation cards
       if (currentCard.isDonation) {
         return card.isDonation;
       }
-      
+
       // For non-donation cards, match by labelType first, then other criteria
       if (currentCard.labelType && card.labelType === currentCard.labelType) {
         return true;
       }
-      
+
       // If no labelType match, try other similarities
       return (
         card.brand === currentCard.brand ||
@@ -241,19 +249,19 @@ const PokemonCardDetails = () => {
         // For donations, sort by creation date (newest first)
         return new Date(b.createdAt) - new Date(a.createdAt);
       }
-      
+
       // For regular cards, prioritize labelType matches
       const aLabelMatch = a.labelType === currentCard.labelType ? 1 : 0;
       const bLabelMatch = b.labelType === currentCard.labelType ? 1 : 0;
-      
+
       if (aLabelMatch !== bLabelMatch) {
         return bLabelMatch - aLabelMatch;
       }
-      
+
       // Then sort by brand match
       const aBrandMatch = a.brand === currentCard.brand ? 1 : 0;
       const bBrandMatch = b.brand === currentCard.brand ? 1 : 0;
-      
+
       return bBrandMatch - aBrandMatch;
     });
 
@@ -265,26 +273,26 @@ const PokemonCardDetails = () => {
 
   // Get the section title based on what we're showing
   const getSectionTitle = () => {
-    if (!state?.pokemon) return "Similar Cards";
-    
-    const currentCard = state.pokemon;
-    
+    if (!pokemon) return "Similar Cards";
+
+    const currentCard = pokemon;
+
     if (currentCard.isDonation) {
       return "Other Donation Cards You May Like";
     }
-    
+
     if (currentCard.labelType) {
       return `Similar ${currentCard.labelType} Cards You May Like`;
     }
-    
+
     if (currentCard.brand) {
       return `More ${currentCard.brand} Cards You May Like`;
     }
-    
+
     return "Similar Cards You May Like";
   };
 
-  if (!state || !state.pokemon) {
+  if (!pokemon) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-50">
         <div className="text-center p-8 bg-white rounded-lg shadow-md">
@@ -409,7 +417,6 @@ const PokemonCardDetails = () => {
                     <span className="text-4xl font-bold text-gray-900">
                       ${price?.toFixed(2) || "N/A"}
                     </span>
-                    
                   </>
                 )}
               </div>
@@ -466,7 +473,7 @@ const PokemonCardDetails = () => {
                   onClick={isDonation ? handleDonationClick : handleAddToCart}
                   disabled={!isDonation && isInCart}
                   className={`font-medium py-3 px-6 rounded-lg flex-1 flex items-center justify-center transition-all ${
-                    isDonation 
+                    isDonation
                       ? "bg-pink-500 hover:bg-pink-600 text-white"
                       : isInCart
                       ? "bg-gray-400 text-gray-600 cursor-not-allowed"
@@ -585,9 +592,7 @@ const PokemonCardDetails = () => {
         {/* Similar Cards Section - Now using real API data */}
         {similarCards.length > 0 ? (
           <div className="mt-12">
-            <h2 className="text-2xl font-bold mb-6">
-              {getSectionTitle()}
-            </h2>
+            <h2 className="text-2xl font-bold mb-6">{getSectionTitle()}</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {similarCards.map((card) => (
