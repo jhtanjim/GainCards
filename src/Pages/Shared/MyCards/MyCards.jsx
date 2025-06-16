@@ -119,7 +119,7 @@ const MyCards = () => {
         <p className="text-gray-600 mb-6">
           You don't have any Pokemon cards yet. Start adding your collection!
         </p>
-        <Link to="/pokemonCardUpload">
+        <Link to="/vendor/upload">
           <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
             Add Your First Card
           </button>

@@ -1,57 +1,81 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
-import { Package, DollarSign, ShoppingCart, TrendingUp } from "lucide-react"
+import React from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import {
+  Package,
+  DollarSign,
+  ShoppingCart,
+} from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import Swal from "sweetalert2";
+import { getAllPokemonData } from "../../../api/pokemondata";
+import { useAuth } from "../../../Context/AuthContext";
+import { getAllOrders } from "../../../api/orders";
 
 const VendorDashBoard = () => {
-  // Sample data - replace with actual data from your API
-  const salesData = [
-    { name: "Jan", sales: 4000 },
-    { name: "Feb", sales: 3000 },
-    { name: "Mar", sales: 5000 },
-    { name: "Apr", sales: 2780 },
-    { name: "May", sales: 1890 },
-    { name: "Jun", sales: 2390 },
-  ]
+  const { user, isAuthenticated } = useAuth();
+
+  const { data: pokemons = [], isLoading: isLoadingPokemons } = useQuery({
+    queryKey: ["pokemons"],
+    queryFn: getAllPokemonData,
+    onError: (err) => {
+      console.error("Error fetching Pokemon data:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Failed to load Pokemon data. Please try again later.",
+      });
+    },
+  });
+
+  const userPokemons = React.useMemo(() => {
+    if (!pokemons || !isAuthenticated) return [];
+    return pokemons.filter((pokemon) => pokemon.vendorId === user?.id);
+  }, [pokemons, isAuthenticated, user?.id]);
+
+  const { data: orders = [], isLoading: isLoadingOrders } = useQuery({
+    queryKey: ["orders"],
+    queryFn: getAllOrders,
+  });
+
+  const filteredOrders = React.useMemo(() => {
+    if (!orders || !user?.profileId) return [];
+    return orders.filter((order) => order.profileId === user.profileId);
+  }, [orders, user?.profileId]);
+console.log(filteredOrders)
+  const totalRevenue = filteredOrders.reduce((sum, order) => {
+    return sum + (parseFloat(order.total) || 0);
+  }, 0);
 
   const stats = [
-    { title: "Total Products", value: "24", icon: <Package size={24} />, color: "bg-blue-500" },
-    { title: "Total Orders", value: "142", icon: <ShoppingCart size={24} />, color: "bg-green-500" },
-    { title: "Total Revenue", value: "$2,845", icon: <DollarSign size={24} />, color: "bg-purple-500" },
-  ]
+    {
+      title: "Total Products",
+      value: userPokemons.length.toString(),
+      icon: <Package size={24} />,
+      color: "bg-blue-500",
+    },
+    {
+      title: "Total Orders",
+      value: filteredOrders.length.toString(),
+      icon: <ShoppingCart size={24} />,
+      color: "bg-green-500",
+    },
+    // {
+    //   title: "Total Revenue",
+    //   value: `$${totalRevenue.toFixed(2)}`,
+    //   icon: <DollarSign size={24} />,
+    //   color: "bg-purple-500",
+    // },
+  ];
 
-  const recentOrders = [
-    {
-      id: "#ORD-001",
-      product: "Charizard Holo",
-      customer: "John Doe",
-      date: "2023-05-15",
-      status: "Completed",
-      amount: "$120",
-    },
-    {
-      id: "#ORD-002",
-      product: "Pikachu Rare",
-      customer: "Jane Smith",
-      date: "2023-05-14",
-      status: "Processing",
-      amount: "$85",
-    },
-    {
-      id: "#ORD-003",
-      product: "Mewtwo GX",
-      customer: "Bob Johnson",
-      date: "2023-05-13",
-      status: "Completed",
-      amount: "$210",
-    },
-    {
-      id: "#ORD-004",
-      product: "Blastoise EX",
-      customer: "Alice Brown",
-      date: "2023-05-12",
-      status: "Shipped",
-      amount: "$95",
-    },
-  ]
+  const recentOrders = filteredOrders.slice(0, 5); // Show latest 5 orders
 
   return (
     <div className="space-y-6">
@@ -66,13 +90,13 @@ const VendorDashBoard = () => {
                 <p className="text-sm text-gray-500">{stat.title}</p>
                 <p className="text-2xl font-bold mt-1">{stat.value}</p>
               </div>
-              <div className={`${stat.color} p-3 rounded-full text-white`}>{stat.icon}</div>
+              <div className={`${stat.color} p-3 rounded-full text-white`}>
+                {stat.icon}
+              </div>
             </div>
           </div>
         ))}
       </div>
-
-     
 
       {/* Recent Orders */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -89,10 +113,12 @@ const VendorDashBoard = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Product
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Customer
+                </th> */}
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
@@ -104,10 +130,18 @@ const VendorDashBoard = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {recentOrders.map((order) => (
                 <tr key={order.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{order.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.product}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.customer}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.date}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {order.id}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {order.productName || "—"}
+                  </td>
+                  {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {order.customerName || "—"}
+                  </td> */}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {new Date(order.createdAt).toLocaleDateString()}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
@@ -115,22 +149,34 @@ const VendorDashBoard = () => {
                         order.status === "Completed"
                           ? "bg-green-100 text-green-800"
                           : order.status === "Processing"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-blue-100 text-blue-800"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-blue-100 text-blue-800"
                       }`}
                     >
                       {order.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.amount}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    ${order.totalAmount}
+                  </td>
                 </tr>
               ))}
+              {recentOrders.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-6 py-4 text-center text-sm text-gray-500"
+                  >
+                    No recent orders.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default VendorDashBoard
+export default VendorDashBoard;

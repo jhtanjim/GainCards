@@ -138,7 +138,7 @@ const PokemonCardUpdate = () => {
         confirmButtonColor: '#3085d6'
       }).then(() => {
         // After confirmation, you could navigate back to cards list
-        navigate('/myCards');
+        navigate('/vendor/products');
       });
       
     } catch (error) {

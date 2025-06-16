@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { useAuth } from "../../Context/AuthContext";
 import useUserRole from "../../Hooks/useUserRole";
+import { useRef } from "react";
 
 function SidebarLink({
   expanded,
@@ -79,28 +80,57 @@ const Sidebar = () => {
   const [expanded, setExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [mobileVisible, setMobileVisible] = useState(false);
-
-  // Check if device is mobile
-  useEffect(() => {
-    const checkIfMobile = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-
-      // Reset mobile visibility when switching between mobile and desktop
-      if (!mobile) {
+  const sidebarRef = useRef(null);
+ useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        isMobile &&
+        mobileVisible &&
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target)
+      ) {
         setMobileVisible(false);
       }
     };
 
-    // Initial check
-    checkIfMobile();
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isMobile, mobileVisible]);
+  // Check if device is mobile
+ useEffect(() => {
+  const checkIfMobile = () => {
+    const mobile = window.innerWidth < 768;
+    setIsMobile(mobile);
+    if (!mobile) setMobileVisible(false);
+  };
 
-    // Add event listener for window resize
-    window.addEventListener("resize", checkIfMobile);
+  checkIfMobile();
+  window.addEventListener("resize", checkIfMobile);
 
-    // Cleanup
-    return () => window.removeEventListener("resize", checkIfMobile);
-  }, []);
+  // 🔹 Make globally available for external calls
+  window.toggleSidebar = () => {
+    if (isMobile) {
+      setMobileVisible((prev) => !prev);
+    } else {
+      setExpanded((prev) => !prev);
+    }
+  };
+
+  window.closeMobileSidebar = () => {
+    if (isMobile) {
+      setMobileVisible(false);
+    }
+  };
+
+  return () => {
+    window.removeEventListener("resize", checkIfMobile);
+    delete window.toggleSidebar;
+    delete window.closeMobileSidebar;
+  };
+}, [isMobile]);
+
 
   // Toggle sidebar from external components (will be used by Header)
   window.toggleSidebar = () => {
@@ -122,6 +152,7 @@ const Sidebar = () => {
 
   return (
     <div
+    ref={sidebarRef}
       className={`bg-[#131e2c] text-white flex flex-col h-full transition-all duration-300 ${getSidebarWidth()} ${
         isMobile && !mobileVisible ? "overflow-hidden" : ""
       }`}
@@ -169,6 +200,7 @@ const Sidebar = () => {
           />
           <SidebarLink
             expanded={expanded}
+            
             isMobile={isMobile}
             link={"/myBag"}
             name={"My Bag"}

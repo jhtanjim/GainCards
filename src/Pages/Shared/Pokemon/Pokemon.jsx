@@ -3,15 +3,14 @@ import { Filter, Gift, Grid, List, Star } from "lucide-react";
 import React, { useState } from "react";
 import { getAllPokemonData } from "../../../api/pokemondata";
 import PokemonCard from "./PokemonCard";
-
 import Swal from "sweetalert2";
-import { p } from "framer-motion/client";
 
 const Pokemon = () => {
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
   const [viewMode, setViewMode] = useState("grid");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const {
     data: pokemons = [],
@@ -21,27 +20,24 @@ const Pokemon = () => {
     queryKey: ["pokemons"],
     queryFn: getAllPokemonData,
   });
-  console.log(pokemons);
-  if (!pokemons || pokemons.length === 0) {
-    return (
-      <div className="text-center py-16 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg max-w-lg mx-auto mt-10">
-        <div className="text-6xl mb-4">📦</div>
-        <h2 className="text-2xl font-semibold text-gray-700 mb-4">
-          No Pokemon cards found
-        </h2>
-        <p className="text-gray-600 mb-6">
-          There are currently no Pokemon cards available in the collection.
-        </p>
-      </div>
-    );
-  }
+
   const processedPokemons = React.useMemo(() => {
+    if (!pokemons || pokemons.length === 0) return [];
+
     let filtered = [...pokemons];
 
     if (filter === "donation") {
       filtered = filtered.filter((pokemon) => pokemon.isDonation);
     } else if (filter === "sale") {
       filtered = filtered.filter((pokemon) => !pokemon.isDonation);
+    }
+
+    if (searchQuery.trim()) {
+      filtered = filtered.filter((pokemon) =>
+        (pokemon.title || "")
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase())
+      );
     }
 
     filtered.sort((a, b) => {
@@ -59,10 +55,16 @@ const Pokemon = () => {
     });
 
     return filtered;
-  }, [pokemons, filter, sortBy]);
+  }, [pokemons, filter, sortBy, searchQuery]);
 
-  const donationCount = pokemons.filter((p) => p.isDonation).length;
-  const saleCount = pokemons.filter((p) => !p.isDonation).length;
+  const donationCount = React.useMemo(
+    () => pokemons.filter((p) => p.isDonation).length,
+    [pokemons]
+  );
+  const saleCount = React.useMemo(
+    () => pokemons.filter((p) => !p.isDonation).length,
+    [pokemons]
+  );
 
   if (isLoading) {
     return (
@@ -116,6 +118,7 @@ const Pokemon = () => {
 
   return (
     <div className="container mx-auto px-4 py-6">
+      {/* Header Stats */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-6 mb-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
           <div>
@@ -145,8 +148,10 @@ const Pokemon = () => {
         </div>
       </div>
 
+      {/* Controls: Filter / Sort / Search / View */}
       <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+          {/* Filter Buttons */}
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setFilter("all")}
@@ -183,7 +188,15 @@ const Pokemon = () => {
             </button>
           </div>
 
-          <div className="flex gap-2">
+          {/* Sort, View, Search */}
+          <div className="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto">
+            <input
+              type="text"
+              placeholder="Search by name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm w-full md:w-64 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
@@ -194,7 +207,6 @@ const Pokemon = () => {
               <option value="price-low">Price: Low to High</option>
               <option value="price-high">Price: High to Low</option>
             </select>
-
             <div className="flex border border-gray-300 rounded-md overflow-hidden">
               <button
                 onClick={() => setViewMode("grid")}
@@ -221,6 +233,7 @@ const Pokemon = () => {
         </div>
       </div>
 
+      {/* Result Count */}
       <div className="flex justify-between items-center mb-6">
         <p className="text-gray-600">
           Showing {processedPokemons.length} of {pokemons.length} cards
@@ -232,6 +245,7 @@ const Pokemon = () => {
         </p>
       </div>
 
+      {/* Result Cards */}
       {processedPokemons.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-lg">
           <div className="text-gray-400 mb-4">
@@ -241,7 +255,7 @@ const Pokemon = () => {
             No cards found
           </h3>
           <p className="text-gray-600">
-            Try adjusting your filters to see more results.
+            Try adjusting your filters or search to see more results.
           </p>
         </div>
       ) : (

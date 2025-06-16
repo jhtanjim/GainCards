@@ -13,16 +13,15 @@ const VendorOrders = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
 
-  const { data: allOrders = [], isLoading } = useQuery({
-    queryKey: ["orders"],
-    queryFn: getAllOrders,
-  });
+   const { data: orders = [], isLoading, error } = useQuery({
+     queryKey: ['orders'],
+     queryFn: getAllOrders,
+   })
+ 
 
-  const orders = allOrders.filter(
-    (order) => order.vendorProfileId === user?.profileId
-  );
-
-  const filteredOrders = orders.filter((order) => {
+const filteredOrders = orders
+  .filter((order) => order.profileId === user?.profileId) // Show only the vendor's orders
+  .filter((order) => {
     const search = searchTerm.toLowerCase();
     return (
       (order.id.toLowerCase().includes(search) ||
@@ -30,6 +29,8 @@ const VendorOrders = () => {
       (statusFilter === "All" || order.status === statusFilter)
     );
   });
+   console.log(filteredOrders)
+
 
   const updateOrderStatus = (id, newStatus) => {
     console.log(`Update order ${id} to ${newStatus}`);
@@ -95,9 +96,9 @@ const VendorOrders = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Amount
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
-                </th>
+                </th> */}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -129,10 +130,10 @@ const VendorOrders = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
-                    ${(order.totalAmount / 100).toFixed(2)}
+                    ${(order.totalAmount ).toFixed(2)}
                   </td>
                   <td className="px-6 py-4 text-sm font-medium">
-                    <div className="flex space-x-2">
+                    {/* <div className="flex space-x-2">
                       <button
                         className="text-indigo-600 hover:text-indigo-900"
                         title="View Details"
@@ -148,7 +149,7 @@ const VendorOrders = () => {
                           <Package size={18} />
                         </button>
                       )}
-                    </div>
+                    </div> */}
                   </td>
                 </tr>
               ))}
