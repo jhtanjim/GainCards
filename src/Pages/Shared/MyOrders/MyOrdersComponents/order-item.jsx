@@ -6,20 +6,108 @@ import { Share2, MoreVertical } from "lucide-react"
 import { getMySharedOrders } from "../../../../api/orders"
 import { useQuery } from "@tanstack/react-query"
 import { FacebookIcon, FacebookShareButton, PinterestIcon, PinterestShareButton, TwitterIcon, TwitterShareButton } from "react-share"
+import { useState } from "react"
+import Swal from "sweetalert2"
 
 export function OrderItem({ order, isExpanded, onToggleExpand }) {
-    console.log(order.items[0]?.id)
-const {
-    data: sharedOrderGroups = [],
+  const [showToast, setShowToast] = useState(false)
+  
+  console.log(order.items[0]?.id)
+  
+  const {
+    data: sharedOrderGroups = {},
   } = useQuery({
-    queryKey: ["sharedOrders"],
+    queryKey: ["sharedOrders", order.items[0]?.id],
     queryFn: () => getMySharedOrders(order.items[0]?.id),
     refetchOnWindowFocus: false,
+    enabled: !!order.items[0]?.id
   })
+  
   console.log(sharedOrderGroups)
-const { cardName, cardImageUrl, cardDescription, shareUrl, hashtags, purchaseDate, productId } = sharedOrderGroups
-console.log(shareUrl)
-    const shareText = `I just got a "${cardName}" from GainCards Marketplace! Purchased on ${purchaseDate}. Check it out! ${hashtags};`
+  const { cardName, cardImageUrl, cardDescription, shareUrl, hashtags, purchaseDate, productId } = sharedOrderGroups
+
+  const handleCopyOrderId = async () => {
+    try {
+      await navigator.clipboard.writeText(order.id)
+      
+      // Show SweetAlert success message
+      Swal.fire({
+        icon: 'success',
+        title: 'Copied!',
+        text: `Order ID #${order.id} copied to clipboard`,
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
+      })
+    } catch (err) {
+      console.error('Failed to copy order ID:', err)
+      
+      // Show SweetAlert error message
+      Swal.fire({
+        icon: 'error',
+        title: 'Failed to copy',
+        text: 'Unable to copy order ID to clipboard',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
+      })
+    }
+  }
+
+  const handleCopyShareUrl = async () => {
+    try {
+      if (!shareUrl) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'No share link available',
+          text: 'Share link is not available for this order',
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
+        })
+        return
+      }
+      
+      await navigator.clipboard.writeText(shareUrl)
+      
+      // Show SweetAlert success message
+      Swal.fire({
+        icon: 'success',
+        title: 'Share Link Copied!',
+        text: 'Share link copied to clipboard',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
+      })
+    } catch (err) {
+      console.error('Failed to copy share URL:', err)
+      
+      // Show SweetAlert error message
+      Swal.fire({
+        icon: 'error',
+        title: 'Failed to copy',
+        text: 'Unable to copy share link to clipboard',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
+      })
+    }
+  }
+
+  const shareText = cardName 
+    ? `I just got a "${cardName}" from GainCards Marketplace! Purchased on ${purchaseDate}. Check it out! ${hashtags}`
+    : `Check out my order #${order.id} from GainCards Marketplace!`
+
   return (
     <div className="p-4 border-b border-gray-200 last:border-0">
       <div className="flex justify-between items-center cursor-pointer" onClick={() => onToggleExpand(order.id)}>
@@ -131,21 +219,65 @@ console.log(shareUrl)
               ))}
             </div>
 
-<div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginTop: '20px' }}>
-        {/* Share buttons will still use the shareUrl provided by NestJS */}
-        <FacebookShareButton url={shareUrl} quote={shareText} hashtag={hashtags.split(' ')[0]} >
-          <FacebookIcon size={32} round />
-        </FacebookShareButton>
-        <TwitterShareButton url={shareUrl} title={shareText} hashtags={hashtags.replace(/#/g, '').split(' ')} >
-          <TwitterIcon size={32} round />
-        </TwitterShareButton>
-        <PinterestShareButton url={shareUrl} media={cardImageUrl} description={shareText} >
-          <PinterestIcon size={32} round />
-        </PinterestShareButton>
-        <button onClick={() => navigator.clipboard.writeText(shareUrl)} style={{ /* styles */ }}>🔗</button>
-      </div>
-
-      </div>
+            {/* Beautiful Share Buttons Section */}
+            <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-gray-200">
+              <h5 className="font-medium text-gray-900 mb-3 text-center">Share this order</h5>
+              <div className="flex justify-center items-center gap-4">
+                {shareUrl && (
+                  <>
+                    <FacebookShareButton 
+                      url={shareUrl} 
+                      quote={shareText} 
+                      hashtag={hashtags?.split(' ')[0]}
+                      className="hover:scale-110 transition-transform duration-200"
+                    >
+                      <FacebookIcon size={36} round />
+                    </FacebookShareButton>
+                    
+                    <TwitterShareButton 
+                      url={shareUrl} 
+                      title={shareText} 
+                      hashtags={hashtags?.replace(/#/g, '').split(' ')}
+                      className="hover:scale-110 transition-transform duration-200"
+                    >
+                      <TwitterIcon size={36} round />
+                    </TwitterShareButton>
+                    
+                    <PinterestShareButton 
+                      url={shareUrl} 
+                      media={cardImageUrl} 
+                      description={shareText}
+                      className="hover:scale-110 transition-transform duration-200"
+                    >
+                      <PinterestIcon size={36} round />
+                    </PinterestShareButton>
+                  </>
+                )}
+                
+                <button 
+                  onClick={handleCopyShareUrl}
+                  className="flex items-center justify-center w-9 h-9 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full hover:scale-110 transition-all duration-200 shadow-lg hover:shadow-xl"
+                  title="Copy share link"
+                >
+                  🔗
+                </button>
+                
+                <button 
+                  onClick={handleCopyOrderId}
+                  className="flex items-center justify-center w-9 h-9 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:scale-110 transition-all duration-200 shadow-lg hover:shadow-xl"
+                  title="Copy order ID"
+                >
+                  📋
+                </button>
+              </div>
+              
+              <div className="mt-3 text-center">
+                <p className="text-xs text-gray-500">
+                  Share your order with friends or copy the link to save it
+                </p>
+              </div>
+            </div>
+          </div>
 
           <div className="mt-4 flex justify-end">
             <div className="text-right">

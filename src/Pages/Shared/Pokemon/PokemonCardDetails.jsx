@@ -9,6 +9,7 @@ import {
   Heart,
   Shield,
   ShoppingCart,
+  X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -32,9 +33,22 @@ const PokemonCardDetails = () => {
   const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
 
+  const { data: pokemon, isLoading, isError } = useQuery({
+    queryKey: ["pokemon", id],
+    queryFn: () => getPokemonDataById(id),
+    initialData: state?.pokemon,
+    enabled: !!id, // Only run query if id exists
+  });
+
+  console.log("Pokemon ID:", id);
+  console.log("Pokemon Data:", pokemon);
+  console.log("API Loading:", isLoading);
+  console.log("API Error:", isError);
+
+  // Destructure with fallback values
   const {
-    title,
-    description,
+    title = "N/A",
+    description = "No description available",
     price,
     frontImageUrl,
     backImageUrl,
@@ -53,12 +67,10 @@ const PokemonCardDetails = () => {
     vendorId,
     createdAt,
     updatedAt,
-  } = state?.pokemon || {};
-  const { data: pokemon = [] } = useQuery({
-    queryKey: ["pokemon", id],
-    queryFn: () => getPokemonDataById(id),
-    initialData: state?.pokemon,
-  });
+  } = pokemon || {};
+  // Check if card is sold
+
+const isSold = pokemon?.status === "SOLD";
 
   // Check if item is already in cart
   const isInCart = cartItems.some((item) => item.id === pokemon?.id);
@@ -89,17 +101,14 @@ const PokemonCardDetails = () => {
   const toggleFavoriteMutation = useMutation({
     mutationFn: () => toggleFavoritePokemon(id),
     onMutate: async () => {
-      // Optimistically update UI
       setOptimisticFavorite(!optimisticFavorite);
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["favorites"]);
-
-      // Show appropriate message based on the action
-      const message = optimisticFavorite
+      const message = !optimisticFavorite
         ? "Added to Favorites!"
         : "Removed from Favorites";
-      const text = optimisticFavorite
+      const text = !optimisticFavorite
         ? `${title} has been added to your favorites`
         : `${title} has been removed from your favorites`;
 
@@ -118,7 +127,6 @@ const PokemonCardDetails = () => {
       });
     },
     onError: () => {
-      // Revert optimistic update on error
       setOptimisticFavorite(!optimisticFavorite);
       Swal.fire({
         toast: true,
@@ -126,7 +134,7 @@ const PokemonCardDetails = () => {
         icon: "error",
         title: "Error",
         text: `Could not ${
-          optimisticFavorite ? "remove from" : "add to"
+          !optimisticFavorite ? "add to" : "remove from"
         } favorites`,
         timer: 3000,
         timerProgressBar: true,
@@ -158,7 +166,6 @@ const PokemonCardDetails = () => {
   };
 
   const handleAddToCart = () => {
-    // Check if user is logged in
     if (!isAuthenticated) {
       Swal.fire({
         icon: "warning",
@@ -176,8 +183,7 @@ const PokemonCardDetails = () => {
       return;
     }
 
-    // Check if item is already in cart
-    if (!isInCart) {
+    if (!isInCart && pokemon) {
       setCartItems([...cartItems, pokemon]);
       Swal.fire({
         icon: "success",
@@ -190,7 +196,6 @@ const PokemonCardDetails = () => {
   };
 
   const handleAddToFavorites = () => {
-    // Check if user is logged in
     if (!isAuthenticated) {
       Swal.fire({
         icon: "warning",
@@ -218,23 +223,17 @@ const PokemonCardDetails = () => {
     }
 
     const currentCard = pokemon;
-
-    // Filter similar cards based on multiple criteria
     let similarCards = allPokemon.filter((card) => {
-      // Exclude the current card
       if (card.id === currentCard.id) return false;
 
-      // For donation cards, show other donation cards
       if (currentCard.isDonation) {
         return card.isDonation;
       }
 
-      // For non-donation cards, match by labelType first, then other criteria
       if (currentCard.labelType && card.labelType === currentCard.labelType) {
         return true;
       }
 
-      // If no labelType match, try other similarities
       return (
         card.brand === currentCard.brand ||
         card.sport === currentCard.sport ||
@@ -243,14 +242,11 @@ const PokemonCardDetails = () => {
       );
     });
 
-    // Sort by relevance (prioritize labelType matches for non-donation cards)
     similarCards.sort((a, b) => {
       if (currentCard.isDonation) {
-        // For donations, sort by creation date (newest first)
         return new Date(b.createdAt) - new Date(a.createdAt);
       }
 
-      // For regular cards, prioritize labelType matches
       const aLabelMatch = a.labelType === currentCard.labelType ? 1 : 0;
       const bLabelMatch = b.labelType === currentCard.labelType ? 1 : 0;
 
@@ -258,20 +254,17 @@ const PokemonCardDetails = () => {
         return bLabelMatch - aLabelMatch;
       }
 
-      // Then sort by brand match
       const aBrandMatch = a.brand === currentCard.brand ? 1 : 0;
       const bBrandMatch = b.brand === currentCard.brand ? 1 : 0;
 
       return bBrandMatch - aBrandMatch;
     });
 
-    // Return up to 4 similar cards
     return similarCards.slice(0, 4);
   };
 
   const similarCards = getSimilarCards();
 
-  // Get the section title based on what we're showing
   const getSectionTitle = () => {
     if (!pokemon) return "Similar Cards";
 
@@ -292,28 +285,55 @@ const PokemonCardDetails = () => {
     return "Similar Cards You May Like";
   };
 
-  if (!pokemon) {
+  // Show loading state
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-50">
         <div className="text-center p-8 bg-white rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold text-red-500 mb-4">
-            No Pokémon Data Found
-          </h2>
-          <p className="text-gray-600 mb-4">
-            The card you're looking for is not available.
-          </p>
-          <button
-            onClick={() => navigate("/pokemon")}
-            className="bg-blue-500 text-white px-6 py-2 rounded-lg flex items-center mx-auto"
-          >
-            <ArrowLeft size={18} className="mr-2" />
-            Return to Collection
-          </button>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-700">Loading...</h2>
         </div>
       </div>
     );
   }
 
+  // Show error state
+  if (isError || !pokemon) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <div className="text-center p-8 bg-white rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold text-red-500 mb-4">
+            {isError ? "Error Loading Card" : "No Pokémon Data Found"}
+          </h2>
+          <p className="text-gray-600 mb-4">
+            {isError 
+              ? "There was an error loading the card data. Please try again."
+              : "The card you're looking for is not available."
+            }
+          </p>
+          <div className="flex gap-4 justify-center">
+            <button
+              onClick={() => navigate("/pokemon")}
+              className="bg-blue-500 text-white px-6 py-2 rounded-lg flex items-center"
+            >
+              <ArrowLeft size={18} className="mr-2" />
+              Return to Collection
+            </button>
+            {isError && (
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-gray-500 text-white px-6 py-2 rounded-lg"
+              >
+                Retry
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Rest of your component JSX remains the same...
   return (
     <div className="bg-gray-50 min-h-screen pb-16">
       {/* Breadcrumb */}
@@ -468,47 +488,58 @@ const PokemonCardDetails = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-4 mb-8">
-                <button
-                  onClick={isDonation ? handleDonationClick : handleAddToCart}
-                  disabled={!isDonation && isInCart}
-                  className={`font-medium py-3 px-6 rounded-lg flex-1 flex items-center justify-center transition-all ${
-                    isDonation
-                      ? "bg-pink-500 hover:bg-pink-600 text-white"
-                      : isInCart
-                      ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                      : "bg-blue-600 hover:bg-blue-700 text-white"
-                  }`}
-                >
-                  {!isDonation && isInCart ? (
-                    <>
-                      <Check size={20} className="mr-2" />
-                      Added to Cart
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingCart size={20} className="mr-2" />
-                      {isDonation ? "Receive Donation" : "Add to Cart"}
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={handleAddToFavorites}
-                  disabled={toggleFavoriteMutation.isLoading}
-                  className={`border border-gray-300 hover:border-gray-400 text-gray-700 font-medium py-3 px-4 rounded-lg flex items-center justify-center ${
-                    toggleFavoriteMutation.isLoading ? "opacity-50" : ""
-                  }`}
-                >
-                  <Heart
-                    size={20}
-                    className={
-                      optimisticFavorite
-                        ? "text-red-500 fill-red-500"
-                        : "text-gray-700"
-                    }
-                  />
-                </button>
-              </div>
+          <div className="flex gap-4 mb-8">
+  <button
+    onClick={isDonation ? handleDonationClick : handleAddToCart}
+    disabled={!isDonation && (isInCart || isSold)}
+    className={`font-medium py-3 px-6 rounded-lg flex-1 flex items-center justify-center transition-all ${
+      isDonation
+        ? "bg-pink-500 hover:bg-pink-600 text-white"
+        : isSold
+        ? "bg-red-500 text-white cursor-not-allowed"
+        : isInCart
+        ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+        : "bg-blue-600 hover:bg-blue-700 text-white"
+    }`}
+  >
+    {!isDonation && isSold ? (
+      <>
+        <X size={20} className="mr-2" />
+        Sold Out
+      </>
+    ) : !isDonation && isInCart ? (
+      <>
+        <Check size={20} className="mr-2" />
+        Added to Cart
+      </>
+    ) : (
+      <>
+        <ShoppingCart size={20} className="mr-2" />
+        {isDonation ? "Receive Donation" : "Add to Cart"}
+      </>
+    )}
+  </button>
+
+  {!isSold && (
+    <button
+      onClick={handleAddToFavorites}
+      disabled={toggleFavoriteMutation.isLoading}
+      className={`border border-gray-300 hover:border-gray-400 text-gray-700 font-medium py-3 px-4 rounded-lg flex items-center justify-center ${
+        toggleFavoriteMutation.isLoading ? "opacity-50" : ""
+      }`}
+    >
+      <Heart
+        size={20}
+        className={
+          optimisticFavorite
+            ? "text-red-500 fill-red-500"
+            : "text-gray-700"
+        }
+      />
+    </button>
+  )}
+</div>
+
 
               {/* Features */}
               <div className="grid grid-cols-3 gap-4 border-t pt-6">
