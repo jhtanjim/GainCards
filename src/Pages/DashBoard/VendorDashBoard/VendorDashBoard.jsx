@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import {
   BarChart,
   Bar,
@@ -21,6 +21,19 @@ import {  getVendorsOrders } from "../../../api/orders";
 
 const VendorDashBoard = () => {
   const { user, isAuthenticated } = useAuth();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [copiedText, setCopiedText] = useState('');
+
+  // Copy to clipboard function
+  const copyToClipboard = async (text, label) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedText(label);
+      setTimeout(() => setCopiedText(''), 2000); // Clear after 2 seconds
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
 
   const { data: pokemons = [], isLoading: isLoadingPokemons } = useQuery({
     queryKey: ["pokemons"],
@@ -47,6 +60,26 @@ const VendorDashBoard = () => {
 
   // Extract orders array from the API response
   const orders = ordersData?.orders || [];
+
+  // Filter orders based on search term
+  const filteredOrders = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return orders;
+    }
+
+    const searchLower = searchTerm.toLowerCase();
+    
+    return orders.filter(order => 
+      order.id.toLowerCase().includes(searchLower) ||
+      order.orderGroup?.profile?.user?.username?.toLowerCase().includes(searchLower) ||
+      order.orderGroup?.profile?.user?.email?.toLowerCase().includes(searchLower) ||
+      order.items[0]?.product?.title?.toLowerCase().includes(searchLower) ||
+      order.status.toLowerCase().includes(searchLower)
+    );
+  }, [orders, searchTerm]);
+
+  // Show recent orders (first 5 from filtered results)
+  const recentOrders = filteredOrders.slice(0, 5);
 
   // Calculate total revenue
   const totalRevenue = React.useMemo(() => {
@@ -81,6 +114,20 @@ const VendorDashBoard = () => {
     }
   };
 
+  // Clickable text component with copy functionality
+  const CopyableText = ({ text, label, className = "", children }) => (
+    <button
+      onClick={() => copyToClipboard(text, label)}
+      className={`text-left hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 rounded px-1 py-0.5 cursor-pointer ${className}`}
+      title={`Click to copy ${label}`}
+    >
+      {children || text}
+      {copiedText === label && (
+        <span className="ml-2 text-xs text-green-600 font-medium">Copied!</span>
+      )}
+    </button>
+  );
+
   const stats = [
     {
       title: "Total Products",
@@ -101,8 +148,6 @@ const VendorDashBoard = () => {
       color: "bg-purple-500",
     },
   ];
-
-  const recentOrders = orders.slice(0, 5); // Show latest 5 orders
 
   if (isLoadingOrders || isLoadingPokemons) {
     return (
@@ -136,8 +181,45 @@ const VendorDashBoard = () => {
       {/* Recent Orders */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold">Recent Orders</h2>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h2 className="text-lg font-semibold">Recent Orders</h2>
+            
+            {/* Search Bar */}
+            <div className="relative flex-1 max-w-md">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                placeholder="Search orders..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
+          
+          {/* Search Results Info */}
+          {searchTerm && (
+            <div className="mt-2 text-sm text-gray-600">
+              Showing {filteredOrders.length} of {orders.length} orders
+              {filteredOrders.length > 5 && ' (displaying first 5)'}
+            </div>
+          )}
         </div>
+        
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -166,7 +248,14 @@ const VendorDashBoard = () => {
               {recentOrders.map((order) => (
                 <tr key={order.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    #{order.id.slice(-8)}
+                    <CopyableText 
+                      text={order.id} 
+                      label="Order ID"
+                      className="font-medium"
+                    >
+                      <span className="hidden lg:inline">#{order.id}</span>
+                      <span className="lg:hidden">#{order.id.slice(-8)}</span>
+                    </CopyableText>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <div className="flex items-center">
@@ -179,9 +268,11 @@ const VendorDashBoard = () => {
                         }}
                       />
                       <div>
-                        <div className="font-medium">
-                          {order.items[0]?.product?.title || "Unknown Product"}
-                        </div>
+                        <CopyableText 
+                          text={order.items[0]?.product?.title || "Unknown Product"} 
+                          label="Product Title"
+                          className="font-medium block"
+                        />
                         {order.items.length > 1 && (
                           <div className="text-xs text-gray-500">
                             +{order.items.length - 1} more items
@@ -192,16 +283,23 @@ const VendorDashBoard = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div>
-                      <div className="font-medium">
-                        {order.orderGroup?.profile?.user?.username || "—"}
-                      </div>
-                      <div className="text-xs text-gray-400">
-                        {order.orderGroup?.profile?.user?.email || ""}
-                      </div>
+                      <CopyableText 
+                        text={order.orderGroup?.profile?.user?.username || "—"} 
+                        label="Username"
+                        className="font-medium block"
+                      />
+                      {/* <CopyableText 
+                        text={order.orderGroup?.profile?.user?.email || ""} 
+                        label="Email"
+                        className="text-xs text-gray-400 block"
+                      /> */}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatDate(order.createdAt)}
+                    <CopyableText 
+                      text={formatDate(order.createdAt)} 
+                      label="Order Date"
+                    />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>
@@ -209,7 +307,11 @@ const VendorDashBoard = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {formatAmount(order.totalAmount)}
+                    <CopyableText 
+                      text={formatAmount(order.totalAmount)} 
+                      label="Amount"
+                      className="font-medium"
+                    />
                   </td>
                 </tr>
               ))}
@@ -219,20 +321,37 @@ const VendorDashBoard = () => {
                     colSpan={6}
                     className="px-6 py-4 text-center text-sm text-gray-500"
                   >
-                    No recent orders found.
+                    {searchTerm ? 'No orders found matching your search.' : 'No recent orders found.'}
+                    {searchTerm && (
+                      <button
+                        onClick={() => setSearchTerm('')}
+                        className="ml-2 text-blue-600 hover:text-blue-800"
+                      >
+                        Clear search
+                      </button>
+                    )}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-        {orders.length > 5 && (
-          <div className="px-6 py-3 bg-gray-50 text-center">
-            <p className="text-sm text-gray-500">
-              Showing 5 of {orders.length} total orders
-            </p>
-          </div>
-        )}
+        
+        {/* Footer with order count info */}
+        <div className="px-6 py-3 bg-gray-50 text-center">
+          <p className="text-sm text-gray-500">
+            {searchTerm ? (
+              <>
+                Showing {Math.min(5, filteredOrders.length)} of {filteredOrders.length} filtered orders
+                {filteredOrders.length !== orders.length && ` (${orders.length} total)`}
+              </>
+            ) : (
+              <>
+                Showing {Math.min(5, orders.length)} of {orders.length} total orders
+              </>
+            )}
+          </p>
+        </div>
       </div>
     </div>
   );

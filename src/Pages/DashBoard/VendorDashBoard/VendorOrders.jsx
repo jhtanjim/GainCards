@@ -1,14 +1,50 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { getVendorsOrders } from '../../../api/orders';
 import { useQuery } from '@tanstack/react-query';
 
 const VendorOrders = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [copiedText, setCopiedText] = useState('');
+
   const { data: VendorsOrderGroups = [], isLoading, error } = useQuery({
     queryKey: ['orders'],
     queryFn: getVendorsOrders,
   });
 
   console.log(VendorsOrderGroups);
+
+  // Copy to clipboard function
+  const copyToClipboard = async (text, label) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedText(label);
+      setTimeout(() => setCopiedText(''), 2000); // Clear after 2 seconds
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
+
+  // Filter orders based on search term
+  const filteredOrders = useMemo(() => {
+    const orders = VendorsOrderGroups?.orders || [];
+    
+    if (!searchTerm.trim()) {
+      return orders;
+    }
+
+    const searchLower = searchTerm.toLowerCase();
+    
+    return orders.filter(order => 
+      order.id.toLowerCase().includes(searchLower) ||
+      order.orderGroup.profile.user.username.toLowerCase().includes(searchLower) ||
+      order.items[0]?.product.title.toLowerCase().includes(searchLower) ||
+      order.status.toLowerCase().includes(searchLower) ||
+      order.paymentStatus.toLowerCase().includes(searchLower) ||
+      order.shipping.status.toLowerCase().includes(searchLower) ||
+      order.shipping.carrier.toLowerCase().includes(searchLower) ||
+      order.shipping.trackingId.toLowerCase().includes(searchLower)
+    );
+  }, [VendorsOrderGroups?.orders, searchTerm]);
 
   if (isLoading) {
     return (
@@ -100,19 +136,69 @@ const VendorOrders = () => {
     );
   };
 
+  // Clickable text component with copy functionality
+  const CopyableText = ({ text, label, className = "", children }) => (
+    <button
+      onClick={() => copyToClipboard(text, label)}
+      className={`text-left hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200 rounded px-1 py-0.5 cursor-pointer ${className}`}
+      title={`Click to copy ${label}`}
+    >
+      {children || text}
+      {copiedText === label && (
+        <span className="ml-2 text-xs text-green-600 font-medium">Copied!</span>
+      )}
+    </button>
+  );
+
   return (
     <div className="p-6 max-w-full mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Vendor Orders</h1>
-        <div className="text-sm text-gray-600">
-          Showing {orders.length} of {pagination.total} orders
+        <div className="text-sm text-gray-600 mb-4">
+          Showing {filteredOrders.length} of {orders.length} orders
           {pagination.totalPages > 1 && ` (Page ${pagination.page} of ${pagination.totalPages})`}
+        </div>
+        
+        {/* Search Bar */}
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <input
+            type="text"
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            placeholder="Search orders by ID, customer, product, status, carrier, or tracking ID..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+            >
+              <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 
-      {orders.length === 0 ? (
+      {filteredOrders.length === 0 ? (
         <div className="text-center py-12">
-          <div className="text-gray-500 text-lg">No orders found</div>
+          <div className="text-gray-500 text-lg">
+            {searchTerm ? 'No orders found matching your search' : 'No orders found'}
+          </div>
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="mt-2 text-blue-600 hover:text-blue-800 text-sm"
+            >
+              Clear search
+            </button>
+          )}
         </div>
       ) : (
         <div className="bg-white shadow-sm rounded-lg overflow-hidden">
@@ -150,15 +236,25 @@ const VendorOrders = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {orders.map((order) => (
+                {filteredOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      #{order.id.slice(-8)}
+                      <CopyableText 
+                        text={order.id} 
+                        label="Order ID"
+                        className="font-medium"
+                      >
+                        <span className="hidden lg:inline">#{order.id}</span>
+                        <span className="lg:hidden">#{order.id.slice(-8)}</span>
+                      </CopyableText>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div>
-                        <div className="font-medium">{order.orderGroup.profile.user.username}</div>
-                        <div className="text-gray-500">{order.orderGroup.profile.user.email}</div>
+                        <CopyableText 
+                          text={order.orderGroup.profile.user.username} 
+                          label="Username"
+                          className="font-medium block"
+                        />
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -172,7 +268,11 @@ const VendorOrders = () => {
                           }}
                         />
                         <div>
-                          <div className="font-medium">{order.items[0]?.product.title}</div>
+                          <CopyableText 
+                            text={order.items[0]?.product.title} 
+                            label="Product Title"
+                            className="font-medium block"
+                          />
                           <div className="text-gray-500">Qty: {order.items[0]?.quantity}</div>
                           {order.items.length > 1 && (
                             <div className="text-gray-500">+{order.items.length - 1} more</div>
@@ -181,7 +281,11 @@ const VendorOrders = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {formatAmount(order.totalAmount)}
+                      <CopyableText 
+                        text={formatAmount(order.totalAmount)} 
+                        label="Amount"
+                        className="font-medium"
+                      />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {getStatusBadge(order.status, 'order')}
@@ -194,20 +298,34 @@ const VendorOrders = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div>
-                        <div>{formatDate(order.createdAt)}</div>
+                        <CopyableText 
+                          text={formatDate(order.createdAt)} 
+                          label="Created Date"
+                          className="block"
+                        />
                         {order.updatedAt !== order.createdAt && (
                           <div className="text-xs text-gray-400">
-                            Updated: {formatDate(order.updatedAt)}
+                            Updated: <CopyableText 
+                              text={formatDate(order.updatedAt)} 
+                              label="Updated Date"
+                              className="inline"
+                            />
                           </div>
                         )}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div>
-                        <div className="font-medium">{order.shipping.carrier}</div>
-                        <div className="text-xs text-gray-500 font-mono">
-                          {order.shipping.trackingId}
-                        </div>
+                        <CopyableText 
+                          text={order.shipping.carrier} 
+                          label="Carrier"
+                          className="font-medium block"
+                        />
+                        <CopyableText 
+                          text={order.shipping.trackingId} 
+                          label="Tracking ID"
+                          className="text-xs text-gray-500 font-mono block"
+                        />
                       </div>
                     </td>
                   </tr>
@@ -223,6 +341,7 @@ const VendorOrders = () => {
         <div className="mt-6 flex justify-between items-center">
           <div className="text-sm text-gray-500">
             Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} results
+            {searchTerm && ` (filtered from ${orders.length} total)`}
           </div>
           <div className="text-sm text-gray-500">
             Page {pagination.page} of {pagination.totalPages}

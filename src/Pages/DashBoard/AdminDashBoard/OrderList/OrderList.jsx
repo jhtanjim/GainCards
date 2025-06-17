@@ -1,51 +1,43 @@
-import React, { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { getAllOrders } from '../../../../api/orders'
-import OrderFilterBar from './OrderFilterBar'
-import OrderTable from './OrderTable'
-import { data } from 'react-router-dom'
+"use client"
+import { useQuery } from "@tanstack/react-query"
+import OrderManagementSystem from "./OrderManagementSystem"
+import { getAllOrders } from "../../../../api/orders"
+import { getAllUsers } from "../../../../api/users"
 
 const OrderList = () => {
-  const [filter, setFilter] = useState('all')
-  const [searchQuery, setSearchQuery] = useState('')
-
-  const { data: orders = [], isLoading, error } = useQuery({
-    queryKey: ['orders'],
+  const {
+    data: orders = [],
+    isLoading: loadingOrders,
+    error: ordersError,
+  } = useQuery({
+    queryKey: ["orders"],
     queryFn: getAllOrders,
   })
-  console.log(orders)
 
-  const filteredOrders = orders.filter(order => {
-    const query = searchQuery.toLowerCase()
-    if (filter !== 'all' && order.status.toLowerCase() !== filter) return false
-    if (searchQuery) {
-      return (
-        order.id.toLowerCase().includes(query) ||
-        order.paymentStatus.toLowerCase().includes(query)
-      )
-    }
-    return true
+  const {
+    data: users = [],
+    isLoading: loadingUsers,
+    error: usersError,
+  } = useQuery({
+    queryKey: ["users"],
+    queryFn: getAllUsers,
   })
 
-  if (isLoading) return <p>Loading orders...</p>
-  if (error) return <p>Failed to fetch orders</p>
+  const isLoading = loadingOrders || loadingUsers
+  const error = ordersError || usersError
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Order Management</h1>
-        <p className="text-gray-600">View and manage all customer orders</p>
-      </div>
-
-      <OrderFilterBar 
-        filter={filter} 
-        setFilter={setFilter} 
-        searchQuery={searchQuery} 
-        setSearchQuery={setSearchQuery} 
-      />
-
-      <OrderTable orders={filteredOrders} />
-    </div>
+    <OrderManagementSystem
+      orders={orders}
+      users={users}
+      isLoading={isLoading}
+      error={error}
+      showRecentOnly={false}
+      maxItems={null}
+      showStats={true}
+      showFilters={true}
+      title="All Orders"
+    />
   )
 }
 
