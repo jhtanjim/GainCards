@@ -10,6 +10,15 @@ export const login = async (data) => {
   console.log(res);
   return res.data;
 };
+export const forgotPass = async (email) => {
+  const res = await api.post("/auth/forgot-password", { email });
+  return res.data;
+};
+export const resetPass = async (data) => {
+  const res = await api.post("/auth/reset-password", data);
+  console.log(res);
+  return res.data;
+};
 
 export const refresh = async () => {
   const res = await api.post("/auth/refresh");

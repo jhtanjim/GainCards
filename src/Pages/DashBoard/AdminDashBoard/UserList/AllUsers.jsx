@@ -1,12 +1,13 @@
 // components/UserList/AllUsers.jsx
 import React, { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Search, X } from 'lucide-react'
 import { getAllUsers } from '../../../../api/users'
 import UserTable from './UserTable'
-import { data } from 'react-router-dom'
 
 const AllUsers = () => {
   const [filter, setFilter] = useState('all')
+  const [searchTerm, setSearchTerm] = useState('')
   const [isDeleting, setIsDeleting] = useState(false)
   const queryClient = useQueryClient()
 
@@ -18,10 +19,25 @@ const AllUsers = () => {
   })
   console.log(users)
 
-  const filteredUsers = users.filter(user => {
-    if (filter === 'all') return true
-    return user.role?.toLowerCase() === filter
-  })
+  // Filter by role first, then by search term
+  const filteredUsers = users
+    .filter(user => {
+      if (filter === 'all') return true
+      return user.role?.toLowerCase() === filter
+    })
+    .filter(user => {
+      if (!searchTerm) return true
+      
+      const searchLower = searchTerm.toLowerCase()
+      return (
+        user.email?.toLowerCase().includes(searchLower) ||
+        user.username?.toLowerCase().includes(searchLower) ||
+        user.country?.toLowerCase().includes(searchLower) ||
+        user.role?.toLowerCase().includes(searchLower) ||
+        user.id?.toLowerCase().includes(searchLower) ||
+        user.profileId?.toLowerCase().includes(searchLower)
+      )
+    })
 
   const handleDeleteUser = async (userId) => {
     if (!window.confirm('Are you sure you want to delete this user?')) {
@@ -47,6 +63,10 @@ const AllUsers = () => {
     return users.filter(user => user.role?.toLowerCase() === role).length
   }
 
+  const clearSearch = () => {
+    setSearchTerm('')
+  }
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -54,6 +74,38 @@ const AllUsers = () => {
         <div className="text-sm text-gray-500">
           Total: {users.length} users
         </div>
+      </div>
+
+      {/* Search Bar */}
+      <div className="mb-6">
+        <div className="relative max-w-md">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            placeholder="Search by email, username, country, role, or ID..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          {searchTerm && (
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+              <button
+                onClick={clearSearch}
+                className="text-gray-400 hover:text-gray-600 focus:outline-none"
+                title="Clear search"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+        </div>
+        {searchTerm && (
+          <p className="mt-2 text-sm text-gray-600">
+            Found {filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''} matching "{searchTerm}"
+          </p>
+        )}
       </div>
 
       {/* Filter Tabs */}
@@ -75,6 +127,34 @@ const AllUsers = () => {
           </button>
         ))}
       </div>
+
+      {/* Active Filters Display */}
+      {(filter !== 'all' || searchTerm) && (
+        <div className="mb-4 flex flex-wrap gap-2">
+          {filter !== 'all' && (
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              Role: {filter === 'vendor' ? 'Vendors' : 'Normal Users'}
+              <button
+                onClick={() => setFilter('all')}
+                className="ml-1 text-blue-600 hover:text-blue-800"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+          {searchTerm && (
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+              Search: "{searchTerm}"
+              <button
+                onClick={clearSearch}
+                className="ml-1 text-gray-600 hover:text-gray-800"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Loading State */}
       {isLoading && (
@@ -123,11 +203,26 @@ const AllUsers = () => {
               </svg>
               <h3 className="mt-2 text-sm font-medium text-gray-900">No users found</h3>
               <p className="mt-1 text-sm text-gray-500">
-                {filter === 'all' 
-                  ? 'There are no users in the system yet.' 
-                  : `No users with role "${filter}" found.`
+                {searchTerm 
+                  ? `No users match your search criteria "${searchTerm}"${filter !== 'all' ? ` in ${filter} role` : ''}.`
+                  : filter === 'all' 
+                    ? 'There are no users in the system yet.' 
+                    : `No users with role "${filter}" found.`
                 }
               </p>
+              {(searchTerm || filter !== 'all') && (
+                <div className="mt-4">
+                  <button
+                    onClick={() => {
+                      setSearchTerm('')
+                      setFilter('all')
+                    }}
+                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                  >
+                    Clear all filters
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <UserTable 

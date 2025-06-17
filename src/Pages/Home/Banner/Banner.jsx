@@ -2,9 +2,11 @@
 import { useState, useEffect } from "react"
 import bannerBg from "../../../assets/banner/hero.webp"
 import { Link } from "react-router-dom"
+import useUserRole from "../../../Hooks/useUserRole"
 
 const Banner = () => {
   const [currentCard, setCurrentCard] = useState(0)
+  const {  isVendor,isAdmin } = useUserRole();
 
   const cardImages = [
     "https://i.pinimg.com/736x/0d/72/4f/0d724feed9c556e7e1d2fd7d291e7cd6.jpg",
@@ -68,11 +70,15 @@ const Banner = () => {
                 Shop Now!
               </button></Link>
 
+
+
+              {!isVendor && !isAdmin && (
               <Link to={"/vendorSignup"}>
               <button className="border-2 border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black px-6 sm:px-8 py-3 sm:py-4 rounded-full font-bold text-lg transition-all duration-300 transform hover:scale-105">
                 Sell your cards
               </button>
               </Link>
+              )}
             </div>
           </div>
 

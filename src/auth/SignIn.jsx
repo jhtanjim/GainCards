@@ -5,7 +5,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { useAuth } from "../Context/AuthContext";
 
-const SignIn = () => {
+const SignIn = ({onForgotPassword }) => {
   const { signIn, isLoggingIn, loginError, isAuthenticated, loading } =
     useAuth();
   const navigate = useNavigate();
@@ -270,7 +270,7 @@ const SignIn = () => {
               <a
                 href="#"
                 className="font-medium text-yellow-600 hover:text-yellow-500"
-                onClick={handleForgotPassword}
+               onClick={onForgotPassword}
               >
                 Forgot your password?
               </a>

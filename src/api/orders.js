@@ -20,6 +20,15 @@ export const getMyOrders = async () => {
     throw error;
   }
 };
+export const getVendorsOrders = async () => {
+  try {
+    const response = await api.get("/vendor/orders");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    throw error;
+  }
+};
 export const getMySharedOrders = async (orderItemId) => {
   try {
     const response = await api.get(`/share/order-item/${orderItemId}/data`);

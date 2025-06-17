@@ -1,165 +1,234 @@
-"use client";
-
-import { useQuery } from "@tanstack/react-query";
-import { Eye, Filter, Package, Search } from "lucide-react";
-import { useState } from "react";
-import { getAllOrders } from "../../../api/orders";
-import { useAuth } from "../../../Context/AuthContext";
-
-// Example: Replace with your actual context/hook for getting logged-in user
+import React from 'react';
+import { getVendorsOrders } from '../../../api/orders';
+import { useQuery } from '@tanstack/react-query';
 
 const VendorOrders = () => {
-  const { user } = useAuth();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
-
-   const { data: orders = [], isLoading, error } = useQuery({
-     queryKey: ['orders'],
-     queryFn: getAllOrders,
-   })
- 
-
-const filteredOrders = orders
-  .filter((order) => order.profileId === user?.profileId) // Show only the vendor's orders
-  .filter((order) => {
-    const search = searchTerm.toLowerCase();
-    return (
-      (order.id.toLowerCase().includes(search) ||
-        order.paymentIntentId?.toLowerCase().includes(search)) &&
-      (statusFilter === "All" || order.status === statusFilter)
-    );
+  const { data: VendorsOrderGroups = [], isLoading, error } = useQuery({
+    queryKey: ['orders'],
+    queryFn: getVendorsOrders,
   });
-   console.log(filteredOrders)
 
+  console.log(VendorsOrderGroups);
 
-  const updateOrderStatus = (id, newStatus) => {
-    console.log(`Update order ${id} to ${newStatus}`);
-    // Add mutation logic here
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="text-lg">Loading orders...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="text-red-500 text-lg">Error loading orders: {error.message}</div>
+      </div>
+    );
+  }
+
+  const orders = VendorsOrderGroups?.orders || [];
+  const pagination = VendorsOrderGroups?.pagination || {};
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const formatAmount = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  };
+
+  const getStatusBadge = (status, type = 'order') => {
+    let colorClass = '';
+    
+    if (type === 'order') {
+      switch (status) {
+        case 'PAID':
+          colorClass = 'bg-green-100 text-green-800';
+          break;
+        case 'PENDING':
+          colorClass = 'bg-yellow-100 text-yellow-800';
+          break;
+        case 'CANCELLED':
+          colorClass = 'bg-red-100 text-red-800';
+          break;
+        default:
+          colorClass = 'bg-gray-100 text-gray-800';
+      }
+    } else if (type === 'payment') {
+      switch (status) {
+        case 'HOLDING':
+          colorClass = 'bg-orange-100 text-orange-800';
+          break;
+        case 'COMPLETED':
+          colorClass = 'bg-green-100 text-green-800';
+          break;
+        case 'FAILED':
+          colorClass = 'bg-red-100 text-red-800';
+          break;
+        default:
+          colorClass = 'bg-gray-100 text-gray-800';
+      }
+    } else if (type === 'shipping') {
+      switch (status) {
+        case 'CREATED':
+          colorClass = 'bg-blue-100 text-blue-800';
+          break;
+        case 'SHIPPED':
+          colorClass = 'bg-purple-100 text-purple-800';
+          break;
+        case 'DELIVERED':
+          colorClass = 'bg-green-100 text-green-800';
+          break;
+        default:
+          colorClass = 'bg-gray-100 text-gray-800';
+      }
+    }
+    
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>
+        {status}
+      </span>
+    );
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">Vendor Orders</h1>
-
-      {/* Search & Filter */}
-      <div className="bg-white rounded-lg shadow p-4">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="relative flex-grow">
-            <input
-              type="text"
-              placeholder="Search by ID or Payment Intent..."
-              className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <Search
-              className="absolute left-3 top-2.5 text-gray-400"
-              size={18}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Filter size={18} className="text-gray-400" />
-            <select
-              className="rounded-lg border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="All">All Status</option>
-              <option value="PENDING">Pending</option>
-              <option value="PROCESSING">Processing</option>
-              <option value="SHIPPED">Shipped</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="CANCELLED">Cancelled</option>
-            </select>
-          </div>
+    <div className="p-6 max-w-full mx-auto">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Vendor Orders</h1>
+        <div className="text-sm text-gray-600">
+          Showing {orders.length} of {pagination.total} orders
+          {pagination.totalPages > 1 && ` (Page ${pagination.page} of ${pagination.totalPages})`}
         </div>
       </div>
 
-      {/* Orders Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Order ID
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Payment Intent
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Created At
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Amount
-                </th>
-                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th> */}
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredOrders.map((order) => (
-                <tr key={order.id}>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                    {order.id}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    {order.paymentIntentId || "N/A"}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    {new Date(order.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-2 inline-flex text-xs font-semibold rounded-full 
-                        ${
-                          order.status === "COMPLETED"
-                            ? "bg-green-100 text-green-800"
-                            : order.status === "PROCESSING"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : order.status === "SHIPPED"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                    >
-                      {order.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    ${(order.totalAmount ).toFixed(2)}
-                  </td>
-                  <td className="px-6 py-4 text-sm font-medium">
-                    {/* <div className="flex space-x-2">
-                      <button
-                        className="text-indigo-600 hover:text-indigo-900"
-                        title="View Details"
-                      >
-                        <Eye size={18} />
-                      </button>
-                      {order.status === "PROCESSING" && (
-                        <button
-                          className="text-blue-600 hover:text-blue-900"
-                          title="Mark as Shipped"
-                          onClick={() => updateOrderStatus(order.id, "SHIPPED")}
-                        >
-                          <Package size={18} />
-                        </button>
-                      )}
-                    </div> */}
-                  </td>
+      {orders.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="text-gray-500 text-lg">No orders found</div>
+        </div>
+      ) : (
+        <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Order ID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Customer
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Product
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Amount
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Payment
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Shipping
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Date
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Tracking
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {orders.map((order) => (
+                  <tr key={order.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      #{order.id.slice(-8)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div>
+                        <div className="font-medium">{order.orderGroup.profile.user.username}</div>
+                        <div className="text-gray-500">{order.orderGroup.profile.user.email}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div className="flex items-center">
+                        <img
+                          src={order.items[0]?.product.frontImageUrl}
+                          alt={order.items[0]?.product.title}
+                          className="w-10 h-10 object-cover rounded-lg mr-3"
+                          onError={(e) => {
+                            e.target.src = 'https://via.placeholder.com/40x40?text=No+Image';
+                          }}
+                        />
+                        <div>
+                          <div className="font-medium">{order.items[0]?.product.title}</div>
+                          <div className="text-gray-500">Qty: {order.items[0]?.quantity}</div>
+                          {order.items.length > 1 && (
+                            <div className="text-gray-500">+{order.items.length - 1} more</div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {formatAmount(order.totalAmount)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {getStatusBadge(order.status, 'order')}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {getStatusBadge(order.paymentStatus, 'payment')}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {getStatusBadge(order.shipping.status, 'shipping')}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <div>
+                        <div>{formatDate(order.createdAt)}</div>
+                        {order.updatedAt !== order.createdAt && (
+                          <div className="text-xs text-gray-400">
+                            Updated: {formatDate(order.updatedAt)}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div>
+                        <div className="font-medium">{order.shipping.carrier}</div>
+                        <div className="text-xs text-gray-500 font-mono">
+                          {order.shipping.trackingId}
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-        {!isLoading && filteredOrders.length === 0 && (
-          <div className="text-center py-4 text-gray-500">No orders found</div>
-        )}
-      </div>
+      )}
+
+      {/* Pagination Info */}
+      {pagination.totalPages > 1 && (
+        <div className="mt-6 flex justify-between items-center">
+          <div className="text-sm text-gray-500">
+            Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} results
+          </div>
+          <div className="text-sm text-gray-500">
+            Page {pagination.page} of {pagination.totalPages}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
