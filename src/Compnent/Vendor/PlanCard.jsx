@@ -36,14 +36,14 @@ const PlanCard = ({ plan, selectedPlan, onSelect }) => {
           <CheckCircle className="mr-2 text-green-500" size={16} />
           Up to {plan.cardLimit} Pokémon cards
         </li>
-        <li className="flex items-center text-gray-600">
+        {/* <li className="flex items-center text-gray-600">
           <CheckCircle className="mr-2 text-green-500" size={16} />
           24/7 Support
-        </li>
-        <li className="flex items-center text-gray-600">
+        </li> */}
+        {/* <li className="flex items-center text-gray-600">
           <CheckCircle className="mr-2 text-green-500" size={16} />
           Analytics Dashboard
-        </li>
+        </li> */}
       </ul>
 
       <button

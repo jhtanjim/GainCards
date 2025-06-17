@@ -3,10 +3,12 @@ import { getAllActivePlan } from "../../../api/subscription"
 import { useState } from "react"
 import { Crown, Rocket, Diamond, Star, Check, Zap, Heart } from "lucide-react"
 import { Link } from "react-router-dom"
+import useUserRole from "../../../Hooks/useUserRole"
 
 const Subscription = () => {
   const [hoveredCard, setHoveredCard] = useState(null)
-  
+  const { isVendor, isAdmin } = useUserRole();
+
   const {
     data: activePlans = [],
     isLoading,
@@ -248,7 +250,10 @@ const Subscription = () => {
                       </div>
 
                       {/* CTA Button */}
-                      <button className={`group/btn relative w-full px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r ${plan.gradient} rounded-2xl text-white font-semibold text-base sm:text-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 overflow-hidden`}>
+
+{ !isVendor && !isAdmin && (
+
+ <button className={`group/btn relative w-full px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r ${plan.gradient} rounded-2xl text-white font-semibold text-base sm:text-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 overflow-hidden`}>
                       <Link to={"/vendorSignup"}>  
                         <span className="relative z-10 flex items-center justify-center gap-2">
                           <Heart size={18} />
@@ -257,6 +262,10 @@ const Subscription = () => {
                         </Link>
                         <div className={`absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500`}></div>
                       </button>
+)}
+
+
+                     
                     </div>
                   </div>
                 </div>

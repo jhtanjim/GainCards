@@ -341,7 +341,7 @@ const VendorRegistration = () => {
               <p>Loading plans...</p>
             </div>
           ) : sortedPlans.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6   md:grid-cols-2 lg:grid-cols-3">
               {sortedPlans.map((plan) => (
                 <PlanCard
                   key={plan.id}
@@ -388,7 +388,7 @@ const VendorRegistration = () => {
             onBack={handleBackToPlans}
           />
 
-          <div className="mt-6 flex justify-end">
+          <div className="mt-6 flex lg:justify-end justify-center">
             <button
               onClick={handleContinueToPayment}
               disabled={
