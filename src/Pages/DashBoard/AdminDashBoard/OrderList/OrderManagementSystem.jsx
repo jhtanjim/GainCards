@@ -297,7 +297,7 @@ const OrderManagementSystem = ({
                         <div>
                           <h4 className="font-semibold text-gray-800 mb-2">Payment & Shipping</h4>
                           <div className="space-y-1 text-sm">
-                            <p><span className="font-medium">Payment Status:</span> <StatusBadge status={subOrder.paymentStatus} /></p>
+                            <p><span className="font-medium">Vendor Payout:</span> <StatusBadge status={subOrder.paymentStatus} /></p>
                             <p><span className="font-medium">Amount:</span> ${subOrder.totalAmount.toFixed(2)}</p>
                             {subOrder.shipping && (
                               <>

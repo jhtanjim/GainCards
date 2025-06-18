@@ -127,13 +127,20 @@ const WhyChooseUs = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <button className="group bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-blue-50 transition-all duration-300 hover:scale-105 hover:shadow-xl flex items-center gap-2">
-                  <Users className="w-5 h-5" />
-                  Join the community
-                  <div className="w-0 group-hover:w-2 transition-all duration-300 overflow-hidden">
-                    <div className="w-2 h-0.5 bg-blue-600 rounded"></div>
-                  </div>
-                </button>
+                <a
+  href="https://www.facebook.com/groups/gaincards/"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  <button className="group bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-blue-50 transition-all duration-300 hover:scale-105 hover:shadow-xl flex items-center gap-2">
+    <Users className="w-5 h-5" />
+    Join the community
+    <div className="w-0 group-hover:w-2 transition-all duration-300 overflow-hidden">
+      <div className="w-2 h-0.5 bg-blue-600 rounded"></div>
+    </div>
+  </button>
+</a>
+
                 <Link to={"/pokemon"}>
                 <button className="group bg-transparent border-2 border-white text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white hover:text-blue-600 transition-all duration-300 hover:scale-105 hover:shadow-xl">
                   View your Collections

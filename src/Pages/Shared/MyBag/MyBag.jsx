@@ -17,7 +17,7 @@ import { placeOrder } from "../../../api/orders";
 
 const CartPage = () => {
   const { cartItems: shopCart, removeItem } = useShop();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated ,fetchUserData} = useAuth();
   const navigate = useNavigate();
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
@@ -45,7 +45,7 @@ const CartPage = () => {
     setAddressFormData,
     handleAddressSubmit,
     isSavingAddress,
-  } = useAddressForm(user, () => refetchRates());
+  } = useAddressForm(user, () => {fetchUserData();refetchRates()});
 
   // Get shipping rates
   const {
@@ -313,13 +313,13 @@ const CartPage = () => {
         </div>
 
         {/* Order Summary Section */}
-        <div className="w-full lg:w-1/3">
+        <div className="w-full lg:w-1/2">
           {showAddressForm ? (
             <div className="mb-6">
               <AddressForm
                 formData={addressFormData}
                 setFormData={setAddressFormData}
-                onBack={() => setShowAddressForm(false)}
+                
               />
               <button
                 onClick={handleAddressSubmit}
