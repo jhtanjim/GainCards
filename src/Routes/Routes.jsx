@@ -34,7 +34,7 @@ import DonateCardReceiver from "../Pages/Shared/Donate/DonateCardReciever/Donate
 import Pokemon from "../Pages/Shared/Pokemon/Pokemon";
 import PokemonCardDetails from "../Pages/Shared/Pokemon/PokemonCardDetails";
 import PokemonCardUpdate from "../Pages/Shared/PokemonCardCrud/PokemonCardUpdate";
-import SignInwithForgetPassword from "../auth/signInwithForgetPassword";
+import SignInwithForgetPass from "../auth/SignInwithForgetPass";
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -54,7 +54,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "/signin",
-        element: <SignInwithForgetPassword />,
+        element: <SignInwithForgetPass />,
       },
       {
         path: "/signUp",
