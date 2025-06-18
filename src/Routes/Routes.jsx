@@ -1,5 +1,4 @@
 import { createBrowserRouter } from "react-router-dom";
-import SignIn from "../auth/SignIn";
 import Signup from "../auth/Signup";
 import UnderConstruction from "../Compnent/UnderConstruction";
 import VendorRegistration from "../Compnent/Vendor/VendorRegistration";
@@ -55,7 +54,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "/signin",
-        element: <SignInwithForgetPass  />,
+        element: <SignInwithForgetPass/>,
       },
       {
         path: "/signUp",
