@@ -30,37 +30,37 @@ export function OrderItem({ order, isExpanded, onToggleExpand }) {
   console.log(sharedOrderGroups)
   const { cardName, cardImageUrl, cardDescription, shareUrl, hashtags, purchaseDate, productId } = sharedOrderGroups
 
-  const handleCopyOrderId = async () => {
-    try {
-      await navigator.clipboard.writeText(order.id)
+  // const handleCopyOrderId = async () => {
+  //   try {
+  //     await navigator.clipboard.writeText(order.id)
 
-      // Show SweetAlert success message
-      Swal.fire({
-        icon: "success",
-        title: "Copied!",
-        text: `Order ID #${order.id} copied to clipboard`,
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false,
-        toast: true,
-        position: "top-end",
-      })
-    } catch (err) {
-      console.error("Failed to copy order ID:", err)
+  //     // Show SweetAlert success message
+  //     Swal.fire({
+  //       icon: "success",
+  //       title: "Copied!",
+  //       text: `Order ID #${order.id} copied to clipboard`,
+  //       timer: 2000,
+  //       timerProgressBar: true,
+  //       showConfirmButton: false,
+  //       toast: true,
+  //       position: "top-end",
+  //     })
+  //   } catch (err) {
+  //     console.error("Failed to copy order ID:", err)
 
-      // Show SweetAlert error message
-      Swal.fire({
-        icon: "error",
-        title: "Failed to copy",
-        text: "Unable to copy order ID to clipboard",
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false,
-        toast: true,
-        position: "top-end",
-      })
-    }
-  }
+  //     // Show SweetAlert error message
+  //     Swal.fire({
+  //       icon: "error",
+  //       title: "Failed to copy",
+  //       text: "Unable to copy order ID to clipboard",
+  //       timer: 2000,
+  //       timerProgressBar: true,
+  //       showConfirmButton: false,
+  //       toast: true,
+  //       position: "top-end",
+  //     })
+  //   }
+  // }
 
   const handleCopyShareUrl = async () => {
     try {
@@ -226,8 +226,8 @@ export function OrderItem({ order, isExpanded, onToggleExpand }) {
             </div>
 
             {/* Share Buttons Section */}
-            <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-gray-200">
-              <h5 className="font-medium text-gray-900 mb-3 text-center text-sm sm:text-base">Share this order</h5>
+            {/* <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-gray-200">
+              <h5 className="font-medium text-gray-900 mb-3 text-center text-sm sm:text-base">Share this Card</h5>
               <div className="flex justify-center items-center gap-3 sm:gap-4 flex-wrap">
                 {shareUrl && (
                   <>
@@ -277,10 +277,22 @@ export function OrderItem({ order, isExpanded, onToggleExpand }) {
                 </button>
               </div>
 
-              <div className="mt-3 text-center">
-                <p className="text-xs text-gray-500">Share your order with friends or copy the link to save it</p>
-              </div>
-            </div>
+           <div className="mt-4 text-center">
+  <p className="text-sm text-gray-600">
+    Share your Pokémon card with friends or post it in the{" "}
+    <a
+      href="https://www.facebook.com/groups/gaincards/"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-blue-600 underline hover:text-blue-800"
+    >
+      GainCards Facebook Group
+    </a>
+    .
+  </p>
+</div>
+
+            </div> */}
           </div>
 
           <div className="mt-4 flex justify-end">
