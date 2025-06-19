@@ -113,27 +113,27 @@ const SingleCard = ({ pokemon, handleDelete }) => {
   const backgroundClass = getBackgroundClass();
 
   // Event handlers
-  const handleToggleFavorite = () => {
-    // Check if user is logged in
-    if (!isAuthenticated) {
-      Swal.fire({
-        icon: "warning",
-        title: "Login Required",
-        text: "Please log in to add items to your favorites",
-        showCancelButton: true,
-        confirmButtonText: "Go to Login",
-        confirmButtonColor: "#3b82f6",
-        cancelButtonText: "Cancel",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          navigate("/signin?redirect=/pokemon", { replace: true });
-        }
-      });
-      return;
-    }
+  // const handleToggleFavorite = () => {
+  //   // Check if user is logged in
+  //   if (!isAuthenticated) {
+  //     Swal.fire({
+  //       icon: "warning",
+  //       title: "Login Required",
+  //       text: "Please log in to add items to your favorites",
+  //       showCancelButton: true,
+  //       confirmButtonText: "Go to Login",
+  //       confirmButtonColor: "#3b82f6",
+  //       cancelButtonText: "Cancel",
+  //     }).then((result) => {
+  //       if (result.isConfirmed) {
+  //         navigate("/signin?redirect=/pokemon", { replace: true });
+  //       }
+  //     });
+  //     return;
+  //   }
 
-    toggleFavoriteMutation.mutate();
-  };
+  //   toggleFavoriteMutation.mutate();
+  // };
 
   const handleAddToCart = () => {
     // Check if item is already in cart
@@ -281,7 +281,7 @@ const SingleCard = ({ pokemon, handleDelete }) => {
             <h2 className="text-lg font-bold text-gray-800 capitalize truncate">
               {title}
             </h2>
-            <button
+            {/* <button
               onClick={handleToggleFavorite}
               disabled={toggleFavoriteMutation.isLoading}
               className={`focus:outline-none ${
@@ -300,7 +300,7 @@ const SingleCard = ({ pokemon, handleDelete }) => {
                     : "text-gray-400"
                 }`}
               />
-            </button>
+            </button> */}
           </div>
 
           {/* Player & Variety Info */}

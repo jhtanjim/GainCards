@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, ShoppingCart, CreditCard, Users, Store, User, X, Menu, Home, ArrowBigLeft, Subscript, Upload, LogOut } from 'lucide-react'
+import { LayoutDashboard, ShoppingCart, CreditCard, Users, Store, User, X, Menu, Home, ArrowBigLeft, Subscript, Upload, LogOut, Heart, Grid3X3 } from 'lucide-react'
 import { useAuth } from '../../../Context/AuthContext'
 
 const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
@@ -23,18 +23,19 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Order List', href: '/admin/orders', icon: ShoppingCart },
-    // { name: 'Payment List', href: '/admin/payments', icon: CreditCard },
     { name: 'Manage Subscription', href: '/admin/manageSubscription', icon: Subscript },
     { name: 'Upload Card', href: '/admin/upload', icon: Upload },
+    { name: 'My Cards', href: '/admin/products', icon: Heart },
+    { name: 'All Cards', href: '/admin/all-cards', icon: Grid3X3 },
     { 
-      name: 'Users', 
+      name: 'All Users', 
       href: '/admin/users', 
       icon: Users,
-      children: [
-        { name: 'All Users', href: '/admin/users' },
-        { name: 'Vendors', href: '/admin/users/vendors' },
-        { name: 'Normal Users', href: '/admin/users/normal' },
-      ]
+      // children: [
+      //   { name: 'All Users', href: '/admin/users' },
+      //   { name: 'Vendors', href: '/admin/users/vendors' },
+      //   { name: 'Normal Users', href: '/admin/users/normal' },
+      // ]
     },
     { name: 'Profile', href: '/admin/profile', icon: User },
     { name: 'Back to Home', href: '/', icon: ArrowBigLeft }

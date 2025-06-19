@@ -5,12 +5,14 @@ import Swal from "sweetalert2";
 import { deletePokemon, getAllPokemonData } from "../../../api/pokemondata";
 import { useAuth } from "../../../Context/AuthContext";
 import SingleCard from "./SingleCard";
+import useUserRole from "../../../Hooks/useUserRole";
 
 const MyCards = () => {
   const [error, setError] = useState("");
   const [favoritePokemonIds, setFavoritePokemonIds] = useState([]);
   const { user, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
+  const { isAdmin, isVendor } = useUserRole();
 
   // Use React Query for data fetching
   const { data: pokemons, isLoading } = useQuery({
@@ -96,7 +98,8 @@ const MyCards = () => {
   }
 
   // Render no cards message with nice UI
-  if (!userPokemons || userPokemons.length === 0) {
+if (!userPokemons || userPokemons.length === 0) {
+  const uploadLink = isAdmin ? "/admin/upload" : "/vendor/upload";
     return (
       <div className="text-center p-10 bg-white rounded-lg shadow-md max-w-lg mx-auto mt-10">
         <svg
@@ -116,17 +119,19 @@ const MyCards = () => {
         <h2 className="text-2xl font-bold text-gray-700 mb-2">
           No Cards Found
         </h2>
-        <p className="text-gray-600 mb-6">
-          You don't have any Pokemon cards yet. Start adding your collection!
-        </p>
-        <Link to="/vendor/upload">
-          <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-            Add Your First Card
-          </button>
-        </Link>
-      </div>
-    );
-  }
+         <p className="text-gray-600 mb-6">
+        {isAdmin
+          ? "You haven't added any cards as an admin yet."
+          : "You don't have any Pokémon cards yet. Start adding your collection!"}
+      </p>
+      <Link to={uploadLink}>
+        <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+          Add Your First Card
+        </button>
+      </Link>
+    </div>
+  );
+}
 
   return (
     <div className="container mx-auto px-4 py-8">
