@@ -9,8 +9,9 @@ import { EmptyState } from "./MyOrdersComponents/empty-state"
 import { OrderCard } from "./MyOrdersComponents/order-card"
 import { getMyOrders } from "../../../api/orders"
 import { OrdersSearchFilter } from "./MyOrdersComponents/orders-search-filter"
+import { ErrorBoundary } from "../../../../error-boundary"
 
-export default function MyOrdersPage() {
+ function MyOrdersPage() {
   const [expandedOrderId, setExpandedOrderId] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("ALL")
@@ -135,3 +136,8 @@ export default function MyOrdersPage() {
     </div>
   )
 }
+export default  MyOrdersPagedWithErrorBoundary = () => (
+  <ErrorBoundary>
+    <MyOrdersPage />
+  </ErrorBoundary>
+);
