@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query"
 import { getAllOrders } from "../../../api/orders"
 import { getAllUsers } from "../../../api/users"
 import OrderManagementSystem from "./OrderList/OrderManagementSystem"
+import { ErrorBoundary } from "../../../../error-boundary"
 
 const AdminDashboard = () => {
   const {
