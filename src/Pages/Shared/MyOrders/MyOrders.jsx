@@ -136,8 +136,9 @@ import { ErrorBoundary } from "../../../../error-boundary"
     </div>
   )
 }
-export default function  MyOrdersPagedWithErrorBoundary  () { 
+const MyOrdersPagedWithErrorBoundary = () => (
   <ErrorBoundary>
     <MyOrdersPage />
   </ErrorBoundary>
-};
+);
+export default MyOrdersPagedWithErrorBoundary
