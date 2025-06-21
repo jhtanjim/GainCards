@@ -153,7 +153,7 @@ const DonateSection = () => {
                 </p>
 
                 <button className="group/btn relative px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl text-white font-semibold text-lg hover:shadow-2xl hover:shadow-emerald-500/25 transition-all duration-300 hover:scale-105 overflow-hidden">
-                  <Link to="/donateCardReceiver">
+                  <Link to="/pokemon?filter=donation">
                     <span className="relative z-10 flex items-center gap-2">
                       <Sparkles size={20} />
                       Request Card

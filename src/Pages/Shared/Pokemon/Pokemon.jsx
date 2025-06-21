@@ -1,16 +1,49 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Filter, Gift, Grid, List, Star } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getAllPokemonData } from "../../../api/pokemondata";
 import PokemonCard from "./PokemonCard";
 import Swal from "sweetalert2";
 
 const Pokemon = () => {
   const queryClient = useQueryClient();
-  const [filter, setFilter] = useState("all");
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Get filter from URL parameters
+  const urlParams = new URLSearchParams(location.search);
+  const urlFilter = urlParams.get('filter');
+  
+  const [filter, setFilter] = useState(urlFilter || "all");
   const [sortBy, setSortBy] = useState("recent");
   const [viewMode, setViewMode] = useState("grid");
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Update filter when URL changes
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const urlFilter = urlParams.get('filter');
+    if (urlFilter && (urlFilter === "donation" || urlFilter === "sale" || urlFilter === "all")) {
+      setFilter(urlFilter);
+    }
+  }, [location.search]);
+
+  // Update URL when filter changes
+  const handleFilterChange = (newFilter) => {
+    setFilter(newFilter);
+    const urlParams = new URLSearchParams(location.search);
+    if (newFilter === "all") {
+      urlParams.delete('filter');
+    } else {
+      urlParams.set('filter', newFilter);
+    }
+    const newSearch = urlParams.toString();
+    navigate({
+      pathname: location.pathname,
+      search: newSearch ? `?${newSearch}` : ''
+    }, { replace: true });
+  };
 
   const {
     data: pokemons = [],
@@ -124,7 +157,9 @@ const Pokemon = () => {
           <div className="w-full lg:w-auto">
             <h1 className="text-2xl sm:text-3xl font-bold mb-2">Pokemon Collection</h1>
             <p className="text-blue-100 text-sm sm:text-base">
-              Discover amazing Pokemon cards and donations
+              {filter === "donation" ? "Browse donated cards - just pay shipping!" :
+               filter === "sale" ? "Cards available for purchase" :
+               "Discover amazing Pokemon cards and donations"}
             </p>
           </div>
           <div className="flex flex-row sm:flex-row justify-between sm:justify-start gap-2 sm:gap-4 w-full lg:w-auto">
@@ -154,7 +189,7 @@ const Pokemon = () => {
           {/* Filter Buttons */}
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => setFilter("all")}
+              onClick={() => handleFilterChange("all")}
               className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all flex items-center ${
                 filter === "all"
                   ? "bg-blue-600 text-white shadow-md"
@@ -166,7 +201,7 @@ const Pokemon = () => {
               <span className="xs:hidden">All</span>
             </button>
             <button
-              onClick={() => setFilter("sale")}
+              onClick={() => handleFilterChange("sale")}
               className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all flex items-center ${
                 filter === "sale"
                   ? "bg-green-600 text-white shadow-md"
@@ -178,7 +213,7 @@ const Pokemon = () => {
               <span className="sm:hidden">Sale ({saleCount})</span>
             </button>
             <button
-              onClick={() => setFilter("donation")}
+              onClick={() => handleFilterChange("donation")}
               className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all flex items-center ${
                 filter === "donation"
                   ? "bg-pink-600 text-white shadow-md"
