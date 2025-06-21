@@ -168,6 +168,7 @@ export const router = createBrowserRouter([
         path: "/admin/products",
         element: <AdminCards />,
       },
+      
     ],
   },
   // Vendor Routes

@@ -19,7 +19,7 @@ import useAddressForm from "../../../../Hooks/useAddressForm";
 import useShippingRates from "../../../../Hooks/useShippingRates";
 
 const DonateCardReceiver = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated,fetchUserData } = useAuth();
   const navigate = useNavigate();
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [donationCard, setDonationCard] = useState(null);
@@ -47,7 +47,7 @@ const DonateCardReceiver = () => {
     setAddressFormData,
     handleAddressSubmit,
     isSavingAddress,
-  } = useAddressForm(user, () => refetchRates());
+  } = useAddressForm(user, () => {fetchUserData();refetchRates()});
 
   // Get shipping rates for donation card
   const productIds = donationCard ? [donationCard.id] : [];

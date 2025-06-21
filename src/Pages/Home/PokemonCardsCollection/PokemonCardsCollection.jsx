@@ -42,14 +42,14 @@ const PokemonCardsCollection = () => {
   }
 
   return (
-    <div className="py-20 text-black">
-      <div className="container mx-auto px-6">
+    <div className="py-10 sm:py-16 md:py-20 text-black">
+      <div className="container mx-auto px-4 sm:px-6">
         {/* Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+        <div className="text-center mb-8 md:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3 md:mb-4 px-4">
             Explore the Pokemon Cards Collection
           </h2>
-          <p className="text-lg md:text-xl  max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl max-w-2xl mx-auto px-4">
             Browse the latest listings from top sellers — from rare holos to
             classic base sets.
           </p>
@@ -57,17 +57,32 @@ const PokemonCardsCollection = () => {
 
         {/* Marquee Scrolling Cards - Using API data */}
         <div className="relative">
-          <div className="overflow-hidden">
+          <div 
+            className="overflow-hidden"
+            style={{
+              /* Hide scrollbar for Chrome, Safari and Opera */
+              WebkitScrollbarWidth: 'none',
+              /* Hide scrollbar for IE, Edge and Firefox */
+              msOverflowStyle: 'none',
+              scrollbarWidth: 'none'
+            }}
+          >
+            <style jsx>{`
+              /* Hide scrollbar for webkit browsers */
+              div::-webkit-scrollbar {
+                display: none;
+              }
+            `}</style>
             <Marquee
               gradient={true}
               gradientColor={[0, 0, 0]}
-              speed={40}
+              speed={30}
               pauseOnHover
             >
               {pokemons.map((pokemon, index) => (
                 <div
                   key={`${pokemon.id}-${index}`}
-                  className="mx-4 w-72 md:w-80 flex-shrink-0 hover:scale-105 transition-transform duration-300"
+                  className="mx-2 sm:mx-3 md:mx-4 w-56 sm:w-64 md:w-72 lg:w-80 flex-shrink-0 hover:scale-105 transition-transform duration-300"
                 >
                   <PokemonCard pokemon={pokemon} isFavorite={false} />
                 </div>
@@ -77,9 +92,9 @@ const PokemonCardsCollection = () => {
         </div>
 
         {/* View All Button */}
-        <div className="text-center mt-16">
+        <div className="text-center mt-8 md:mt-16 px-4">
           <Link to={"/pokemon"}>
-            <button className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+            <button className="px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-sm sm:text-base">
               View All Cards
             </button>
           </Link>

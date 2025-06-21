@@ -10,7 +10,7 @@ export default function Donate() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    price: 0,
+   
     certificationNumber: "",
     labelType: "",
     hasReverseBarcode: false,
@@ -105,7 +105,7 @@ const handleDonationComplete = async (completionData) => {
     setFormData({
       title: "",
       description: "",
-      price: 0,
+  
       certificationNumber: "",
       labelType: "",
       hasReverseBarcode: false,
@@ -156,7 +156,7 @@ const handleDonationComplete = async (completionData) => {
                 placeholder="Describe your Pokémon card..."
               />
             </div>
-            <InputField label="Price ($)" name="price" type="number" step="0.01" value={formData.price} onChange={handleInputChange} />
+            {/* <InputField label="Price ($)" name="price" type="number" step="0.01" value={formData.price} onChange={handleInputChange} /> */}
           </div>
         </Section>
 

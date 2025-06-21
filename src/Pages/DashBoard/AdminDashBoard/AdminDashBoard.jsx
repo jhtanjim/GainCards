@@ -50,5 +50,9 @@ const AdminDashboard = () => {
     </div>
   )
 }
-
-export default AdminDashboard
+const AdminDashboardWithErrorBoundary = () => (
+  <ErrorBoundary>
+    <AdminDashboard />
+  </ErrorBoundary>
+);
+export default AdminDashboardWithErrorBoundary
