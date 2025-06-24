@@ -102,7 +102,7 @@ const OrderCard = ({ order, expandedOrders, toggleOrderExpansion }) => {
         })
       }
     } catch (error) {
-      console.log("Could not load product image")
+      //console.log("Could not load product image")
     }
 
     // Product details

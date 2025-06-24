@@ -29,7 +29,7 @@ import { ErrorBoundary } from "../../../../error-boundary"
     queryFn: getMyOrders,
     refetchOnWindowFocus: false,
   })
-  console.log(orderGroups)
+  //console.log(orderGroups)
   
 
   const toggleOrderExpand = (orderId) => {
@@ -46,7 +46,7 @@ import { ErrorBoundary } from "../../../../error-boundary"
   }
 
   const shareToFacebook = (orderGroup) => {
-    console.log("Share initiated for order:", orderGroup.id)
+    //console.log("Share initiated for order:", orderGroup.id)
   }
 
   // Filter and search functionality

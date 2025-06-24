@@ -18,7 +18,7 @@ import Swal from "sweetalert2"
 export function OrderItem({ order, isExpanded, onToggleExpand }) {
   const [showToast, setShowToast] = useState(false)
 
-  console.log(order.items[0]?.id)
+  //console.log(order.items[0]?.id)
 
   const { data: sharedOrderGroups = {} } = useQuery({
     queryKey: ["sharedOrders", order.items[0]?.id],
@@ -27,7 +27,7 @@ export function OrderItem({ order, isExpanded, onToggleExpand }) {
     enabled: !!order.items[0]?.id,
   })
 
-  console.log(sharedOrderGroups)
+  //console.log(sharedOrderGroups)
   const { cardName, cardImageUrl, cardDescription, shareUrl, hashtags, purchaseDate, productId } = sharedOrderGroups
 
   // const handleCopyOrderId = async () => {

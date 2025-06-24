@@ -109,7 +109,7 @@ const CartPage = () => {
       const data = await placeOrder(orderData);
       const { paymentIntent } = data;
 
-      console.log(paymentIntent.clientSecret);
+      //console.log(paymentIntent.clientSecret);
       navigate(`/checkout?client_secret=${paymentIntent.clientSecret}`);
     } catch (error) {
       console.error("Error creating payment intent:", error);

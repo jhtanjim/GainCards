@@ -67,7 +67,7 @@ const MyCards = () => {
       });
     },
     onSuccess: (data, deletedId) => {
-      console.log(`Successfully deleted Pokemon with ID: ${deletedId}`);
+      //console.log(`Successfully deleted Pokemon with ID: ${deletedId}`);
 
       // Invalidate the query to refetch fresh data
       queryClient.invalidateQueries(["pokemons"]);

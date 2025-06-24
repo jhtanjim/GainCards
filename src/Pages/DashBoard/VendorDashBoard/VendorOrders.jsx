@@ -11,7 +11,7 @@ const VendorOrders = () => {
     queryFn: getVendorsOrders,
   });
 
-  console.log(VendorsOrderGroups);
+  //console.log(VendorsOrderGroups);
 
   // Copy to clipboard function
   const copyToClipboard = async (text, label) => {

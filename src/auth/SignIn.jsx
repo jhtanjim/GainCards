@@ -153,7 +153,7 @@ const SignIn = ({onForgotPassword }) => {
       if (result.success) {
         // Don't show another alert here - let the useEffect handle the redirect
         // The loading alert will be closed by the useEffect when isAuthenticated changes
-        console.log("Login successful, waiting for auth state update...");
+        // //console.log("Login successful, waiting for auth state update...");
       } else {
         // Handle specific error from signIn
         setError(result.error);

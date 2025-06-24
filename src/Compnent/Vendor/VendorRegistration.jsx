@@ -70,7 +70,7 @@ const VendorRegistration = () => {
   const createAddressMutation = useMutation({
     mutationFn: createAddress,
     onSuccess: (response) => {
-      console.log("Address created successfully:", response);
+      ////console.log("Address created successfully:", response);
       toast.success("Address saved successfully");
       // Continue with vendor registration
       proceedWithVendorRegistration();
@@ -88,7 +88,7 @@ const VendorRegistration = () => {
   const updateAddressMutation = useMutation({
     mutationFn: (addressData) => updateAddress(addressData),
     onSuccess: (response) => {
-      console.log("Address updated successfully:", response);
+      ////console.log("Address updated successfully:", response);
       toast.success("Address updated successfully");
       // Continue with vendor registration
       proceedWithVendorRegistration();
@@ -107,9 +107,9 @@ const VendorRegistration = () => {
     // Wrap the API call in a try/catch for better error handling
     mutationFn: async (data) => {
       try {
-        console.log("Submitting vendor registration with data:", data);
+        ////console.log("Submitting vendor registration with data:", data);
         const response = await registerVendor(data);
-        console.log("Vendor registration API response:", response);
+        ////console.log("Vendor registration API response:", response);
         return response;
       } catch (error) {
         console.error("Error in vendor registration:", error);
@@ -117,7 +117,7 @@ const VendorRegistration = () => {
       }
     },
     onSuccess: (response) => {
-      console.log("Registration successful, response:", response);
+      ////console.log("Registration successful, response:", response);
 
       // Handle different response structures that might come from the API
       const data = response.data || response;
@@ -128,7 +128,7 @@ const VendorRegistration = () => {
         data.client_secret ||
         (data.payment && data.payment.clientSecret);
 
-      console.log("Extracted client secret:", clientSecret);
+      ////console.log("Extracted client secret:", clientSecret);
 
       if (!clientSecret) {
         console.error("No client secret found in response:", data);
@@ -186,7 +186,7 @@ const VendorRegistration = () => {
 
   // Function to proceed with vendor registration after address is handled
   const proceedWithVendorRegistration = () => {
-    console.log("Starting vendor registration with plan:", selectedPlan);
+    ////console.log("Starting vendor registration with plan:", selectedPlan);
 
     // Use the mutation with the selected plan
     registerVendorMutation.mutate({
@@ -215,19 +215,19 @@ const VendorRegistration = () => {
     }
 
     setLoadingPayment(true);
-    console.log("Processing address with data:", addressData);
+    ////console.log("Processing address with data:", addressData);
 
     // Check if user already has an address
     if (user?.address) {
       // Update existing address
-      console.log("Updating existing address with ID:", user.address.id);
+      ////console.log("Updating existing address with ID:", user.address.id);
       updateAddressMutation.mutate({
         addressId: user.address.id,
         addressData: addressData,
       });
     } else {
       // Create new address
-      console.log("Creating new address");
+      ////console.log("Creating new address");
       createAddressMutation.mutate(addressData);
     }
   };
@@ -241,9 +241,9 @@ const VendorRegistration = () => {
     
     // IMPORTANT: Refresh user data to get the updated role
     try {
-      console.log("Refreshing user data after successful vendor registration...");
+      ////console.log("Refreshing user data after successful vendor registration...");
       await fetchUserData();
-      console.log("User data refreshed successfully");
+      ////console.log("User data refreshed successfully");
     } catch (error) {
       console.error("Error refreshing user data:", error);
     }

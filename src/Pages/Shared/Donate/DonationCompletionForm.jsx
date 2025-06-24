@@ -20,7 +20,7 @@ export default function DonationCompletionForm({ onSubmit, donationData }) {
     phone: "",
   });
 const {user}=useAuth()
-    console.log(user)
+    //console.log(user)
   // Mutation for saving address via API
   const { mutate: saveAddress, isLoading } = useMutation({
     mutationFn: () => createAddress(formData),

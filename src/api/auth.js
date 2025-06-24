@@ -7,7 +7,7 @@ export const register = async (formData) => {
 
 export const login = async (data) => {
   const res = await api.post("/auth/login", data);
-  console.log(res);
+  // //console.log(res);
   return res.data;
 };
 export const forgotPass = async (email) => {
@@ -16,7 +16,7 @@ export const forgotPass = async (email) => {
 };
 export const resetPass = async (data) => {
   const res = await api.post("/auth/reset-password", data);
-  console.log(res);
+  // //console.log(res);
   return res.data;
 };
 

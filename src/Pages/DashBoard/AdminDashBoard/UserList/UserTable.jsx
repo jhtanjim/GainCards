@@ -29,7 +29,7 @@ const UserTable = ({ users }) => {
 
   const handleDeleteUser = (userId) => {
     // You can implement delete functionality here
-    console.log('Delete user:', userId)
+    //console.log('Delete user:', userId)
     // Add your delete logic here
   }
 

@@ -40,10 +40,10 @@ const PokemonCardDetails = () => {
     enabled: !!id, // Only run query if id exists
   });
 
-  console.log("Pokemon ID:", id);
-  console.log("Pokemon Data:", pokemon);
-  console.log("API Loading:", isLoading);
-  console.log("API Error:", isError);
+  //console.log("Pokemon ID:", id);
+  //console.log("Pokemon Data:", pokemon);
+  //console.log("API Loading:", isLoading);
+  //console.log("API Error:", isError);
 
   // Destructure with fallback values
   const {

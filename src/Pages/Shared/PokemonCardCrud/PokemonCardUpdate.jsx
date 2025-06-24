@@ -8,7 +8,7 @@ const PokemonCardUpdate = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const pokemon = location.state?.pokemon;
-console.log(pokemon)
+//console.log(pokemon)
   // Early return if no pokemon data
   if (!pokemon) {
     Swal.fire({

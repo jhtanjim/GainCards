@@ -30,10 +30,10 @@ export const AuthProvider = ({ children }) => {
     queryFn: async () => {
       try {
         const result = await checkAuthStatus();
-        console.log("Auth status result:", result);
+        //console.log("Auth status result:", result);
         return result;
       } catch (error) {
-        console.log("Auth status failed:", error);
+        //console.log("Auth status failed:", error);
         // Return a default object instead of throwing
         return { authenticated: false, user: null };
       }
@@ -58,10 +58,10 @@ export const AuthProvider = ({ children }) => {
     queryFn: async () => {
       try {
         const result = await myProfile();
-        console.log("User profile result:", result);
+        //console.log("User profile result:", result);
         return result;
       } catch (error) {
-        console.log("User profile failed:", error);
+        //console.log("User profile failed:", error);
         throw error;
       }
     },
@@ -86,7 +86,7 @@ export const AuthProvider = ({ children }) => {
   const loginMutation = useMutation({
     mutationFn: login,
     onSuccess: async (loginResponse) => {
-      console.log("Login successful:", loginResponse);
+      //console.log("Login successful:", loginResponse);
 
       // Update auth status immediately
       queryClient.setQueryData(["auth", "status"], {
@@ -110,7 +110,7 @@ export const AuthProvider = ({ children }) => {
   const registerMutation = useMutation({
     mutationFn: register,
     onSuccess: async (registerResponse) => {
-      console.log("Registration successful:", registerResponse);
+      //console.log("Registration successful:", registerResponse);
 
       // Update auth status immediately
       queryClient.setQueryData(["auth", "status"], {
@@ -134,7 +134,7 @@ export const AuthProvider = ({ children }) => {
   const logoutMutation = useMutation({
     mutationFn: logout,
     onSuccess: () => {
-      console.log("Logout successful");
+      //console.log("Logout successful");
       // Clear all auth-related data
       queryClient.setQueryData(["auth", "status"], { authenticated: false });
       queryClient.setQueryData(["user", "profile"], null);
@@ -155,7 +155,7 @@ export const AuthProvider = ({ children }) => {
   const refreshMutation = useMutation({
     mutationFn: refresh,
     onSuccess: async () => {
-      console.log("Token refreshed successfully");
+      //console.log("Token refreshed successfully");
       // Invalidate queries to refetch with new token
       queryClient.invalidateQueries(["auth", "status"]);
       queryClient.invalidateQueries(["user", "profile"]);
@@ -171,7 +171,7 @@ export const AuthProvider = ({ children }) => {
   // Initialize auth on mount
   useEffect(() => {
     if (!isInitialized) {
-      console.log("Initializing auth...");
+      //console.log("Initializing auth...");
       setIsInitialized(true);
     }
   }, []);
@@ -179,7 +179,7 @@ export const AuthProvider = ({ children }) => {
   // Auth methods
   const signIn = async (formData) => {
     try {
-      console.log("Attempting login with:", formData);
+      //console.log("Attempting login with:", formData);
       const result = await loginMutation.mutateAsync(formData);
       return { success: true, data: result };
     } catch (error) {
@@ -194,7 +194,7 @@ export const AuthProvider = ({ children }) => {
 
   const signUp = async (userData) => {
     try {
-      console.log("Attempting registration with:", userData);
+      //console.log("Attempting registration with:", userData);
       const result = await registerMutation.mutateAsync(userData);
       return { success: true, data: result };
     } catch (error) {

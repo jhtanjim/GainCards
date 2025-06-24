@@ -111,8 +111,8 @@ export default function Donate() {
     try {
       const { addressData, apiResponse } = completionData
 
-      console.log("Address saved:", apiResponse)
-      console.log("Address data:", addressData)
+      //console.log("Address saved:", apiResponse)
+      //console.log("Address data:", addressData)
 
       await Swal.fire({
         icon: "success",

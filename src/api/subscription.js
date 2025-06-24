@@ -18,7 +18,7 @@ export const createPlan = async (plan) => {
 
 // Update a subscription plan
 export const updatePlan = async (id, updates) => {
-  console.log(id)
+  //console.log(id)
   const response = await api.patch(`/subscription/${id}`, updates);
   return response.data;
 };

@@ -26,7 +26,7 @@ const ManageSubscription = () => {
     try {
       setLoading(true);
       const data = await getAllPlan();
-      console.log(data)
+      //console.log(data)
       setPlans(data);
     } catch (error) {
       console.error("Error fetching plans:", error);
@@ -78,7 +78,7 @@ const ManageSubscription = () => {
       return;
     }
 
-    console.log("Sending plan data:", planData);
+    //console.log("Sending plan data:", planData);
 
     try {
       setLoading(true);
@@ -138,7 +138,7 @@ const ManageSubscription = () => {
   };
 
   const toggleActive = async (plan) => {
-    console.log(plan)
+    //console.log(plan)
     try {
       const updatedPlan = await updatePlan(plan.id, { isActive: !plan.isActive });
 
