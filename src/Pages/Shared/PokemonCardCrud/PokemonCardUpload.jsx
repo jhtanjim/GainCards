@@ -264,7 +264,7 @@ export default function PokemonCardUpload() {
               name="sport"
               value={formData.sport}
               onChange={handleInputChange}
-              options={["TCG Cards", "Sports Cards", "Gaming Cards", "Collectible Cards"]}
+              options={["TCG Cards",  "Gaming Cards", "Collectible Cards"]}
             />
 
             <InputField

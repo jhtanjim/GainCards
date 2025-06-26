@@ -111,8 +111,8 @@ export default function Donate() {
     try {
       const { addressData, apiResponse } = completionData
 
-      //console.log("Address saved:", apiResponse)
-      //console.log("Address data:", addressData)
+      console.log("Address saved:", apiResponse)
+      console.log("Address data:", addressData)
 
       await Swal.fire({
         icon: "success",
@@ -254,7 +254,7 @@ export default function Donate() {
               name="sport"
               value={formData.sport}
               onChange={handleInputChange}
-              options={["TCG Cards", "Sports Cards", "Gaming Cards", "Collectible Cards"]}
+              options={["TCG Cards", "Gaming Cards", "Collectible Cards"]}
               placeholder="Select category"
             />
 
