@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../Context/AuthContext";
 import { useShop } from "../../Context/ShopContext";
-// import logoImg from "../../assets/logo/white.png";
+import logoImg from "../../assets/logo/white.png";
 import useUserRole from "../../Hooks/useUserRole";
 import { getAllFavoritePokemon } from "../../api/pokemondata";
 import { useQuery } from "@tanstack/react-query";
@@ -157,29 +157,35 @@ export default function Header() {
             <Settings size={isMobile ? 18 : 20} className="text-purple-300" />
           </button>
 
-          {/* Logo */}
-          {/* <Link
+          {/* Logo - Fixed for better mobile responsiveness */}
+          <Link
             to="/"
             className="flex items-center gap-2 sm:gap-4 group min-w-0 flex-shrink-0"
           >
-            <div className="relative">
-              <div className="h-10 sm:h-14 w-auto overflow-hidden transition-all duration-300 shadow-lg">
-                <img
-                  src={logoImg}
-                  alt="Gain Cards Logo"
-                  className="object-contain w-full h-full group-hover:scale-110 transition-transform duration-300"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
-                />
-              </div>
+            <div className="relative flex items-center justify-center">
+              <img
+                src={logoImg}
+                alt="Gain Cards Logo"
+                className="h-8 w-auto max-w-[120px] sm:h-10 sm:max-w-[140px] md:h-12 md:max-w-[160px] object-contain group-hover:scale-110 transition-transform duration-300 shadow-lg"
+                style={{
+                  imageRendering: 'crisp-edges',
+                  WebkitImageRendering: 'crisp-edges',
+                }}
+                onError={(e) => {
+                  console.error('Logo failed to load');
+                  e.currentTarget.style.display = "none";
+                }}
+                onLoad={(e) => {
+                  console.log('Logo loaded successfully');
+                }}
+              />
               <div className="absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-r from-red-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm -z-10"></div>
             </div>
-          </Link> */}
+          </Link>
         </div>
 
         {/* Right Section */}
-        <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
+        <div className="flex items-center gap-1 sm:gap-2 md:gap-4 flex-shrink-0">
           {/* Become a Vendor - Hidden on mobile */}
           {!isVendor && !isAdmin && (
             <Link to="/vendorSignup" className="hidden md:block">
