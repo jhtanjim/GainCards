@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../Context/AuthContext";
 import { useShop } from "../../Context/ShopContext";
-import logoImg from "../../assets/logo/white.png";
+// import logoImg from "../../assets/logo/white.png";
 import useUserRole from "../../Hooks/useUserRole";
 import { getAllFavoritePokemon } from "../../api/pokemondata";
 import { useQuery } from "@tanstack/react-query";
@@ -158,7 +158,7 @@ export default function Header() {
           </button>
 
           {/* Logo */}
-          <Link
+          {/* <Link
             to="/"
             className="flex items-center gap-2 sm:gap-4 group min-w-0 flex-shrink-0"
           >
@@ -175,7 +175,7 @@ export default function Header() {
               </div>
               <div className="absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-r from-red-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm -z-10"></div>
             </div>
-          </Link>
+          </Link> */}
         </div>
 
         {/* Right Section */}
