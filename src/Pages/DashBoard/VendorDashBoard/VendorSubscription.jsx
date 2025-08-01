@@ -35,13 +35,20 @@ const VendorSubscription = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const queryClient = useQueryClient();
 
+  // Updated queries to match new API structure
   const { data: subscription, isLoading: subscriptionLoading } = useQuery({
     queryKey: ["vendor-subscription"],
     queryFn: subscriptionApi.getSubscription,
   });
-  const { data: analytics, isLoading: analyticsLoading } = useQuery({
-    queryKey: ["vendor-analytics"],
+
+  const { data: usage, isLoading: usageLoading } = useQuery({
+    queryKey: ["vendor-usage"],
     queryFn: subscriptionApi.getAnalytics,
+  });
+
+  const { data: subscriptionHistory, isLoading: historyLoading } = useQuery({
+    queryKey: ["subscription-history"],
+    queryFn: () => subscriptionApi.getSubscriptionHistory(1, 10),
   });
 
   const { data: availablePlans } = useQuery({
@@ -49,12 +56,20 @@ const VendorSubscription = () => {
     queryFn: subscriptionApi.getAvailablePlans,
   });
 
+  // Updated mutations to match new API structure
   const upgradeMutation = useMutation({
     mutationFn: subscriptionApi.upgradeSubscription,
-    onSuccess: () => {
-      toast.success("Subscription upgraded successfully!");
+    onSuccess: (data) => {
+      // Handle Stripe payment if clientSecret is returned
+      if (data.clientSecret) {
+        toast.success("Payment initiated. Complete the payment to upgrade.");
+        // Here you would integrate with Stripe to handle the payment
+        console.log("Client Secret:", data.clientSecret);
+      } else {
+        toast.success("Subscription upgraded successfully!");
+      }
       queryClient.invalidateQueries(["vendor-subscription"]);
-      queryClient.invalidateQueries(["vendor-analytics"]);
+      queryClient.invalidateQueries(["vendor-usage"]);
     },
     onError: (error) => {
       console.error("Upgrade error:", error);
@@ -65,10 +80,19 @@ const VendorSubscription = () => {
   });
 
   const renewMutation = useMutation({
-    mutationFn: subscriptionApi.renewSubscription,
-    onSuccess: () => {
-      toast.success("Subscription renewed successfully!");
+    mutationFn: (autoRenew = false) =>
+      subscriptionApi.renewSubscription(autoRenew),
+    onSuccess: (data) => {
+      // Handle Stripe payment if clientSecret is returned
+      if (data.clientSecret) {
+        toast.success("Payment initiated. Complete the payment to renew.");
+        // Here you would integrate with Stripe to handle the payment
+        console.log("Client Secret:", data.clientSecret);
+      } else {
+        toast.success("Subscription renewed successfully!");
+      }
       queryClient.invalidateQueries(["vendor-subscription"]);
+      queryClient.invalidateQueries(["vendor-usage"]);
     },
     onError: (error) => {
       console.error("Renew error:", error);
@@ -79,9 +103,10 @@ const VendorSubscription = () => {
   });
 
   const cancelMutation = useMutation({
-    mutationFn: subscriptionApi.cancelSubscription,
-    onSuccess: () => {
-      toast.success("Subscription cancelled successfully");
+    mutationFn: (immediately = false) =>
+      subscriptionApi.cancelSubscription(immediately),
+    onSuccess: (data) => {
+      toast.success(data.message || "Subscription cancelled successfully");
       queryClient.invalidateQueries(["vendor-subscription"]);
     },
     onError: (error) => {
@@ -120,23 +145,31 @@ const VendorSubscription = () => {
     });
 
     if (result.isConfirmed) {
-      renewMutation.mutate();
+      renewMutation.mutate(false);
     }
   };
 
   const handleCancel = async () => {
-    const result = await Swal.fire({
+    const { value: immediately } = await Swal.fire({
       title: "Cancel Subscription?",
-      text: "This action cannot be undone. Your active listings will be deactivated.",
+      text: "Choose when to cancel your subscription",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#ef4444",
       cancelButtonColor: "#6b7280",
-      confirmButtonText: "Yes, cancel!",
+      confirmButtonText: "Cancel at end of period",
+      cancelButtonText: "Cancel immediately",
+      showDenyButton: true,
+      denyButtonText: "Cancel immediately",
+      denyButtonColor: "#dc2626",
     });
 
-    if (result.isConfirmed) {
-      cancelMutation.mutate();
+    if (value === true) {
+      // Cancel at end of period
+      cancelMutation.mutate(false);
+    } else if (value === false) {
+      // Cancel immediately
+      cancelMutation.mutate(true);
     }
   };
 
@@ -176,27 +209,23 @@ const VendorSubscription = () => {
     { month: "Jun", listings: 78 },
   ];
 
-  const productStatusData = analytics
+  // Updated to work with new API response structure
+  const productStatusData = usage
     ? [
         {
           name: "Active",
-          value: analytics.productStatistics?.ACTIVE || 0,
+          value: usage.usage?.activeProducts || 0,
           color: "#10b981",
         },
         {
-          name: "Sold",
-          value: analytics.productStatistics?.SOLD || 0,
-          color: "#3b82f6",
-        },
-        {
-          name: "Inactive",
-          value: analytics.productStatistics?.INACTIVE || 0,
+          name: "Deactivated",
+          value: usage.usage?.deactivatedProducts || 0,
           color: "#f59e0b",
         },
       ]
     : [];
 
-  if (subscriptionLoading || analyticsLoading) {
+  if (subscriptionLoading || usageLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
         <div className="max-w-7xl mx-auto">
@@ -235,12 +264,12 @@ const VendorSubscription = () => {
           <div className="flex items-center space-x-4 mt-4 md:mt-0">
             <div
               className={`px-4 py-2 rounded-full flex items-center space-x-2 ${getStatusColor(
-                subscription?.subscriptionStatus
+                subscription?.subscription?.subscriptionStatus
               )}`}
             >
-              {getStatusIcon(subscription?.subscriptionStatus)}
+              {getStatusIcon(subscription?.subscription?.subscriptionStatus)}
               <span className="font-medium">
-                {subscription?.subscriptionStatus}
+                {subscription?.subscription?.subscriptionStatus}
               </span>
             </div>
           </div>
@@ -298,7 +327,8 @@ const VendorSubscription = () => {
                         Current Plan
                       </p>
                       <p className="text-2xl font-bold text-gray-900">
-                        {subscription?.subscriptionPlan?.name}
+                        {subscription?.subscription?.subscriptionPlan?.name ||
+                          "No Plan"}
                       </p>
                     </div>
                     <div className="bg-blue-100 p-3 rounded-xl">
@@ -317,8 +347,8 @@ const VendorSubscription = () => {
                         Cards Used
                       </p>
                       <p className="text-2xl font-bold text-gray-900">
-                        {subscription?.cardsUsedUnderPlan}/
-                        {subscription?.cardLimit}
+                        {usage?.usage?.activeProducts || 0}/
+                        {usage?.usage?.cardLimit || 0}
                       </p>
                     </div>
                     <div className="bg-green-100 p-3 rounded-xl">
@@ -330,11 +360,7 @@ const VendorSubscription = () => {
                       <div
                         className="bg-green-500 h-2 rounded-full transition-all duration-300"
                         style={{
-                          width: `${
-                            ((subscription?.cardsUsedUnderPlan || 0) /
-                              (subscription?.cardLimit || 1)) *
-                            100
-                          }%`,
+                          width: `${usage?.usage?.usagePercentage || 0}%`,
                         }}
                       ></div>
                     </div>
@@ -348,10 +374,10 @@ const VendorSubscription = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-gray-600 text-sm font-medium">
-                        Remaining Cards
+                        Available Slots
                       </p>
                       <p className="text-2xl font-bold text-gray-900">
-                        {subscription?.remainingCards}
+                        {usage?.usage?.availableSlots || 0}
                       </p>
                     </div>
                     <div className="bg-purple-100 p-3 rounded-xl">
@@ -367,10 +393,13 @@ const VendorSubscription = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-gray-600 text-sm font-medium">
-                        Total Spent
+                        Plan Price
                       </p>
                       <p className="text-2xl font-bold text-gray-900">
-                        ${analytics?.totalAmountPaid?.toFixed(2)}
+                        $
+                        {subscription?.subscription?.subscriptionPlan?.price?.toFixed(
+                          2
+                        ) || "0.00"}
                       </p>
                     </div>
                     <div className="bg-orange-100 p-3 rounded-xl">
@@ -517,9 +546,12 @@ const VendorSubscription = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {availablePlans?.map((plan, index) => {
                   const isCurrentPlan =
-                    plan.id === subscription?.subscriptionPlan?.id;
+                    plan.id ===
+                    subscription?.subscription?.subscriptionPlan?.id;
                   const isUpgrade =
-                    plan.cardLimit > (subscription?.cardLimit || 0);
+                    plan.cardLimit >
+                    (subscription?.subscription?.subscriptionPlan?.cardLimit ||
+                      0);
 
                   return (
                     <motion.div
@@ -569,6 +601,14 @@ const VendorSubscription = () => {
                             <CheckCircle className="w-5 h-5 text-green-500" />
                             <span className="text-gray-700">24/7 Support</span>
                           </div>
+                          {plan.discountPct && (
+                            <div className="flex items-center space-x-2">
+                              <CheckCircle className="w-5 h-5 text-green-500" />
+                              <span className="text-gray-700">
+                                {plan.discountPct}% Discount
+                              </span>
+                            </div>
+                          )}
                         </div>
 
                         {isCurrentPlan ? (
@@ -585,7 +625,7 @@ const VendorSubscription = () => {
                             className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-medium transition-colors duration-200 disabled:opacity-50"
                           >
                             {upgradeMutation.isPending
-                              ? "Upgrading..."
+                              ? "Processing..."
                               : "Upgrade Now"}
                           </button>
                         ) : (
@@ -618,7 +658,7 @@ const VendorSubscription = () => {
                 </h3>
 
                 <div className="space-y-4">
-                  {analytics?.subscriptionHistory?.map((history, index) => (
+                  {subscriptionHistory?.history?.map((history, index) => (
                     <motion.div
                       key={history.id}
                       initial={{ opacity: 0, y: 20 }}
@@ -633,29 +673,62 @@ const VendorSubscription = () => {
                           </div>
                           <div>
                             <h4 className="font-medium text-gray-900">
-                              {history.subscriptionPlan.name} Plan
+                              {history.subscriptionPlan?.name} Plan
                             </h4>
                             <p className="text-sm text-gray-600">
-                              Activated on{" "}
+                              {history.isRenewal ? "Renewed" : "Activated"} on{" "}
                               {new Date(
                                 history.activatedAt
                               ).toLocaleDateString()}
                             </p>
+                            {history.expiryDate && (
+                              <p className="text-sm text-gray-500">
+                                Expires:{" "}
+                                {new Date(
+                                  history.expiryDate
+                                ).toLocaleDateString()}
+                              </p>
+                            )}
                           </div>
                         </div>
                         <div className="text-right">
                           <p className="font-semibold text-gray-900">
                             ${history.amountPaid?.toFixed(2)}
                           </p>
-                          <p className="text-sm text-gray-600">Payment</p>
+                          <p className="text-sm text-gray-600">
+                            {history.isRenewal ? "Renewal" : "Payment"}
+                          </p>
+                          {history.isExpired && (
+                            <span className="inline-block px-2 py-1 bg-red-100 text-red-600 rounded-full text-xs mt-1">
+                              Expired
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Additional details */}
+                      <div className="mt-3 pt-3 border-t border-gray-100">
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-500">Cards Listed:</span>
+                            <span className="ml-2 font-medium">
+                              {history.cardsListedDuringPeriod || 0}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Slots Added:</span>
+                            <span className="ml-2 font-medium">
+                              {history.slotsAddedDuringPeriod || 0}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </motion.div>
                   ))}
                 </div>
 
-                {(!analytics?.subscriptionHistory ||
-                  analytics.subscriptionHistory.length === 0) && (
+                {(!subscriptionHistory?.history ||
+                  subscriptionHistory.history.length === 0) && (
                   <div className="text-center py-8">
                     <History className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-600">
@@ -663,6 +736,30 @@ const VendorSubscription = () => {
                     </p>
                   </div>
                 )}
+
+                {/* Pagination */}
+                {subscriptionHistory?.pagination &&
+                  subscriptionHistory.pagination.totalPages > 1 && (
+                    <div className="flex justify-center mt-6">
+                      <div className="flex space-x-2">
+                        {Array.from(
+                          { length: subscriptionHistory.pagination.totalPages },
+                          (_, i) => (
+                            <button
+                              key={i + 1}
+                              className={`px-3 py-1 rounded ${
+                                subscriptionHistory.pagination.page === i + 1
+                                  ? "bg-blue-500 text-white"
+                                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                              }`}
+                            >
+                              {i + 1}
+                            </button>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
               </div>
             </motion.div>
           )}

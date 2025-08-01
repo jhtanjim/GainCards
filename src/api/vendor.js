@@ -2,17 +2,16 @@ import api from "../Hooks/axios";
 
 // Vendor API
 export const registerVendor = async (vendorData) => {
-  // //console.log(vendorData);
-  const response = await api.post("/vendor/register", vendorData);
+  const response = await api.post("/vendors/register", vendorData);
   return response.data;
 };
 
-// Subscription API functions using your actual endpoints
+// Updated Subscription API functions to match your new endpoints
 export const subscriptionApi = {
-  // GET /vendor/subscription
+  // GET /subscriptions/my-subscription (vendor route)
   getSubscription: async () => {
     try {
-      const response = await api.get("/vendor/subscription");
+      const response = await api.get("/subscriptions/my-subscription");
       return response.data;
     } catch (error) {
       console.error("Error fetching subscription:", error);
@@ -20,10 +19,10 @@ export const subscriptionApi = {
     }
   },
 
-  // GET /vendor/subscription/analytics
+  // GET /subscriptions/usage (vendor route)
   getAnalytics: async () => {
     try {
-      const response = await api.get("/vendor/subscription/analytics");
+      const response = await api.get("/subscriptions/usage");
       return response.data;
     } catch (error) {
       console.error("Error fetching analytics:", error);
@@ -31,10 +30,10 @@ export const subscriptionApi = {
     }
   },
 
-  // GET /subscription/active
+  // GET /subscriptions/plans (public route)
   getAvailablePlans: async () => {
     try {
-      const response = await api.get("/subscription/active");
+      const response = await api.get("/subscriptions/plans");
       return response.data;
     } catch (error) {
       console.error("Error fetching available plans:", error);
@@ -42,11 +41,11 @@ export const subscriptionApi = {
     }
   },
 
-  // PATCH /vendor/subscription/upgrade
+  // POST /subscriptions/upgrade (vendor route)
   upgradeSubscription: async (planId) => {
     try {
-      const response = await api.patch("/vendor/subscription/upgrade", {
-        newSubscriptionPlanId:planId,
+      const response = await api.post("/subscriptions/upgrade", {
+        newPlanId: planId,
       });
       return response.data;
     } catch (error) {
@@ -55,10 +54,12 @@ export const subscriptionApi = {
     }
   },
 
-  // PATCH /vendor/subscription/renew
-  renewSubscription: async () => {
+  // POST /subscriptions/renew (vendor route)
+  renewSubscription: async (autoRenew = false) => {
     try {
-      const response = await api.patch("/vendor/subscription/renew");
+      const response = await api.post("/subscriptions/renew", {
+        autoRenew: autoRenew,
+      });
       return response.data;
     } catch (error) {
       console.error("Error renewing subscription:", error);
@@ -66,13 +67,52 @@ export const subscriptionApi = {
     }
   },
 
-  // DELETE /vendor/subscription
-  cancelSubscription: async () => {
+  // POST /subscriptions/cancel (vendor route)
+  cancelSubscription: async (immediately = false) => {
     try {
-      const response = await api.delete("/vendor/subscription");
+      const response = await api.post("/subscriptions/cancel", {
+        immediately: immediately,
+      });
       return response.data;
     } catch (error) {
       console.error("Error cancelling subscription:", error);
+      throw error;
+    }
+  },
+
+  // GET /subscriptions/my-subscription/history (vendor route)
+  getSubscriptionHistory: async (page = 1, limit = 10) => {
+    try {
+      const response = await api.get("/subscriptions/my-subscription/history", {
+        params: { page, limit },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching subscription history:", error);
+      throw error;
+    }
+  },
+
+  // PUT /subscriptions/auto-renew (vendor route)
+  updateAutoRenew: async (autoRenew) => {
+    try {
+      const response = await api.put("/subscriptions/auto-renew", {
+        autoRenew: autoRenew,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error updating auto-renew:", error);
+      throw error;
+    }
+  },
+
+  // GET /subscriptions/can-list-card (vendor route)
+  canListCard: async () => {
+    try {
+      const response = await api.get("/subscriptions/can-list-card");
+      return response.data;
+    } catch (error) {
+      console.error("Error checking card listing permission:", error);
       throw error;
     }
   },
