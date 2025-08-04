@@ -321,31 +321,6 @@ const Subscription = () => {
             })}
           </div>
         </div>
-
-        {/* Debug Information (remove in production) */}
-        <div className="mt-12 text-center">
-          <details className="text-white/60 text-sm">
-            <summary className="cursor-pointer hover:text-white/80">
-              Debug: Plan Calculations
-            </summary>
-            <div className="mt-4 space-y-2">
-              {enhancedPlans.map((plan) => (
-                <div
-                  key={plan.id}
-                  className="text-left max-w-md mx-auto bg-white/5 p-3 rounded"
-                >
-                  <div>
-                    <strong>{plan.name}:</strong>
-                  </div>
-                  <div>Original Price: ${plan.originalPrice}</div>
-                  <div>Discount: {plan.discountPct}%</div>
-                  <div>Final Price: ${plan.finalPrice}</div>
-                  <div>Savings: ${plan.originalPrice - plan.finalPrice}</div>
-                </div>
-              ))}
-            </div>
-          </details>
-        </div>
       </div>
     </div>
   );
